@@ -32,7 +32,7 @@ The first public release.
 
 ### API
 
-- `CATALOG`, the catalog: every part's id, name, family, generator, preset, the options it takes as data (type, range, choices, default, whether it is state) and the names people search for it by. `FAMILIES`, `RENAMED_IDS`, `findPart`, `searchParts`, `checkOptions` and `optionApplies` beside it.
+- `CATALOG`, the catalog: every part's id, name, family, generator, preset, the options it takes as data (type, range, choices, default, whether it is state) and the names people search for it by. `FAMILIES`, `findPart`, `searchParts`, `checkOptions` and `optionApplies` beside it.
 - `drawPart(id, options)`, which draws any catalog part and throws for an unknown id or option, naming the nearest; `partPins(id, options)`, a part's pins without its SVG; `loadPart(id)`, which loads only the part's family.
 - TypeScript types generated from the options: `PartId`, `PartOptions<Id>`, `PartCall`, and a `drawPart` that rejects a misspelt id or option.
 - `rotateArtwork`, `flipArtwork`, `scopeIds` and `toDataUrl`, which turn, mirror, scope or encode a drawing.
@@ -53,17 +53,6 @@ The first public release.
 - The element's input parts work by pointer and keyboard: a pushbutton presses while it is held, the potentiometers turn and slide as they are dragged, the slide switch and the DIP switch's levers flip when clicked, the encoder turns a detent at a time and presses, the joystick moves and springs back, the keypad's and the remote's keys press and the dialer dials. What a person changes is written to the element's attributes, and the element fires `input`, `change`, `press`, `release`, `turn` and `dial`. It takes focus, tells assistive technology its role and state, and `static` turns the controls off.
 - The rotary dialer's `angle` runs to 324°, where the 0's hole meets the finger stop.
 - `@deepcircuits/parts-kit/controls`: the geometry the element's input parts are operated by, for a host that handles the pointer itself. `knobPosition` turns a point round the potentiometer's knob into its position, `detentsTurned` counts the encoder's detents a drag has passed, and `dialGeometry`, `dialDigitAt` and `dialTravel` find the dialer's finger hole under a point and how far the wheel winds from it.
-
-### Renamed
-
-The names below changed before the first release. The old generator names, ids and options keep working and are marked `@deprecated` in the types; pin names have no aliases, since a pin has one name.
-
-- Templates move to `@deepcircuits/parts-kit/templates` with a `Template` suffix: `devBoard`, `megaBoard`, `nanoConnect`, `picoBoard`, `espDevKit`, `nucleo32Board`, `nucleo64Board`, `module`, `sensorModule`, `comparatorBoard`, `smallSensorBoard`, `gasModule`, `chip` and `to92` become `devBoardTemplate` and so on.
-- The primitives (`svg`, `pin`, `header`, `board`, `lens`, `indicator`, `flow`, `probe`, `wire` and the rest) move to `/primitives`, `check` and `pinsOnPitch` to `/check`, `mount` to `/mount`. `lens`, `indicator` and `flow` take `hook` in place of `id`.
-- `ultrasonicSensor` is `ultrasonicRanger` and `mfrc522Reader` is `rfidModule`, which drew the same parts.
-- Options: a resistor's `value` is `ohms`; a slide switch's `position` (1 or 2) is `contact` (1 or 3, the pin the middle pin joins). `live.flow` also takes `'reverse'`.
-- Catalog ids are each part's name as a slug, and the names put a size or count after a comma (`Character LCD, 16×2`): `16x2-character-lcd` is `character-lcd-16x2`, `led` is `led-5-mm`, `esp32-dev-board` is `esp32-dev-board-30-pin`, `esp32-devkitc-v4` is `esp32-dev-board-38-pin`, `blue-pill` is `stm32-blue-pill`, and so on; `RENAMED_IDS` lists all 31. The `logic` family is `symbol`.
-- Pins: an LED's cathode `C` is `K`, and a bar graph's `C1` to `C10` are `K1` to `K10`; a buzzer's `1` and `2` are `+` and `-`; a pushbutton's `1.l`, `1.r`, `2.l`, `2.r` are `1`, `1.2`, `2`, `2.2`; a one-digit seven-segment display's `COM.1` is `COM`; the DS18B20's `VCC` is `VDD`. On the boards the first of a repeated name loses its `.1` (`GND.1` is `GND`), the Mega's block `5V.1` and `5V.2` are `5V.2` and `5V.3`, and the Franzininho's second `GND` and `VCC` are `GND.2` and `VCC.2`.
 
 ### Project
 

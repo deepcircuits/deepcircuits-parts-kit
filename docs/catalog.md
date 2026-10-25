@@ -50,7 +50,7 @@ A host can build its controls from them:
 
 ## Ids and pin names
 
-A published id always draws the same part. An id is the part's name in lower case, with a hyphen for each run of other characters (`Character LCD, 16×2` is `character-lcd-16x2`). Renamed ids still work, and `RENAMED_IDS` maps them to their new names.
+A published id always draws the same part. An id is the part's name in lower case, with a hyphen for each run of other characters (`Character LCD, 16×2` is `character-lcd-16x2`).
 
 Pin names come from the part's data sheet or the printing on the board (`A` and `K` on an LED, `VSS` to `K` on a character LCD). When a name repeats on a part, the first is bare and the rest get `.2`, `.3` and so on (`GND`, `GND.2`). The printing on the drawing leaves the suffix off, as on the real board.
 

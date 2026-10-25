@@ -103,7 +103,7 @@ host.innerHTML = drawServo({ angle: 45 }).svg;
 | --- | --- |
 | `@deepcircuits/parts-kit` | Every generator, `drawPart`, the catalog, the helpers and the colour settings. |
 | `@deepcircuits/parts-kit/boards`, `/displays`, `/sensors`, `/inputs`, `/outputs`, `/modules`, `/chips`, `/passives`, `/breadboards`, `/symbols` | One family's generators. |
-| `@deepcircuits/parts-kit/catalog` | `CATALOG`, `FAMILIES`, `RENAMED_IDS`, `findPart`, `searchParts`, `checkOptions`, `optionApplies` and `loadPart`, without drawing code. |
+| `@deepcircuits/parts-kit/catalog` | `CATALOG`, `FAMILIES`, `findPart`, `searchParts`, `checkOptions`, `optionApplies` and `loadPart`, without drawing code. |
 | `@deepcircuits/parts-kit/templates` | The templates the parts are built from, for parts of your own. |
 | `@deepcircuits/parts-kit/primitives` | The drawing building blocks (pins, headers, boards, lenses, the live layer) for making a part. |
 | `@deepcircuits/parts-kit/dom` | `patchSvg`, `syncSvg` and `findHook`, for updating a drawn part on a page. |
@@ -118,7 +118,3 @@ host.innerHTML = drawServo({ angle: 45 }).svg;
 | `@deepcircuits/parts-kit/tokens-css` | `tokensCss(tokens, options)`, which writes a tokens stylesheet. |
 
 The package is ES modules only, for current browsers and Node.
-
-## Renamed names
-
-Old names still work and are marked `@deprecated` in the types. The [changelog](../CHANGELOG.md) lists each one.

@@ -5,7 +5,7 @@
  *
  * Ids are frozen: a stored id keeps drawing the same part. An id is its name in lower case with every run of other
  * characters a hyphen (× is x, ″ is in), and starts with a letter; a size, count or part number that would start a
- * name follows a comma instead ("Character LCD, 16×2"). An id that has been renamed keeps working (RENAMED_IDS).
+ * name follows a comma instead ("Character LCD, 16×2").
  */
 import { OPTIONS } from './options.js';
 
@@ -198,41 +198,6 @@ const PARTS = [
   ['supply', 'Supply', 'symbol', 'supplySymbol', null, ['VCC', 'power']],
 ];
 
-/** Ids the catalog has renamed, and the id each one draws now. */
-export const RENAMED_IDS = {
-  'esp32-dev-board': 'esp32-dev-board-30-pin',
-  'esp32-devkitc-v4': 'esp32-dev-board-38-pin',
-  'blue-pill': 'stm32-blue-pill',
-  '16x2-character-lcd': 'character-lcd-16x2',
-  '20x4-character-lcd': 'character-lcd-20x4',
-  '0-96in-oled': 'oled-0-96in-i2c',
-  'oled-breakout': 'oled-0-96in-spi',
-  '1-5in-oled': 'oled-1-5in',
-  '2-4in-tft': 'tft-display-2-4in',
-  '2-4in-touch-tft': 'tft-display-2-8in-touch',
-  '84x48-lcd': 'graphic-lcd-84x48',
-  '2-9in-e-paper': 'e-paper-display-2-9in',
-  '1-digit-7-segment': 'seven-segment-display-1-digit',
-  '4-digit-7-segment': 'seven-segment-display-4-digits',
-  '8x8-led-matrix': 'led-matrix-8x8',
-  '4x-led-matrix-chain': 'led-matrix-chain-of-4',
-  '8x8-rgb-matrix': 'rgb-led-matrix-8x8',
-  '16-led-ring': 'led-ring-16-leds',
-  'temp-and-humidity': 'temperature-and-humidity-sensor',
-  'temp-and-humidity-module': 'temperature-and-humidity-module',
-  'pressure-sensor': 'pressure-sensor-4-pin',
-  'motion-sensor': 'pir-motion-sensor',
-  'accelerometer-gyro': 'accelerometer-and-gyro',
-  'ds18b20-temperature': 'ds18b20-temperature-sensor',
-  '6-mm-pushbutton': 'pushbutton-6-mm',
-  '4x4-keypad': 'keypad-4x4',
-  '8-way-dip-switch': 'dip-switch-8-way',
-  led: 'led-5-mm',
-  '74hc595-shift-register': 'shift-register-74hc595',
-  '74hc165-shift-register': 'shift-register-74hc165',
-  'd-flip-flop-set-reset': 'd-flip-flop-with-set-and-reset',
-};
-
 /** An option's `when` against a call's values: every named option matches one of its values (null is unset). */
 export function optionApplies(spec, values) {
   if (!spec.when) return true;
@@ -250,21 +215,17 @@ function freeze(value) {
   return value;
 }
 
-const deprecatedOf = {};
 function entry([id, name, family, fn, preset, aliases]) {
   const all = OPTIONS[fn];
   if (!all) throw new Error(`${id}: no options for ${fn}`);
   const options = {};
-  const deprecated = {};
   preset = preset || {};
   for (const [k, spec] of Object.entries(all)) {
     if (k in preset) continue;
-    if (spec.deprecated) deprecated[k] = spec;
     // An option whose `when` names the preset belongs to the parts that preset makes.
-    else if (!spec.when || Object.keys(spec.when).every(w => !(w in preset)) || optionApplies(spec, preset))
+    if (!spec.when || Object.keys(spec.when).every(w => !(w in preset)) || optionApplies(spec, preset))
       options[k] = spec;
   }
-  deprecatedOf[id] = deprecated;
   const stateNames = Object.keys(options).filter(k => options[k].state);
   return { id, name, family, fn, preset, options, state: stateNames, aliases };
 }
@@ -274,9 +235,9 @@ export const CATALOG = freeze(PARTS.map(entry));
 
 const byId = new Map(CATALOG.map(e => [e.id, e]));
 
-/** The catalog entry for an id (or a renamed one), or undefined. */
+/** The catalog entry for an id, or undefined. */
 export function findPart(id) {
-  return byId.get(id) || byId.get(RENAMED_IDS[id]);
+  return byId.get(id);
 }
 
 // Spelling distance, for "did you mean".
@@ -382,7 +343,7 @@ export function checkOptions(id, options) {
   const out = [];
   const names = Object.keys(e.options);
   for (const [k, v] of Object.entries(options)) {
-    const spec = e.options[k] || deprecatedOf[e.id][k];
+    const spec = e.options[k];
     if (spec) out.push(...problemsOf(spec, v, `${e.id}: "${k}"`));
     else {
       const near = nearest(k, names);

@@ -66,7 +66,7 @@ const legDrawn = T['leg-width'] + 0.6, lead = T['lead-width'];
 if (legDrawn < 0.03 * IN - 1e-9) fail.push(`leg drawn ${legDrawn}px < 0.03 in (${0.03 * IN}px)`);
 if (lead < 0.03 * IN - 1e-9) fail.push(`chip lead ${lead}px < 0.03 in (${0.03 * IN}px)`);
 // the standing parts' legs are at least 0.03 in long: the LED, the capacitors and the resistor reach a whole pitch
-for (const [name, art] of [['led', K.led()], ['resistor', K.resistor({ value: 220 })], ['cap', K.capacitor()]]) {
+for (const [name, art] of [['led', K.led()], ['resistor', K.resistor({ ohms: 220 })], ['cap', K.capacitor()]]) {
   const span = Math.max(...art.pins.map(p => p.x)) - Math.min(...art.pins.map(p => p.x)); if (span < 0.03 * IN) fail.push(`${name}: legs span ${span}px`);
 }
 console.log(`KLC: smallest print ${(minText / MM).toFixed(2)} mm (F5.1 text 1.00 mm), finest stroke ${(minStroke / MM).toFixed(3)} mm (F5.1 lines 0.10-0.15 mm), pins on the 100 mil grid (S4.1)`);

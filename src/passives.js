@@ -108,9 +108,7 @@ export function resistor(props) {
   const h = 2 * p;
   const y = p;
   let s = '';
-  // ohms; value is its old name.
-  const value =
-    props && props.ohms !== undefined ? props.ohms : props && props.value !== undefined ? props.value : 1000;
+  const value = props && props.ohms !== undefined ? props.ohms : 1000;
   s += wire(0, y, w, y);
   const mm = p / 2.54;
   const bx = (w - 6.3 * mm) / 2;

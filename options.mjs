@@ -1,12 +1,12 @@
 // The catalog's names and options, held to what the parts draw:
-// - every id is its name as a slug, starts with a letter and is unique; renamed ids point at live ones;
+// - every id is its name as a slug, starts with a letter and is unique;
 // - every option's default draws what leaving it out draws, and every other value of it changes the drawing (in the
 //   context its `when` names), so a part never lists an option it ignores;
 // - every example passes checkOptions and draws;
 // - pin names follow the convention: unique, a repeated name bare once and .2, .3 after, never .1;
 // - each family entry point exports the generators its parts name.
 import * as K from './src/index.js';
-import { RENAMED_IDS, optionApplies } from './src/catalog.js';
+import { optionApplies } from './src/catalog.js';
 
 const problems = [];
 const fail = (id, msg) => problems.push(`${id}: ${msg}`);
@@ -25,10 +25,6 @@ for (const e of K.CATALOG) {
   if (ids.has(e.id)) fail(e.id, 'the id repeats');
   ids.add(e.id);
   if (!K.FAMILIES.includes(e.family)) fail(e.id, `no family ${e.family}`);
-}
-for (const [from, to] of Object.entries(RENAMED_IDS)) {
-  if (ids.has(from)) fail(from, 'a renamed id is a live id again');
-  if (!ids.has(to)) fail(from, `renamed to ${to}, which is not in the catalog`);
 }
 
 // A value of the spec other than its default, to show the option changes the drawing.

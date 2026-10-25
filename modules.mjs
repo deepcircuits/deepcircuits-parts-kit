@@ -1,6 +1,5 @@
 // The ES modules (src/) and the built bundle draw the same artwork for every suite part, card preview and
-// fuzz case, and the vars token mode changes colours only: same sizes, pins and overlap verdicts. Every deprecated
-// root name is the same function or value as the name that replaces it.
+// fuzz case, and the vars token mode changes colours only: same sizes, pins and overlap verdicts.
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import vm from 'node:vm';
@@ -12,7 +11,6 @@ const entries = ['index', 'templates', 'primitives', 'check', 'mount', 'dom', 'e
 const byEntry = {};
 for (const name of entries) if (existsSync(`src/${name}.js`)) Object.assign(esm, (byEntry[name] = await import(pathToFileURL(`src/${name}.js`).href)));
 delete esm.default;
-const { DEPRECATED } = await import(pathToFileURL('src/deprecated.js').href);
 const suiteSrc = readFileSync('suite.cjs', 'utf8').match(/const S = \{[\s\S]*?\n\};/)[0].replace('const S =', 'return');
 const fuzz = readFileSync('fuzz.cjs', 'utf8').split('\n'); const fuzzSrc = fuzz.slice(1, fuzz.findIndex(l => l.startsWith('let total'))).join('\n') + '\nreturn cases;';
 
@@ -34,11 +32,6 @@ function draw(K) {
 const fromBundle = draw(bundle), fromModules = draw(esm);
 const problems = [];
 if (Object.keys(bundle).sort().join() !== Object.keys(esm).sort().join()) problems.push('the bundle and the entry points expose different names');
-for (const [name, { use, from }] of Object.entries(DEPRECATED)) {
-  const home = byEntry[from || 'index'];
-  if (!(name in byEntry.index)) problems.push(`the root no longer exports the deprecated ${name}`);
-  else if (!home || byEntry.index[name] !== home[use]) problems.push(`${name} is not ${use} from /${from || ''}`);
-}
 if (fromModules.size !== fromBundle.size) problems.push(`artwork count ${fromModules.size} vs ${fromBundle.size}`);
 for (const [k, a] of fromBundle) if (JSON.stringify(fromModules.get(k)) !== JSON.stringify(a)) problems.push('differs: ' + k);
 esm.setTokenMode('vars', { prefix: 'kit-' });

@@ -234,7 +234,7 @@ export function slideSwitch(props) {
   const w = 4 * p;
   const h = 3 * p;
   let s = '';
-  const pos = props.contact === 3 || (props.contact === undefined && props.position === 2) ? 2 : 1;
+  const pos = props.contact === 3 ? 2 : 1;
   [p, 2 * p, 3 * p].forEach(x => {
     s += wire(x, 1.9 * p, x, h) + rect(x - 2.2, 1.85 * p, 4.4, 0.35 * p, T['metal-edge'], { rx: 0.4 });
   });
