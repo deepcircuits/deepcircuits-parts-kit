@@ -32,7 +32,7 @@ The first public release.
 
 ### API
 
-- `CATALOG`, the catalog: every part's id, name, family, generator, preset, the options it takes as data (type, range, choices, default, whether it is state) and the names people search for it by. `FAMILIES`, `findPart`, `searchParts`, `checkOptions` and `optionApplies` beside it.
+- `CATALOG`, the catalog: every part's id, name, family, generator, preset, the options it takes as data (type, range, choices, default, whether it is state) and the names people search for it by. `FAMILIES` and their titles (`FAMILY_TITLES`), `findPart`, `searchParts`, `checkOptions`, `optionApplies` and `exampleValue` beside it.
 - `drawPart(id, options)`, which draws any catalog part and throws for an unknown id or option, naming the nearest; `partPins(id, options)`, a part's pins without its SVG; `loadPart(id)`, which loads only the part's family.
 - TypeScript types generated from the options: `PartId`, `PartOptions<Id>`, `PartCall`, and a `drawPart` that rejects a misspelt id or option.
 - `rotateArtwork`, `flipArtwork`, `scopeIds` and `toDataUrl`, which turn, mirror, scope or encode a drawing.

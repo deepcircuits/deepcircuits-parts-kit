@@ -25,8 +25,8 @@ Every part follows the rules in the [brand book](project/README.md). Read its fi
 | `gallery.mjs` | Writes `index.html` and `project/assets/hero.svg`. |
 | `images.mjs` | Writes `images/`: each part at rest, in its states, with its examples and in its colours. |
 | `tokens-css.mjs`, `bin/parts-kit-tokens.mjs` | The tokens as CSS custom properties, and the command line that writes them. |
-| `modules.mjs`, `catalog.mjs`, `options.mjs`, `element.mjs`, `suite.cjs`, `suite-previews.cjs`, `fuzz.cjs`, `inventory.cjs`, `standards.cjs`, `contrast.mjs` | The checks (below). |
-| `tools/render.mjs`, `tools/render-suite.mjs` | Render parts to a PNG sheet with Playwright and print the overlap check for each. |
+| `checks/` | The checks (below). `drawings.mjs` holds what they draw: the suite (parts in their states, by name), the fuzz cases and every card preview's artworks. |
+| `tools/render.mjs` | Renders suite parts or generator calls to a PNG sheet with Playwright and prints the overlap check for each. |
 
 ## Checks
 
@@ -37,16 +37,13 @@ npm test               # the build, the gallery and every check below
 node build.mjs         # src/ -> bundle.js, the .d.ts files, tokens.js, tokens.css
 node gallery.mjs       # index.html and the README picture
 node images.mjs        # images/: every part as SVG files, and manifest.json
-node modules.mjs       # the ES modules and the bundle draw the same artwork; the vars mode moves nothing
-node catalog.mjs       # every catalog part draws cleanly and every preset generator is listed
-node options.mjs       # ids are their names' slugs; every option's default and examples draw as listed; pin names follow the convention
-node element.mjs       # every option value, written as a <parts-kit-part> attribute, reads back as itself; every input part has a control
-node suite.cjs         # the suite artworks: no overlaps (TOTAL 0)
-node suite-previews.cjs
-node fuzz.cjs          # random pin names, counts, finishes and sizes
-node inventory.cjs     # every template carries the parts the real one has
-node standards.cjs     # pins on the grid, legs, print and stroke sizes, against Fritzing's and KiCad's published rules
-node contrast.mjs      # the brand book's contrast claims
+node checks/modules.mjs     # the ES modules and the bundle draw the same artwork; the vars mode moves nothing
+node checks/catalog.mjs     # ids are their names' slugs; every part draws cleanly and every option's default and examples draw as listed; pin names follow the convention
+node checks/element.mjs     # every option value, written as a <parts-kit-part> attribute, reads back as itself; every input part has a control
+node checks/overlaps.mjs    # the suite, every card preview and random pin names, counts, finishes and sizes: no overlaps, pins on the pitch
+node checks/inventory.mjs   # every template carries the parts the real one has
+node checks/standards.mjs   # pins on the grid, legs, print and stroke sizes, against Fritzing's and KiCad's published rules
+node checks/contrast.mjs    # the brand book's contrast claims
 ```
 
 The render tools need Playwright (`npm install`); `CHROMIUM_PATH` points them at a browser of your own. To see the gallery, serve the repository's root with any static server (`python -m http.server`) and open `index.html`.
@@ -54,14 +51,14 @@ The render tools need Playwright (`npm install`); `CHROMIUM_PATH` points them at
 ## Changing a part
 
 1. Find the generator (`grep -n "function <name>" src/*.js`) and change it. Pins go on whole pitches from the first pin; nothing may overlap, and `check(artwork)` says what does. A piece that more than one family draws belongs in `src/pieces.js`, so loading one family never loads another; esbuild bundles the modules.
-2. Run `npm test`. `inventory.cjs` counts tagged elements per template, so a layout change usually means updating its row.
+2. Run `npm test`. `checks/inventory.mjs` counts tagged elements per template, so a layout change usually means updating its row.
 3. If the part has a card, update `project/generators/<Name>/README.md` and `preview.html`, and its measured row in the brand book.
 
 ## Adding a part
 
 1. Build it from the nearest template (the brand book's *Families and templates*), or compose it from the primitives.
 2. Export it from its module and from its family's entry point in `src/families/`, and type it in `project/generators/index.d.ts`.
-3. Give a library part its row in `src/catalog.js` (an id that is its name's slug, a name, a family, the generator, the preset options that make it, and search terms) and its options in `src/options.js` (type, label, range or choices, default, and `state` for what changes while it runs). `options.mjs` fails until its family's entry point exports the generator and every option draws as its spec says.
+3. Give a library part its row in `src/catalog.js` (an id that is its name's slug, a name, a family, the generator, the preset options that make it, and search terms) and its options in `src/options.js` (type, label, range or choices, default, and `state` for what changes while it runs). `checks/catalog.mjs` fails until its family's entry point exports the generator and every option draws as its spec says.
 4. Add a card in `project/generators/<Name>/` with a README that says what the consumer provides and a `preview.html` that mounts it in its states.
 5. Run `npm test`, then record the change in the [changelog](CHANGELOG.md).
 

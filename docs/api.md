@@ -103,7 +103,7 @@ host.innerHTML = drawServo({ angle: 45 }).svg;
 | --- | --- |
 | `@deepcircuits/parts-kit` | Every generator, `drawPart`, the catalog, the helpers and the colour settings. |
 | `@deepcircuits/parts-kit/boards`, `/displays`, `/sensors`, `/inputs`, `/outputs`, `/modules`, `/chips`, `/passives`, `/breadboards`, `/symbols` | One family's generators. |
-| `@deepcircuits/parts-kit/catalog` | `CATALOG`, `FAMILIES`, `findPart`, `searchParts`, `checkOptions`, `optionApplies` and `loadPart`, without drawing code. |
+| `@deepcircuits/parts-kit/catalog` | `CATALOG`, `FAMILIES`, `FAMILY_TITLES`, `findPart`, `searchParts`, `checkOptions`, `optionApplies`, `exampleValue` and `loadPart`, without drawing code. |
 | `@deepcircuits/parts-kit/templates` | The templates the parts are built from, for parts of your own. |
 | `@deepcircuits/parts-kit/primitives` | The drawing building blocks (pins, headers, boards, lenses, the live layer) for making a part. |
 | `@deepcircuits/parts-kit/dom` | `patchSvg`, `syncSvg` and `findHook`, for updating a drawn part on a page. |

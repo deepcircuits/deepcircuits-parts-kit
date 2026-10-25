@@ -127,7 +127,7 @@ One pitch is 2.54 mm, so a millimetre is 3.78 px (`pitch / 2.54`). Each template
 
 ## Measured against the published standard
 
-The kit's rules are held against two published standards. The first is the one for breadboard-view part graphics: Fritzing's graphic standards (fritzing.org/fritzings-graphic-standards), SparkFun's guide to them (learn.sparkfun.com/tutorials/make-your-own-fritzing-parts/custom-breadboard-svg) and Fritzing's part file format notes (github.com/fritzing/fritzing-app/wiki/2.1-Part-file-format). The second is KiCad's Library Conventions (klc.kicad.org), whose symbol and silkscreen rules give an independent floor for the same measurements. Every value used here (0.1 inch pins, 0.03 inch legs, 5pt print with a 3pt floor, 1.00 mm silkscreen text, 0.10 to 0.15 mm lines, the 100 mil grid) agrees across those sources. `standards.cjs` measures every artwork in the suite, every card's preview and every picture in `images/` against the rules that can be measured.
+The kit's rules are held against two published standards. The first is the one for breadboard-view part graphics: Fritzing's graphic standards (fritzing.org/fritzings-graphic-standards), SparkFun's guide to them (learn.sparkfun.com/tutorials/make-your-own-fritzing-parts/custom-breadboard-svg) and Fritzing's part file format notes (github.com/fritzing/fritzing-app/wiki/2.1-Part-file-format). The second is KiCad's Library Conventions (klc.kicad.org), whose symbol and silkscreen rules give an independent floor for the same measurements. Every value used here (0.1 inch pins, 0.03 inch legs, 5pt print with a 3pt floor, 1.00 mm silkscreen text, 0.10 to 0.15 mm lines, the 100 mil grid) agrees across those sources. `checks/standards.mjs` measures every artwork in the suite, every card's preview and every picture in `images/` against the rules that can be measured.
 
 | Their rule | The kit |
 | --- | --- |
@@ -135,7 +135,7 @@ The kit's rules are held against two published standards. The first is the one f
 | Legs 0.03 inch wide and at least 0.03 inch long | `leg-width` 2.3px inside a 0.6px `metal-edge` outline draws 2.9px, 0.030 inch; a chip's `lead-width` is 2.9px; every standing part's legs reach a whole pitch |
 | Text at 5pt, never below 3pt, kept as text | `pin-label` 4px is 3pt at 0.1 inch = 9.6px, and nothing prints smaller; `part-number` 6.4px is 4.8pt; every label is a `<text>` in the kit's `mono` stack, never outlined |
 | Explicit values on every attribute, `stroke-width` above all | every stroke is written with its width; the check fails on one without |
-| Flat colour, SVG Tiny features only: no gradients, filters or images | flat colour everywhere except the five sheens (`g-dome`, `g-lens`, `g-metal`, `g-glow-<hex>`, `g-hot`), two-stop gradients on curved surfaces only; no filters, patterns or images. A deliberate departure from SVG Tiny, recorded here; `standards.cjs` fails any other `url()` reference |
+| Flat colour, SVG Tiny features only: no gradients, filters or images | flat colour everywhere except the five sheens (`g-dome`, `g-lens`, `g-metal`, `g-glow-<hex>`, `g-hot`), two-stop gradients on curved surfaces only; no filters, patterns or images. A deliberate departure from SVG Tiny, recorded here; `checks/standards.mjs` fails any other `url()` reference |
 | Legs grey (8C8C8C), contacts copper (9A916C), their named cable colours | not adopted: those match Fritzing's own library. `lead`, `pad` and `metal` are the kit's materials, held to the contrast floors above |
 | OCR A or Droid Sans | not adopted: print is the `mono` stack as a presentation attribute, since SVG sanitizers keep no `<style>` or font files |
 | KLC S4.1: pins on a 100 mil (2.54 mm) grid | the same `pinsOnPitch` rule, 100 mil = 9.6px |
@@ -147,10 +147,10 @@ A part is production ready when six checks pass, not when it looks right at one 
 
 1. **No overlaps.** `PartsKit.check(artwork)` returns nothing (see the checklist). The kit's own suite runs it over every card's preview, every catalog part and a fuzz of random pin names, counts, finishes and sizes.
 2. **It survives a sanitizer.** DeepCircuits stores a part through DOMPurify's SVG profile: no `<style>`, `style`, `<image>` or `<animate>`, ids scoped and exposed as `data-svg-id`, `role` dropped while `aria-label` stays. Draw only what survives it, so nothing else is lost: every element, every attribute, every `data-*` hook, every `id` back as `data-svg-id`.
-3. **Print reads.** Every text-on-ground pair in *Theme, forced colours and contrast* meets its floor by `contrast.mjs`.
+3. **Print reads.** Every text-on-ground pair in *Theme, forced colours and contrast* meets its floor by `checks/contrast.mjs`.
 4. **It carries its inventory.** The parts the real one has, as *Measured from the real part* lists them, are present and tagged (`data-part`): a board has its traces, vias, mark, mount holes and labelled pins; a chip its lot code, notch and pin numbers; an LED its lens, glow and lead frame.
-5. **It meets the published standards.** `standards.cjs` passes: pins on the 0.1-inch grid, legs 0.03 inch, no print under 3pt or under KLC's 1.00 mm, no stroke under KLC's 0.10 mm, every stroke with a width, flat colour but the sheens (*Measured against the published standard*). The scripts behind every check here sit at the kit's root; its README says how to run them.
-6. **It renders where it is used.** Every card draws in a browser with no console error, wherever the bundle is loaded; the live layer's `pk-flow` animation moves and stops under `prefers-reduced-motion`, and every card still reads under forced colours. `suite-previews.cjs` runs every card's script and checks what it draws. The editor shows a part through the same sanitizer as check 2.
+5. **It meets the published standards.** `checks/standards.mjs` passes: pins on the 0.1-inch grid, legs 0.03 inch, no print under 3pt or under KLC's 1.00 mm, no stroke under KLC's 0.10 mm, every stroke with a width, flat colour but the sheens (*Measured against the published standard*). The scripts behind every check here sit at the kit's root; its README says how to run them.
+6. **It renders where it is used.** Every card draws in a browser with no console error, wherever the bundle is loaded; the live layer's `pk-flow` animation moves and stops under `prefers-reduced-motion`, and every card still reads under forced colours. `checks/overlaps.mjs` runs every card's script and checks what it draws. The editor shows a part through the same sanitizer as check 2.
 
 ## Families and templates
 
@@ -179,4 +179,4 @@ The editor places a pin's handle at its `(x, y)` and knows each pin by its place
 7. No vendor art, no vendor name.
 8. A card (`generators/<Name>/preview.html`) and a README that says what the consumer provides.
 9. `PartsKit.check(artwork)` returns nothing: no label on another label or on a part, no part on another part, nothing outside the box. Every drawn part is wrapped in a `data-part` group so the check can see it; `body` and `board` are grounds the others may sit on.
-10. `standards.cjs` passes with the new part in the suite: no print under `pin-label` (4px), every stroke with its width, pins on the grid, flat colour but the sheens.
+10. `checks/standards.mjs` passes with the new part in the suite: no print under `pin-label` (4px), every stroke with its width, pins on the grid, flat colour but the sheens.
