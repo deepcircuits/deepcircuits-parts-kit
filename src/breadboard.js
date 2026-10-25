@@ -22,7 +22,7 @@ export function breadboardPaint(value, T) {
  * body (BREADBOARD_COLORS), `splitRails` breaks the full board's rail
  * stripes between holes 25 and 26, as on boards whose rails are cut in
  * half, and `occupied` rings the holes in use, given as their centres
- * ({ x, y }). No pins: the editor's layout module names the holes. The
+ * ({ x, y }). No pins: a host names the holes itself. The
  * holes of a block are one path, so a full board stays small.
  */
 export function breadboard(props) {
@@ -50,7 +50,7 @@ export function breadboard(props) {
   const colX = function (k) {
     return 2 * p + (k - 1) * p;
   };
-  // The body fills the box, except on the mini: its real body, 46 x 34.5 mm, is smaller than the box, so it is drawn at that size centred on the holes and the box and hole grid stay the layout module's.
+  // The body fills the box, except on the mini: its real body, 46 x 34.5 mm, is smaller than the box, so it is drawn at that size centred on the holes, and the box and hole grid keep their places.
   const mm = p / 2.54;
   const bw = rails ? w - 2 * T['board-inset'] : 46 * mm;
   const bh = rails ? h - 2 * T['board-inset'] : 34.5 * mm;
