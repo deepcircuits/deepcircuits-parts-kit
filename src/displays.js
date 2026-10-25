@@ -19,8 +19,7 @@ import {
   trace,
   via,
 } from './core.js';
-import { wire } from './passives.js';
-import { dipOnBoard, smd } from './modules.js';
+import { barePad, dipOnBoard, silkName, smd, wire } from './pieces.js';
 
 /**
  * A character LCD module at the size of the real 80 × 36 mm 16×2 (or the
@@ -270,10 +269,6 @@ const SEG_OF = {
   r: 'eg',
   U: 'bcdef',
 };
-/** A pin's name as the silk prints it: the .N suffix on a repeated name (COM.2) dropped. */
-function silkName(n) {
-  return String(n).replace(/\.\d+$/, '');
-}
 
 /**
  * A seven-segment display: digits in a black face, pins along the top and
@@ -443,14 +438,6 @@ export function sevenSegment(props) {
     `${digits}-digit seven-segment display${props.levels || !value.trim() ? '' : ` showing ${value}`}`,
     s,
     pins,
-  );
-}
-
-/** A bare plated pad (no handle): the places a header has that the catalog does not name. */
-export function barePad(T, x, y) {
-  return tag(
-    'pad',
-    circle(x, y, T['pad-radius'], T.pad) + circle(x, y, T['hole-radius'], T.hole, edge(T, T['metal-edge'], 0.5)),
   );
 }
 
@@ -1199,4 +1186,31 @@ export function tm1637Module(props) {
     via(T, 1.6 * p, h / 2 + 1.1 * p);
   s += text(fx + fw / 2, h - 0.5 * p, props.label || '4-DIGIT DISPLAY', PIN_LABEL, f.silk);
   return art(w, h, `TM1637 4-digit display${value ? ` showing ${value}` : ''}`, s, pins);
+}
+
+// The catalog's display modules whose header differs from the template's.
+// Display and radio modules whose catalog header differs from the template's.
+
+/** A screen module's options: its picture (`caption`, `pixels`) over the catalog's own. */
+function screen(props, own) {
+  props = props || {};
+  return Object.assign({ caption: props.caption, pixels: props.pixels }, own);
+}
+
+/** The SSD1306 OLED module with the four-pin I2C header. */
+export function ssd1306Module(props) {
+  return oledBreakout(screen(props, { pins: ['GND', 'VCC', 'SCL', 'SDA'] }));
+}
+/** The SH1107 128 x 128 OLED module. */
+export function sh1107Module(props) {
+  return oledSquare(screen(props, { label: 'SH1107 128x128', pins: ['GND', 'VCC', 'SCL', 'SDA'] }));
+}
+/** The ILI9341 display with the FT6206 capacitive touch: eleven pins. */
+export function ili9341TouchDisplay(props) {
+  return tftModule(
+    screen(props, {
+      touch: true,
+      pins: ['VCC', 'GND', 'CS', 'RST', 'D/C', 'MOSI', 'SCK', 'LED', 'MISO', 'SCL', null, 'SDA'],
+    }),
+  );
 }

@@ -20,7 +20,7 @@ import {
   text,
   tokens,
 } from './core.js';
-import { barePad } from './displays.js';
+import { barePad } from './pieces.js';
 
 /** A pixel's colour from r, g, b (0..1) or a CSS colour string; off when nothing drives it. */
 function pixelColor(T, c) {

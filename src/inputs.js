@@ -19,8 +19,7 @@ import {
   text,
   tokens,
 } from './core.js';
-import { wire } from './passives.js';
-import { edgeHeader, framed, mountHole, padRow } from './modules.js';
+import { edgeHeader, framed, mountHole, padRow, wire } from './pieces.js';
 
 /**
  * A 12 mm tactile pushbutton at the real part's size: a 12 × 12 mm

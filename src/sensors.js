@@ -21,8 +21,8 @@ import {
   tokens,
   trace,
 } from './core.js';
-import { wire } from './passives.js';
-import { edgeHeader, framed, mountHole, padRow, smd, soicAcross } from './modules.js';
+import { edgeHeader, framed, mountHole, padRow, smd, soicAcross, wire } from './pieces.js';
+import { moduleTemplate } from './modules.js';
 
 /**
  * The small sensor boards sold by the hundred (KY and FC classes), drawn
@@ -1575,4 +1575,101 @@ export function pulseSensor(props) {
       return { name: names[i], x, y: h };
     }),
   );
+}
+
+// The catalog's sensor boards and packages, built from the templates above with each part's real pins and silk. Each
+// takes the options its catalog entry lists (src/options.js): a sensor board's `indicators` and `finish`.
+/** A sensor board's lamps: PWR, and DO for the comparator's output. */
+function lamps(props) {
+  const ind = (props && props.indicators) || {};
+  return { power: ind.power === true, out: ind.out === true };
+}
+
+/** The board colour the caller picked, else the part's own. */
+function finishOf(props, own) {
+  return (props && props.finish) || own;
+}
+
+// Sensor boards.
+
+/** The light sensor: the LDR on the four-pin comparator board. */
+export function lightSensor(props) {
+  return sensorModuleTemplate({
+    element: 'ldr',
+    comparator: true,
+    pins: ['VCC', 'GND', 'DO', 'AO'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The infrared flame sensor on the same board. */
+export function flameSensor(props) {
+  return sensorModuleTemplate({
+    element: 'flame',
+    comparator: true,
+    pins: ['VCC', 'GND', 'DOUT', 'AOUT'],
+    labels: ['VCC', 'GND', 'DO', 'AO'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The SW-520D tilt switch on its three-pin comparator board. */
+export function tiltSwitch(props) {
+  return sensorModuleTemplate({
+    element: 'cylinder',
+    comparator: true,
+    pins: ['GND', 'VCC', 'OUT'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The sound sensor: the 9.7 mm electret capsule on the four-pin comparator board, or the 6 mm one on the small board (`small`). */
+export function soundSensor(props) {
+  return sensorModuleTemplate({
+    element: 'mic',
+    comparator: true,
+    micMm: props && props.small ? 6 : 9.7,
+    pins: ['AOUT', 'GND', 'VCC', 'DOUT'],
+    labels: ['AO', 'G', '+', 'DO'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The NTC thermistor on its three-pin board. */
+export function ntcSensor(props) {
+  return sensorModuleTemplate({
+    element: 'bead',
+    pins: ['OUT', 'VCC', 'GND'],
+    label: 'KY-013',
+    finish: finishOf(props),
+  });
+}
+/** The 38 kHz infrared receiver on its three-pin board. */
+export function irReceiver(props) {
+  return sensorModuleTemplate({ element: 'ir', pins: ['GND', 'VCC', 'DAT'], label: 'KY-022', finish: finishOf(props) });
+}
+/** The MQ gas sensor module, its header as the board prints it. */
+export function gasSensor(props) {
+  return gasModuleTemplate({
+    pins: ['VCC', 'GND', 'DOUT', 'AOUT'],
+    labels: ['VCC', 'GND', 'DO', 'AO'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The DS18B20 1-Wire temperature sensor in its TO-92 package, flat face forward: GND, DQ, VDD. */
+export function ds18b20Sensor() {
+  return to92Template({ label: 'DS18B20', pins: ['GND', 'DQ', 'VDD'] });
+}
+/** The MPU6050 IMU breakout, its header as the board prints it (VCC to INT). */
+export function mpu6050Imu(props) {
+  return moduleTemplate({
+    label: 'MPU6050',
+    pins: ['VCC', 'GND', 'SCL', 'SDA', 'XDA', 'XCL', 'AD0', 'INT'],
+    part: 'chip',
+    ic: 'qfn',
+    width: 21,
+    height: 16,
+    finish: finishOf(props, 'blue'),
+  });
 }

@@ -697,11 +697,306 @@ var PartsKit = (() => {
     }
   });
 
-  // src/passives.js
+  // src/pieces.js
+  function smd(T, kind, x, y, horizontal) {
+    const w = horizontal ? 0.9 * T.pitch : 0.55 * T.pitch;
+    const h = horizontal ? 0.55 * T.pitch : 0.9 * T.pitch;
+    let s = "";
+    if (kind === "crystal")
+      return tag(
+        "crystal",
+        rect(
+          x,
+          y,
+          horizontal ? 1.3 * T.pitch : 0.7 * T.pitch,
+          horizontal ? 0.7 * T.pitch : 1.3 * T.pitch,
+          T.metal,
+          Object.assign({ rx: 0.35 * T.pitch }, edge(T, T["metal-edge"], T["stroke-fine"]))
+        )
+      );
+    s += rect(x, y, w, h, kind === "capacitor" ? T["cap-ceramic"] : T["resistor-smd"], { rx: 0.4 });
+    s += rect(x, y, horizontal ? w * 0.18 : w, horizontal ? h : h * 0.18, T.lead, { rx: 0.3 }) + rect(
+      horizontal ? x + w * 0.82 : x,
+      horizontal ? y : y + h * 0.82,
+      horizontal ? w * 0.18 : w,
+      horizontal ? h : h * 0.18,
+      T.lead,
+      { rx: 0.3 }
+    );
+    if (kind === "resistor")
+      s += rect(
+        horizontal ? x + w * 0.3 : x + w * 0.2,
+        horizontal ? y + h * 0.2 : y + h * 0.3,
+        horizontal ? w * 0.4 : w * 0.6,
+        horizontal ? h * 0.6 : h * 0.4,
+        T["cap-stripe"],
+        { rx: 0.2, "fill-opacity": 0.9 }
+      );
+    return tag("smd", s);
+  }
+  function dipOnBoard(T, x, cy, lengthPitches, label, pin1Right) {
+    const p = T.pitch;
+    const bw = lengthPitches * p;
+    const bh = 2.6 * p;
+    let s = "";
+    const n = Math.round(lengthPitches);
+    for (let i = 0; i < n; i++) {
+      const lx = x + (i + 0.5) * p;
+      s += rect(lx - 1.1, cy - 1.5 * p, 2.2, 1.5 * p - bh / 2 + 0.6, T.lead, { rx: 0.3 }) + rect(lx - 1.1, cy + bh / 2 - 0.6, 2.2, 1.5 * p - bh / 2 + 0.6, T.lead, { rx: 0.3 });
+    }
+    s += tag(
+      "chip",
+      rect(x - 1.1, cy - 1.5 * p, bw + 2.2, 3 * p, "none") + rect(x, cy - bh / 2, bw, bh, T.chip, Object.assign({ rx: T["radius-chip"] }, edge(T, T["chip-edge"])))
+    );
+    s += rect(x + 0.6, cy - bh / 2 + 0.6, bw - 1.2, 1.2, "#ffffff", { rx: 0.6, "fill-opacity": T["opacity-light"] * 0.5 }) + rect(x + 0.6, cy + bh / 2 - 1.8, bw - 1.2, 1.2, "#000000", { rx: 0.6, "fill-opacity": T["opacity-shade"] });
+    if (pin1Right)
+      s += path(`M${r2(x + bw)} ${r2(cy - 2.6)}a2.6 2.6 0 0 1 0 5.2z`, T["chip-print"]) + circle(x + bw - 0.5 * p, cy - bh / 2 + 0.45 * p, 0.9, T["chip-print"]);
+    else
+      s += path(`M${r2(x)} ${r2(cy - 2.6)}a2.6 2.6 0 0 0 0 5.2z`, T["chip-print"]) + circle(x + 0.5 * p, cy + bh / 2 - 0.45 * p, 0.9, T["chip-print"]);
+    s += circle(x + 4.2, cy, 1.1, "none", {
+      stroke: T["chip-edge"],
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.8
+    }) + circle(x + bw - 4.2, cy, 1.1, "none", {
+      stroke: T["chip-edge"],
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.8
+    });
+    if (label)
+      s += text(x + bw / 2, cy - 0.4, label, 4.4, T["chip-print"]) + text(x + bw / 2, cy + PIN_LABEL + 0.2, lotCode(label), PIN_LABEL, T["chip-print"], { "fill-opacity": 0.85 });
+    return s;
+  }
+  function usbPort(T, props) {
+    const kind = props.kind || "micro";
+    const mouth = props.mouth || "down";
+    const x0 = props.x;
+    const y0 = props.y;
+    const w = props.w;
+    const h = props.h;
+    const vert = mouth === "down" || mouth === "up";
+    const L = vert ? h : w;
+    const W = vert ? w : h;
+    const cx = x0 + w / 2;
+    const cy = y0 + h / 2;
+    const R = function(u0, u1, v0, v1, fill, more) {
+      const a = (u1 - u0) * W;
+      const b = (v1 - v0) * L;
+      if (mouth === "down") return rect(cx + u0 * W, y0 + v0 * L, a, b, fill, more);
+      if (mouth === "up") return rect(cx + u0 * W, y0 + (1 - v1) * L, a, b, fill, more);
+      if (mouth === "right") return rect(x0 + v0 * L, cy + u0 * W, b, a, fill, more);
+      return rect(x0 + (1 - v1) * L, cy + u0 * W, b, a, fill, more);
+    };
+    const seam = function(v) {
+      if (vert) {
+        const y = mouth === "down" ? y0 + v * L : y0 + (1 - v) * L;
+        return line(x0 + 1.2, y, x0 + w - 1.2, y, T["metal-edge"], T["stroke-fine"]);
+      }
+      const x = mouth === "right" ? x0 + v * L : x0 + (1 - v) * L;
+      return line(x, y0 + 1.2, x, y0 + h - 1.2, T["metal-edge"], T["stroke-fine"]);
+    };
+    const rx = kind === "c" ? W * 0.45 : 1;
+    let s = "";
+    s += R(-0.5, -0.34, 0, 0.16, T["metal-edge"], { rx: 0.3 }) + R(0.34, 0.5, 0, 0.16, T["metal-edge"], { rx: 0.3 });
+    s += R(-0.5, 0.5, 0.1, 1, T.metal, Object.assign({ rx }, edge(T, T["metal-edge"])));
+    s += R(-0.5, 0.5, 0.1, 1, sheen("metal"), { rx, "fill-opacity": 0.75 });
+    s += R(-0.5, 0.5, 0.1, 0.24, "#ffffff", { rx, "fill-opacity": 0.18 });
+    s += seam(0.5);
+    if (kind === "c") s += R(-0.34, 0.34, 0.8, 0.95, T["plastic-black"], { rx: 0.075 * L });
+    else {
+      if (kind === "mini") s += R(-0.12, 0.12, 0.58, 0.72, T.cavity, { rx: 0.3 });
+      else s += R(-0.34, -0.2, 0.6, 0.76, T.cavity, { rx: 0.3 }) + R(0.2, 0.34, 0.6, 0.76, T.cavity, { rx: 0.3 });
+      s += R(-0.38, 0.38, 0.86, 0.97, T["plastic-black"], { rx: 0.4 });
+    }
+    return tag("usb", s);
+  }
+  function padRow(T, fin, f, props, toward) {
+    const hdr = header(props);
+    const p = T.pitch;
+    const n = hdr.pins.length;
+    hdr.pins.forEach((pn, i) => {
+      const dx = (i - (n - 1) / 2) * 0.3 * p;
+      if (props.axis === "y")
+        hdr.svg += trace(T, fin, [
+          [pn.x, pn.y],
+          [pn.x + (toward < 0 ? -1.1 : 1.1) * p, pn.y],
+          [pn.x + (toward < 0 ? -1.6 : 1.6) * p, pn.y + dx]
+        ]);
+      else
+        hdr.svg += trace(T, fin, [
+          [pn.x, pn.y],
+          [pn.x, pn.y + (toward < 0 ? -1.1 : 1.1) * p],
+          [pn.x + dx, pn.y + (toward < 0 ? -1.6 : 1.6) * p]
+        ]);
+    });
+    return hdr;
+  }
+  function edgeHeader(T, props) {
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const names = props.names;
+    const side = props.side || "bottom";
+    const back = !!props.back;
+    const ext = props.ext === void 0 ? (back ? 8.5 : 6) * mm : props.ext;
+    const deep = 2.5 * mm;
+    const padIn = (back ? 1.6 : 3.7) * mm;
+    let s = "";
+    const pins = [];
+    const pads = [];
+    const across = side === "top" || side === "bottom";
+    const out = side === "bottom" || side === "right" ? 1 : -1;
+    const R = function(a0, a1, c0, c1, fill, attrs2) {
+      const u0 = props.at + out * c0;
+      const u1 = props.at + out * c1;
+      const lo = Math.min(u0, u1);
+      const span = Math.abs(u1 - u0);
+      return across ? rect(a0, lo, a1 - a0, span, fill, attrs2) : rect(lo, a0, span, a1 - a0, fill, attrs2);
+    };
+    const P = function(a, c) {
+      return across ? { x: a, y: props.at + out * c } : { x: props.at + out * c, y: a };
+    };
+    names.forEach((n, i) => {
+      const a = props.from + i * p;
+      const pad = P(a, -padIn);
+      const tip = P(a, ext);
+      s += tag("pad", circle(pad.x, pad.y, T["pad-radius"], T.pad));
+      s += tag(
+        "leg",
+        R(a - 1.2, a + 1.2, back ? deep : 0, ext, T["lead-edge"], { rx: 0.5 }) + R(a - 0.8, a + 0.8, back ? deep : 0, ext, T.lead, { rx: 0.4 })
+      );
+      if (!back) s += R(a - 0.8, a + 0.8, -padIn, -deep + 0.2 * mm, T.lead, { rx: 0.4 });
+      pins.push({ name: n, x: r2(tip.x), y: r2(tip.y) });
+      pads.push({ x: r2(pad.x), y: r2(pad.y) });
+    });
+    s += tag(
+      "header",
+      R(
+        props.from - p / 2,
+        props.from + (names.length - 0.5) * p,
+        back ? 0 : -deep,
+        back ? deep : 0,
+        T["plastic-black"],
+        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
+      )
+    );
+    return { svg: s, pins, pads };
+  }
+  function silkFrame(T, f, x, y, w, h) {
+    return rect(x - 1.2, y - 1.2, w + 2.4, h + 2.4, "none", {
+      stroke: f.silk,
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.85,
+      rx: 0.4
+    });
+  }
+  function framed(T, f, kind, x, y, horizontal) {
+    const p = T.pitch;
+    const w = horizontal ? 0.9 * p : 0.55 * p;
+    const h = horizontal ? 0.55 * p : 0.9 * p;
+    return silkFrame(T, f, x, y, w, h) + smd(T, kind, x, y, horizontal);
+  }
+  function sot23(T, x, y, leads, label) {
+    const w = 1.3 * 3.78;
+    const h = 2.9 * 3.78;
+    let s = "";
+    const n = leads === 5 ? 3 : 2;
+    for (let i = 0; i < n; i++) {
+      const ly = y + h / 2 + (i - (n - 1) / 2) * 0.95 * 3.78 - 1;
+      s += rect(x - 1.8, ly, 1.8, 2, T.lead, { rx: 0.2 });
+    }
+    const m = leads === 5 ? 2 : 1;
+    for (let j = 0; j < m; j++) {
+      const ry = y + h / 2 + (j - (m - 1) / 2) * 1.9 * 3.78 - 1;
+      s += rect(x + w, ry, 1.8, 2, T.lead, { rx: 0.2 });
+    }
+    s += rect(x, y, w, h, T.chip, Object.assign({ rx: 0.4 }, edge(T, T["chip-edge"], T["stroke-detail"])));
+    if (label)
+      s += text(x + w / 2, y + h / 2, label, 4, T["chip-print"], {
+        "dominant-baseline": "middle",
+        transform: `rotate(-90 ${r2(x + w / 2)} ${r2(y + h / 2)})`
+      });
+    return tag("smd", s);
+  }
+  function soic(T, x, y, w, h, nSide, label) {
+    let s = "";
+    const pitch = 1.27 * 3.78;
+    for (let i = 0; i < nSide; i++) {
+      const ly = y + h / 2 + (i - (nSide - 1) / 2) * pitch - 0.8;
+      s += rect(x - 3.6, ly, 3.6, 1.6, T.lead, { rx: 0.2 }) + rect(x + w, ly, 3.6, 1.6, T.lead, { rx: 0.2 });
+    }
+    s += rect(x, y, w, h, T.chip, Object.assign({ rx: 0.5 }, edge(T, T["chip-edge"], T["stroke-detail"]))) + bevel(T, x, y, w, h, 1, 0.5) + circle(x + 1.8, y + 1.8, 0.6, T["chip-print"]);
+    if (label)
+      s += text(x + w / 2, y + h / 2, label, 4, T["chip-print"], {
+        "dominant-baseline": "middle",
+        transform: `rotate(-90 ${r2(x + w / 2)} ${r2(y + h / 2)})`
+      });
+    return tag("chip", s);
+  }
+  function mountHole(T, f, x, y, r) {
+    return circle(x, y, r + 2.2, "none", { stroke: f.silk, "stroke-width": T["stroke-fine"], "stroke-opacity": 0.85 }) + tag("hole", circle(x, y, r, T.hole, edge(T, T.pad)));
+  }
+  function soicAcross(T, x, y, w, h, nSide, label) {
+    let s = "";
+    const pitch = 1.27 * 3.78;
+    for (let i = 0; i < nSide; i++) {
+      const lx = x + w / 2 + (i - (nSide - 1) / 2) * pitch - 0.8;
+      s += rect(lx, y - 3.6, 1.6, 3.6, T.lead, { rx: 0.2 }) + rect(lx, y + h, 1.6, 3.6, T.lead, { rx: 0.2 });
+    }
+    s += rect(x, y, w, h, T.chip, Object.assign({ rx: 0.5 }, edge(T, T["chip-edge"], T["stroke-detail"]))) + bevel(T, x, y, w, h, 1, 0.5) + circle(x + 1.8, y + h - 1.8, 0.6, T["chip-print"]);
+    if (label) s += text(x + w / 2, y + h / 2 + 1.4, label, 4, T["chip-print"]);
+    return tag("chip", s);
+  }
+  function silkName(n) {
+    return String(n).replace(/\.\d+$/, "");
+  }
+  function qfp(T, x, y, w, h, nSide, label) {
+    let s = "";
+    const lead = 1.5;
+    const lw = Math.min(1.2, (w - 4) / nSide * 0.55);
+    for (let i = 0; i < nSide; i++) {
+      const ox = 2 + (i + 0.5) * (w - 4) / nSide - lw / 2;
+      const oy = 2 + (i + 0.5) * (h - 4) / nSide - lw / 2;
+      s += rect(x - lead, y + oy, lead, lw, T.lead, { rx: 0.2 }) + rect(x + w, y + oy, lead, lw, T.lead, { rx: 0.2 });
+      s += rect(x + ox, y - lead, lw, lead, T.lead, { rx: 0.2 }) + rect(x + ox, y + h, lw, lead, T.lead, { rx: 0.2 });
+    }
+    s += rect(x, y, w, h, T.chip, Object.assign({ rx: T["radius-chip"] }, edge(T, T["chip-edge"])));
+    s += rect(x + 0.6, y + 0.6, w - 1.2, 1.1, "#ffffff", { rx: 0.5, "fill-opacity": T["opacity-light"] * 0.4 });
+    s += circle(x + 3.2, y + 3.2, 0.9, T["chip-print"]);
+    if (label) {
+      const fit = Math.floor((w - 2.4) / (PIN_LABEL * 0.62));
+      const lbl = String(label);
+      const cx = x + w / 2;
+      const cy = y + h / 2;
+      if (lbl.length <= fit && h >= 3 * PIN_LABEL + 2)
+        s += text(cx, cy - 0.6, lbl, PIN_LABEL, T["chip-print"]) + text(cx, cy + PIN_LABEL + 0.4, lotCode(lbl), PIN_LABEL, T["chip-print"], { "fill-opacity": 0.85 });
+      else if (lbl.length <= fit) s += text(cx, cy + 1.4, lbl, PIN_LABEL, T["chip-print"]);
+      else if (fit >= 4 && lbl.length <= 2 * fit) {
+        const dm = /^[A-Za-z]+(?=\d)/.exec(lbl);
+        const cut = dm && dm[0].length <= fit && lbl.length - dm[0].length <= fit ? dm[0].length : Math.ceil(lbl.length / 2);
+        s += text(cx, cy - 0.8, lbl.slice(0, cut), PIN_LABEL, T["chip-print"]) + text(cx, cy + PIN_LABEL - 0.4, lbl.slice(cut), PIN_LABEL, T["chip-print"]);
+      }
+    }
+    return tag("chip", s);
+  }
+  function usbC(T, cx, y, w, h, mouth) {
+    return usbPort(T, { kind: "c", x: cx - w / 2, y, w, h, mouth: mouth || "down" });
+  }
+  function barePad(T, x, y) {
+    return tag(
+      "pad",
+      circle(x, y, T["pad-radius"], T.pad) + circle(x, y, T["hole-radius"], T.hole, edge(T, T["metal-edge"], 0.5))
+    );
+  }
   function wire(x1, y1, x2, y2) {
     const T = tokens();
     return line(x1, y1, x2, y2, T["lead-edge"], T["leg-width"] + 0.6) + line(x1, y1, x2, y2, T.lead, T["leg-width"] - 0.4);
   }
+  var init_pieces = __esm({
+    "src/pieces.js"() {
+      init_core();
+    }
+  });
+
+  // src/passives.js
   function wirePath(d) {
     const T = tokens();
     return path(d, "none", {
@@ -1130,6 +1425,7 @@ var PartsKit = (() => {
   var init_passives = __esm({
     "src/passives.js"() {
       init_core();
+      init_pieces();
       BANDS = [
         "band-black",
         "band-brown",
@@ -1145,2087 +1441,11 @@ var PartsKit = (() => {
     }
   });
 
-  // src/modules.js
-  function smd(T, kind, x, y, horizontal) {
-    const w = horizontal ? 0.9 * T.pitch : 0.55 * T.pitch;
-    const h = horizontal ? 0.55 * T.pitch : 0.9 * T.pitch;
-    let s = "";
-    if (kind === "crystal")
-      return tag(
-        "crystal",
-        rect(
-          x,
-          y,
-          horizontal ? 1.3 * T.pitch : 0.7 * T.pitch,
-          horizontal ? 0.7 * T.pitch : 1.3 * T.pitch,
-          T.metal,
-          Object.assign({ rx: 0.35 * T.pitch }, edge(T, T["metal-edge"], T["stroke-fine"]))
-        )
-      );
-    s += rect(x, y, w, h, kind === "capacitor" ? T["cap-ceramic"] : T["resistor-smd"], { rx: 0.4 });
-    s += rect(x, y, horizontal ? w * 0.18 : w, horizontal ? h : h * 0.18, T.lead, { rx: 0.3 }) + rect(
-      horizontal ? x + w * 0.82 : x,
-      horizontal ? y : y + h * 0.82,
-      horizontal ? w * 0.18 : w,
-      horizontal ? h : h * 0.18,
-      T.lead,
-      { rx: 0.3 }
-    );
-    if (kind === "resistor")
-      s += rect(
-        horizontal ? x + w * 0.3 : x + w * 0.2,
-        horizontal ? y + h * 0.2 : y + h * 0.3,
-        horizontal ? w * 0.4 : w * 0.6,
-        horizontal ? h * 0.6 : h * 0.4,
-        T["cap-stripe"],
-        { rx: 0.2, "fill-opacity": 0.9 }
-      );
-    return tag("smd", s);
-  }
-  function moduleTemplate(props) {
-    const T = tokens();
-    const p = T.pitch;
-    const names = props.pins || ["VCC", "OUT", "GND"];
-    const f = finish(T, props.finish || "purple");
-    const mm = p / 2.54;
-    const minW = (names.length + 1) * p;
-    const w = props.width ? props.width * mm : Math.max(minW, (props.widthPitches || 0) * p);
-    const h = props.height ? props.height * mm : (props.heightPitches || 4.6) * p;
-    const rowY = h - 0.6 * p;
-    let s = "";
-    const startX = r2((w - (names.length - 1) * p) / 2);
-    s += board({
-      width: w,
-      height: h,
-      finish: props.finish || "purple",
-      holes: props.holes === false || w < 5 * p ? false : startX - 0.6 * p < 1.25 * p ? "top" : true,
-      title: (props.part || "chip") === "dual-can" ? void 0 : props.label,
-      titleY: props.extraPads && props.extraPads.length ? rowY - Math.floor((rowY - 0.8 * p) / p) * p + 1.4 * p : 1.1 * p,
-      titleSize: Math.min(5, (w - 2 * p) / Math.max(4, (props.label || "").length) * 1.5),
-      mark: w >= 8 * p && props.mark !== false && ((props.part || "chip") !== "dual-can" || w >= 14 * p) ? {
-        x: w - 2 * p,
-        y: props.extraPads && props.extraPads.length ? rowY - Math.floor((rowY - 0.8 * p) / p) * p + 1.8 * p : 0.55 * p,
-        size: 0.8 * p
-      } : void 0
-    });
-    const maxLen = names.reduce((m, n) => {
-      return Math.max(m, n.length);
-    }, 0);
-    const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
-    const labelSpan = rotateLabels ? T["pad-radius"] + 1 + maxLen * PIN_LABEL * 0.62 + 1.2 : T["label-rise"] + 3.6;
-    const extraY = rowY - Math.floor((rowY - 0.8 * p) / p) * p;
-    const extra = props.extraPads && props.extraPads.length ? header({
-      x: r2((w - (props.extraPads.length - 1) * p) / 2),
-      y: extraY,
-      labels: props.extraPads,
-      kind: "pad",
-      side: "below",
-      silk: f.silk,
-      size: PIN_LABEL
-    }) : null;
-    const part = props.part || "chip";
-    const top = part === "dual-can" ? 0.7 * p : extra ? extraY + 1.7 * p : 1.6 * p;
-    const bottom = rowY - labelSpan;
-    const mid = (top + bottom) / 2;
-    const cx = w / 2;
-    const room = bottom - top;
-    if (extra) {
-      s += extra.svg;
-      extra.pins.forEach((pn) => {
-        s += trace(T, props.finish || "purple", [
-          [pn.x, pn.y],
-          [pn.x, pn.y + 1 * p],
-          [pn.x + (pn.x < cx ? 0.3 : -0.3) * p, pn.y + 1.5 * p]
-        ]);
-      });
-    }
-    if (part !== "dual-can")
-      s += rect(0.5 * p, top - 0.25 * p, w - p, bottom - top + 0.5 * p, "none", {
-        rx: 1,
-        stroke: f.silk,
-        "stroke-width": T["stroke-fine"],
-        "stroke-opacity": 0.55
-      });
-    const hdr = header({ x: startX, y: rowY, labels: names, side: "above", silk: f.silk, rotate: rotateLabels });
-    hdr.pins.forEach((pn, i) => {
-      const dx = (i - (names.length - 1) / 2) * 0.35 * p;
-      s += trace(T, props.finish || "purple", [
-        [pn.x, pn.y],
-        [pn.x, rowY - 1.1 * p],
-        [pn.x + dx, bottom + 0.1 * p]
-      ]);
-    });
-    if (w >= 8 * p && part !== "sensor" && part !== "dome" && (part !== "dual-can" || w >= 14 * p))
-      s += via(T, 0.8 * p, rotateLabels ? Math.min(h - 1.9 * p, bottom - 0.7 * p) : h - 1.9 * p) + via(T, w - 0.8 * p, Math.max(top + 0.2 * p, 1.8 * p));
-    if (part === "chip") {
-      const half = Math.min(0.9 * p, (bottom - top) / 2 - 0.12 * p);
-      const ic = props.ic || "soic";
-      let chipS = "";
-      if (ic === "lga") {
-        chipS += rect(
-          cx - half,
-          mid - half,
-          2 * half,
-          2 * half,
-          T.metal,
-          Object.assign({ rx: 1 }, edge(T, T["metal-edge"], T["stroke-detail"]))
-        );
-        chipS += rect(cx - half + 0.5, mid - half + 0.5, 2 * half - 1, 0.9, "#ffffff", {
-          rx: 0.4,
-          "fill-opacity": T["opacity-light"] * 0.5
-        }) + circle(cx + half * 0.3, mid + half * 0.3, half * 0.22, T.hole);
-      } else {
-        chipS += rect(
-          cx - half,
-          mid - half,
-          2 * half,
-          2 * half,
-          T.chip,
-          Object.assign({ rx: ic === "qfn" ? 0.5 : 1 }, edge(T, T["chip-edge"], T["stroke-detail"]))
-        );
-        if (ic === "qfn") {
-          for (let i = 0; i < 4; i++) {
-            const lq = -half * 0.66 + i * half * 0.44;
-            chipS += rect(cx - half, mid + lq, 1, 0.2 * p, T.lead) + rect(cx + half - 1, mid + lq, 1, 0.2 * p, T.lead) + rect(cx + lq, mid - half, 0.2 * p, 1, T.lead) + rect(cx + lq, mid + half - 1, 0.2 * p, 1, T.lead);
-          }
-        } else {
-          for (let i = 0; i < 4; i++) {
-            const ly = mid - half * 0.69 + i * half * 0.46;
-            chipS += rect(cx - half - 1.2, ly, 1.2, 0.22 * p, T.lead, { rx: 0.2 }) + rect(cx + half, ly, 1.2, 0.22 * p, T.lead, { rx: 0.2 });
-          }
-        }
-        chipS += circle(cx - half * 0.66, mid - half * 0.66, 0.6, T["chip-print"]);
-        if (ic !== "qfn")
-          chipS += rect(cx - half + 0.5, mid - half + 0.5, 0.9, 2 * half - 1, "#ffffff", {
-            rx: 0.4,
-            "fill-opacity": T["opacity-light"] * 0.4
-          });
-      }
-      s += tag("chip", chipS);
-      const codeFit = Math.floor((2 * half - 1.6) / (PIN_LABEL * 0.62));
-      if (half >= 0.8 * p && codeFit >= 4)
-        s += text(cx, mid + half * 0.55, lotCode(props.label || "IC").slice(0, codeFit), PIN_LABEL, T["chip-print"], {
-          "fill-opacity": 0.85
-        });
-      if (cx - 2.3 * p >= 0.6 * p && room >= 1.9 * p)
-        s += smd(T, "resistor", cx - 2.3 * p, mid - 0.9 * p, true) + smd(T, "capacitor", cx - 2.3 * p, mid + 0.05 * p, true);
-      if (cx + 2.1 * p <= w - 0.6 * p && room >= 1.5 * p) s += smd(T, "crystal", cx + 1.35 * p, mid - 0.65 * p, false);
-      if (w >= 8 * p && room >= 1.3 * p)
-        s += smd(T, "capacitor", cx - 3.3 * p, mid - 0.45 * p, false) + smd(T, "resistor", cx + 2.4 * p, mid - 0.45 * p, false);
-    } else if (part === "sensor") {
-      const sw = Math.min(w - 1.6 * p, 6 * p);
-      const sh = Math.min(bottom - top, 10 * p);
-      const sx = cx - sw / 2;
-      const sy = mid - sh / 2;
-      const hp = props.housing === "blue" ? T["plastic-blue"] : T["plastic-white"];
-      const he = props.housing === "blue" ? T["plastic-blue-edge"] : T["plastic-white-edge"];
-      s += tag("housing", rect(sx, sy, sw, sh, hp, Object.assign({ rx: 1.2 }, edge(T, he))));
-      s += rect(sx + 1, sy + 1, sw - 2, sh - 2, "none", {
-        rx: 0.8,
-        stroke: he,
-        "stroke-width": T["stroke-fine"],
-        "stroke-opacity": 0.6
-      });
-      if (props.vent === "holes") {
-        for (let gy = sy + 0.5 * p; gy < sy + sh - 0.3 * p; gy += 0.45 * p)
-          for (let gx = sx + 0.5 * p; gx < sx + sw - 0.3 * p; gx += 0.45 * p)
-            s += circle(gx, gy, 0.95, T["plastic-white-edge"]) + circle(gx - 0.25, gy - 0.25, 0.4, "#000000", { "fill-opacity": 0.25 });
-      } else {
-        const slotH = Math.min(1.2 * p, (sh - 1.2 * p) / 3);
-        const rowsN = Math.max(1, Math.floor(sh * 0.68 / (slotH + 0.25 * p)));
-        for (let rr = 0; rr < rowsN; rr++)
-          for (let sxx = sx + 0.4 * p; sxx < sx + sw - 0.4 * p; sxx += 0.42 * p)
-            s += rect(sxx, sy + 0.4 * p + rr * (slotH + 0.25 * p), 0.22 * p, slotH, T["plastic-white-edge"], {
-              rx: 0.1 * p
-            }) + rect(sxx + 0.04 * p, sy + 0.4 * p + rr * (slotH + 0.25 * p), 0.1 * p, slotH, "#000000", {
-              rx: 0.05 * p,
-              "fill-opacity": 0.3
-            });
-      }
-      s += bevel(T, sx, sy, sw, sh);
-    } else if (part === "can" || part === "dual-can") {
-      let r;
-      let cs;
-      let cyc = mid;
-      if (part === "dual-can") {
-        const zoneHalf = (names.length - 1) * p / 2 + (rotateLabels ? PIN_LABEL / 2 : maxLen * PIN_LABEL * 0.62 / 2) + 0.6;
-        const canBottom = rowY - T["pad-radius"] - 0.6;
-        r = Math.min(
-          (props.canPitches || 2.6) * p / 2,
-          (canBottom - top) / 2 - 1.2,
-          (cx - zoneHalf - 2.8 - 0.6 * p) / 2
-        );
-        cyc = (top + canBottom) / 2;
-        cs = [cx - (zoneHalf + r + 1.6), cx + (zoneHalf + r + 1.6)];
-      } else {
-        r = Math.min((props.canPitches || 2.6) * p / 2, room / 2 - 2.4, w / 2 - 0.8 * p - 1.2);
-        cs = [cx];
-      }
-      if (r < 2) r = 2;
-      cs.forEach((x) => {
-        s += tag("can", circle(x, cyc, r + 1.2, T["metal-edge"]));
-        s += circle(x, cyc, r, T.metal, edge(T, T["metal-edge"])) + circle(x, cyc, r, sheen("metal"), { "fill-opacity": 0.6 });
-        s += circle(x, cyc, r * 0.74, T["plastic-black"], edge(T, T["metal-edge"], T["stroke-fine"]));
-        s += circle(x, cyc, r * 0.74, T["metal-edge"], { "fill-opacity": 0.55 });
-        for (let k = 0; k < 8; k++) {
-          const a = k * Math.PI / 4 + Math.PI / 8;
-          s += circle(x + Math.cos(a) * r * 0.86, cyc + Math.sin(a) * r * 0.86, r * 0.045, T["metal-edge"]);
-        }
-        for (let m = 0; m < 5; m++)
-          s += circle(x, cyc, r * (0.12 + m * 0.13), "none", {
-            stroke: "#ffffff",
-            "stroke-width": 0.4,
-            "stroke-opacity": 0.22
-          });
-        s += path(
-          `M${r2(x - r * 0.6)} ${r2(cyc - r * 0.35)}A${r2(r * 0.7)} ${r2(r * 0.7)} 0 0 1 ${r2(x - r * 0.3)} ${r2(cyc - r * 0.64)}`,
-          "none",
-          { stroke: "#ffffff", "stroke-width": 1, "stroke-linecap": "round", "stroke-opacity": 0.35 }
-        );
-      });
-      if (part === "dual-can") {
-        const gap = cs[1] - cs[0] - 2 * r - 2.4;
-        if (props.label && gap >= 8 && mid - 1.45 * p - 4.2 >= top)
-          s += text(
-            cx,
-            mid - 0.9 * p,
-            props.label,
-            Math.min(5, (gap - 2) / Math.max(4, props.label.length) * 1.6),
-            f.silk
-          );
-        if (w >= 14 * p)
-          s += text(1.35 * p, h - 0.45 * p, "T", PIN_LABEL, f.silk) + text(w - 1.35 * p, h - 0.45 * p, "R", PIN_LABEL, f.silk);
-        if (r >= 2.2 * p)
-          s += smd(T, "crystal", cx - 0.65 * p, mid - 2.3 * p, true) + tag("chip", rect(cx - 0.6 * p, mid - 0.3 * p, 1.2 * p, 0.9 * p, T.chip, { rx: 0.6 })) + smd(T, "capacitor", cx - 0.45 * p, mid + 0.8 * p, true);
-      } else if (cx - r - 0.9 * p >= 0.6 * p + 1.2 && room >= 1.2 * p)
-        s += smd(T, "resistor", cx - r - 0.9 * p, mid - 0.45 * p, false) + smd(T, "capacitor", cx + r + 0.45 * p, mid - 0.45 * p, false);
-    } else if (part === "microsd") {
-      const sw2 = Math.min(w - 1.6 * p, 6 * p);
-      const sh2 = Math.min(room - 0.3 * p, 5.6 * p);
-      const sx2 = cx - sw2 / 2;
-      const sy2 = mid - sh2 / 2;
-      s += tag(
-        "slot",
-        path(
-          `M${r2(sx2)} ${r2(sy2)}H${r2(sx2 + sw2 - 0.9 * p)}l${r2(0.9 * p)} ${r2(0.9 * p)}V${r2(sy2 + sh2)}H${r2(sx2)}Z`,
-          T.metal,
-          edge(T, T["metal-edge"])
-        ) + rect(sx2 + 0.5 * p, sy2 + sh2 - 1.2 * p, sw2 - 1 * p, 0.9 * p, T["plastic-black"], { rx: 0.3 }) + rect(sx2 + 0.5 * p, sy2 + sh2 - 1.2 * p, sw2 - 1 * p, 0.25 * p, "#ffffff", { "fill-opacity": 0.15 })
-      );
-      s += bevel(T, sx2, sy2, sw2, sh2, 1.2);
-      [
-        [sx2 + 0.35 * p, sy2 + 0.35 * p],
-        [sx2 + sw2 - 0.35 * p, sy2 + sh2 - 0.35 * p],
-        [sx2 + 0.35 * p, sy2 + sh2 - 0.35 * p]
-      ].forEach((c) => {
-        s += circle(c[0], c[1], 0.8, T["metal-edge"]);
-      });
-    } else if (part === "rtc") {
-      const cr = Math.min(3.9 * p, room / 2 - 0.2 * p, w / 2 - 0.8 * p);
-      const ccx = Math.min(w - 0.8 * p - cr, cx + 1 * p);
-      s += tag(
-        "cell",
-        circle(ccx, mid, cr + 0.9, T["metal-edge"]) + circle(ccx, mid, cr, T.metal, edge(T, T["metal-edge"])) + circle(ccx, mid, cr * 0.82, "none", {
-          stroke: T["metal-edge"],
-          "stroke-width": T["stroke-fine"],
-          "stroke-opacity": 0.6
-        }) + text(ccx, mid + 2.4, "CR2032", Math.max(PIN_LABEL, Math.min(6.4, cr * 0.5)), T["metal-edge"], {
-          "font-weight": 600
-        }) + text(ccx, mid - cr * 0.45, "+", PIN_LABEL + 2, T["metal-edge"], { "font-weight": 700 })
-      );
-      s += el("ellipse", {
-        cx: ccx - cr * 0.35,
-        cy: mid - cr * 0.45,
-        rx: cr * 0.35,
-        ry: cr * 0.16,
-        fill: "#ffffff",
-        "fill-opacity": 0.45,
-        transform: `rotate(-30 ${r2(ccx - cr * 0.35)} ${r2(mid - cr * 0.45)})`
-      });
-      if (ccx - cr - 0.6 * p - 1.3 * p >= 0.6 * p) {
-        const qx = 0.7 * p;
-        const qy = mid - 0.6 * p;
-        s += tag(
-          "chip",
-          rect(
-            qx,
-            qy,
-            1.3 * p,
-            1.2 * p,
-            T.chip,
-            Object.assign({ rx: 0.6 }, edge(T, T["chip-edge"], T["stroke-detail"]))
-          ) + circle(qx + 2.2, qy + 2.2, 0.6, T["chip-print"])
-        );
-        for (let ql = 0; ql < 4; ql++)
-          s += rect(qx - 1.2, qy + 1.6 + ql * 2.5, 1.2, 1.4, T.lead, { rx: 0.2 }) + rect(qx + 1.3 * p, qy + 1.6 + ql * 2.5, 1.2, 1.4, T.lead, { rx: 0.2 });
-        s += tag(
-          "crystal",
-          rect(
-            qx,
-            qy + 1.6 * p,
-            0.7 * p,
-            1.8 * p,
-            T.metal,
-            Object.assign({ rx: 0.35 * p }, edge(T, T["metal-edge"], T["stroke-fine"]))
-          )
-        );
-      }
-    } else if (part === "dome") {
-      const dr = Math.min((props.domePitches || 3) * p / 2, room / 2 - 1.4, w / 2 - 0.8 * p - 1);
-      s += tag("dome", circle(cx, mid, dr + 1, T["plastic-white-edge"]));
-      s += circle(cx, mid, dr, T["plastic-white"], edge(T, T["plastic-white-edge"]));
-      for (let q = 1; q <= 3; q++)
-        s += circle(cx, mid, dr * q / 3.6, "none", {
-          stroke: T["plastic-white-edge"],
-          "stroke-width": T["stroke-fine"]
-        });
-      s += path(`M${r2(cx - dr)} ${r2(mid)}h${r2(2 * dr)}M${r2(cx)} ${r2(mid - dr)}v${r2(2 * dr)}`, "none", {
-        stroke: T["plastic-white-edge"],
-        "stroke-width": T["stroke-fine"]
-      });
-      s += el("ellipse", {
-        cx: cx - dr * 0.35,
-        cy: mid - dr * 0.4,
-        rx: dr * 0.3,
-        ry: dr * 0.16,
-        fill: "#ffffff",
-        "fill-opacity": 0.6,
-        transform: `rotate(-30 ${r2(cx - dr * 0.35)} ${r2(mid - dr * 0.4)})`
-      });
-      const tp = 0.7 * p;
-      if (cx - dr - 1 - 0.35 * p - tp >= 0.6 * p && room >= tp + 0.4 * p)
-        [
-          [0.6 * p, "time"],
-          [w - 0.6 * p - tp, "sens"]
-        ].forEach((t) => {
-          s += tag(
-            "trimmer",
-            rect(
-              t[0],
-              mid - tp / 2,
-              tp,
-              tp,
-              T["band-orange"],
-              Object.assign({ rx: 0.8 }, edge(T, T["resistor-body-edge"], T["stroke-fine"]))
-            ) + circle(
-              t[0] + tp / 2,
-              mid,
-              tp * 0.28,
-              T["plastic-white"],
-              edge(T, T["plastic-white-edge"], T["stroke-fine"])
-            ) + line(
-              t[0] + tp / 2 - tp * 0.22,
-              mid,
-              t[0] + tp / 2 + tp * 0.22,
-              mid,
-              T["plastic-white-edge"],
-              T["stroke-fine"]
-            )
-          );
-        });
-    }
-    s += hdr.svg;
-    return art(
-      w,
-      h,
-      props.description || `${props.label || "Breakout"} module`,
-      s,
-      extra ? hdr.pins.concat(extra.pins) : hdr.pins
-    );
-  }
-  function dipOnBoard(T, x, cy, lengthPitches, label, pin1Right) {
-    const p = T.pitch;
-    const bw = lengthPitches * p;
-    const bh = 2.6 * p;
-    let s = "";
-    const n = Math.round(lengthPitches);
-    for (let i = 0; i < n; i++) {
-      const lx = x + (i + 0.5) * p;
-      s += rect(lx - 1.1, cy - 1.5 * p, 2.2, 1.5 * p - bh / 2 + 0.6, T.lead, { rx: 0.3 }) + rect(lx - 1.1, cy + bh / 2 - 0.6, 2.2, 1.5 * p - bh / 2 + 0.6, T.lead, { rx: 0.3 });
-    }
-    s += tag(
-      "chip",
-      rect(x - 1.1, cy - 1.5 * p, bw + 2.2, 3 * p, "none") + rect(x, cy - bh / 2, bw, bh, T.chip, Object.assign({ rx: T["radius-chip"] }, edge(T, T["chip-edge"])))
-    );
-    s += rect(x + 0.6, cy - bh / 2 + 0.6, bw - 1.2, 1.2, "#ffffff", { rx: 0.6, "fill-opacity": T["opacity-light"] * 0.5 }) + rect(x + 0.6, cy + bh / 2 - 1.8, bw - 1.2, 1.2, "#000000", { rx: 0.6, "fill-opacity": T["opacity-shade"] });
-    if (pin1Right)
-      s += path(`M${r2(x + bw)} ${r2(cy - 2.6)}a2.6 2.6 0 0 1 0 5.2z`, T["chip-print"]) + circle(x + bw - 0.5 * p, cy - bh / 2 + 0.45 * p, 0.9, T["chip-print"]);
-    else
-      s += path(`M${r2(x)} ${r2(cy - 2.6)}a2.6 2.6 0 0 0 0 5.2z`, T["chip-print"]) + circle(x + 0.5 * p, cy + bh / 2 - 0.45 * p, 0.9, T["chip-print"]);
-    s += circle(x + 4.2, cy, 1.1, "none", {
-      stroke: T["chip-edge"],
-      "stroke-width": T["stroke-fine"],
-      "stroke-opacity": 0.8
-    }) + circle(x + bw - 4.2, cy, 1.1, "none", {
-      stroke: T["chip-edge"],
-      "stroke-width": T["stroke-fine"],
-      "stroke-opacity": 0.8
-    });
-    if (label)
-      s += text(x + bw / 2, cy - 0.4, label, 4.4, T["chip-print"]) + text(x + bw / 2, cy + PIN_LABEL + 0.2, lotCode(label), PIN_LABEL, T["chip-print"], { "fill-opacity": 0.85 });
-    return s;
-  }
-  function logicAnalyzer(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const w = 54.7 * mm;
-    const h = 27.4 * mm;
-    let s = "";
-    const names = props.channels || ["D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7"];
-    const lit2 = props.lit || [];
-    const samples = Math.max(0, Math.floor(Number(props.samples) || 0));
-    const state2 = props.state || "idle";
-    const WORD = { idle: "STOP", armed: "ARMED", recording: "REC", paused: "PAUSE", full: "FULL", error: "MEM" };
-    const bi = T["board-inset"];
-    const pins = [];
-    s += tag(
-      "body",
-      rect(
-        bi,
-        bi,
-        w - 2 * bi,
-        h - 2 * bi,
-        T["plastic-black"],
-        Object.assign({ rx: 3 }, edge(T, T["plastic-black-edge"]))
-      )
-    );
-    s += bevel(T, bi, bi, w - 2 * bi, h - 2 * bi, 2.2, 3);
-    s += usbPort(T, { kind: "mini", x: 0.3 * mm, y: h / 2 - 3.85 * mm, w: 3.4 * mm, h: 7.7 * mm, mouth: "left" });
-    const colX = [w - 2 * p, w - p];
-    const rowY = function(r) {
-      return h / 2 + (r - 2) * p;
-    };
-    let hdrS = rect(
-      colX[0] - 0.75 * p,
-      rowY(0) - 0.85 * p,
-      2.5 * p,
-      5.7 * p,
-      T["plastic-black"],
-      Object.assign({ rx: 0.6 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
-    );
-    for (let r = 0; r < 5; r++)
-      for (let c = 0; c < 2; c++)
-        hdrS += rect(colX[c] - 0.28 * p, rowY(r) - 0.28 * p, 0.56 * p, 0.56 * p, T.cavity, { rx: 0.3 }) + rect(colX[c] - 0.12 * p, rowY(r) - 0.12 * p, 0.24 * p, 0.24 * p, T.metal);
-    s += tag("socket", hdrS);
-    for (let i = 0; i < 8; i++) pins.push({ name: names[i], x: colX[i % 2], y: rowY(Math.floor(i / 2)) });
-    pins.push({ name: "GND", x: colX[1], y: rowY(4) });
-    const lx = 4.4 * mm;
-    const ly = 2 * mm;
-    const lw = w - 3.05 * p - lx;
-    const lh = h - 2 * ly;
-    s += rect(lx, ly, lw, lh, T["plastic-white"], { rx: 1.4 });
-    s += text(lx + 0.5 * p, ly + 1.75 * p, "Logic", 10.5, T["plastic-black"], {
-      "text-anchor": "start",
-      "font-weight": 700
-    }) + text(lx + 0.5 * p, ly + 3 * p, "Analyzer", 10.5, T["plastic-black"], {
-      "text-anchor": "start",
-      "font-weight": 700
-    });
-    s += text(lx + 0.5 * p, ly + 4.15 * p, "24MHz 8CH", 5, T["plastic-black"], { "text-anchor": "start" });
-    const lampX = [lx + lw - 5 * p, lx + lw - 2.2 * p];
-    for (let c2 = 0; c2 < 8; c2++) {
-      const tx = lampX[c2 % 2];
-      const ty = rowY(Math.floor(c2 / 2));
-      const on2 = !!lit2[c2];
-      s += tag(
-        "indicator",
-        circle(
-          tx,
-          ty,
-          on2 ? 2.4 : 2,
-          on2 ? T["lens-green"] : T["indicator-off-light"],
-          Object.assign(
-            { "data-channel": c2, "data-lit": on2 ? "true" : "false" },
-            edge(T, on2 ? T["lens-green"] : T["plastic-black-edge"], T["stroke-fine"])
-          )
-        )
-      );
-      s += text(tx + 0.5 * p, ty + 1.4, names[c2], PIN_LABEL, T["plastic-black"], {
-        "text-anchor": "start",
-        "font-weight": 600
-      });
-    }
-    s += text(lampX[0] + 0.5 * p, rowY(4) + 1.4, "CLK", PIN_LABEL, T["plastic-black"], {
-      "text-anchor": "start",
-      "font-weight": 600
-    }) + text(lampX[1] + 0.5 * p, rowY(4) + 1.4, "GND", PIN_LABEL, T["plastic-black"], {
-      "text-anchor": "start",
-      "font-weight": 600
-    });
-    const rx = lx + 0.35 * p;
-    const ry = ly + lh - 1.15 * p;
-    const rw = lw - 0.7 * p;
-    const rh = 0.75 * p;
-    s += rect(rx, ry, rw, rh, T.readout, { rx: 1 });
-    const g = text(rx + 0.3 * p, ry + 0.55 * p, `SAMPLES ${samples}`, PIN_LABEL, T["readout-text"], {
-      "text-anchor": "start",
-      "font-weight": 600
-    }) + text(rx + rw - 0.3 * p, ry + 0.55 * p, WORD[state2] || "STOP", PIN_LABEL, T["readout-text"], {
-      "text-anchor": "end",
-      "font-weight": 600
-    });
-    s += el(
-      "g",
-      {
-        "data-samples": samples,
-        "data-state": state2,
-        "data-running": state2 === "recording" ? "true" : "false",
-        "data-activity": r2(Number(props.activity) || 0)
-      },
-      g
-    );
-    return art(w, h, `Eight-channel logic analyzer, ${(WORD[state2] || "STOP").toLowerCase()}`, s, pins);
-  }
-  function usbPort(T, props) {
-    const kind = props.kind || "micro";
-    const mouth = props.mouth || "down";
-    const x0 = props.x;
-    const y0 = props.y;
-    const w = props.w;
-    const h = props.h;
-    const vert = mouth === "down" || mouth === "up";
-    const L = vert ? h : w;
-    const W = vert ? w : h;
-    const cx = x0 + w / 2;
-    const cy = y0 + h / 2;
-    const R = function(u0, u1, v0, v1, fill, more) {
-      const a = (u1 - u0) * W;
-      const b = (v1 - v0) * L;
-      if (mouth === "down") return rect(cx + u0 * W, y0 + v0 * L, a, b, fill, more);
-      if (mouth === "up") return rect(cx + u0 * W, y0 + (1 - v1) * L, a, b, fill, more);
-      if (mouth === "right") return rect(x0 + v0 * L, cy + u0 * W, b, a, fill, more);
-      return rect(x0 + (1 - v1) * L, cy + u0 * W, b, a, fill, more);
-    };
-    const seam = function(v) {
-      if (vert) {
-        const y = mouth === "down" ? y0 + v * L : y0 + (1 - v) * L;
-        return line(x0 + 1.2, y, x0 + w - 1.2, y, T["metal-edge"], T["stroke-fine"]);
-      }
-      const x = mouth === "right" ? x0 + v * L : x0 + (1 - v) * L;
-      return line(x, y0 + 1.2, x, y0 + h - 1.2, T["metal-edge"], T["stroke-fine"]);
-    };
-    const rx = kind === "c" ? W * 0.45 : 1;
-    let s = "";
-    s += R(-0.5, -0.34, 0, 0.16, T["metal-edge"], { rx: 0.3 }) + R(0.34, 0.5, 0, 0.16, T["metal-edge"], { rx: 0.3 });
-    s += R(-0.5, 0.5, 0.1, 1, T.metal, Object.assign({ rx }, edge(T, T["metal-edge"])));
-    s += R(-0.5, 0.5, 0.1, 1, sheen("metal"), { rx, "fill-opacity": 0.75 });
-    s += R(-0.5, 0.5, 0.1, 0.24, "#ffffff", { rx, "fill-opacity": 0.18 });
-    s += seam(0.5);
-    if (kind === "c") s += R(-0.34, 0.34, 0.8, 0.95, T["plastic-black"], { rx: 0.075 * L });
-    else {
-      if (kind === "mini") s += R(-0.12, 0.12, 0.58, 0.72, T.cavity, { rx: 0.3 });
-      else s += R(-0.34, -0.2, 0.6, 0.76, T.cavity, { rx: 0.3 }) + R(0.2, 0.34, 0.6, 0.76, T.cavity, { rx: 0.3 });
-      s += R(-0.38, 0.38, 0.86, 0.97, T["plastic-black"], { rx: 0.4 });
-    }
-    return tag("usb", s);
-  }
-  function padRow(T, fin, f, props, toward) {
-    const hdr = header(props);
-    const p = T.pitch;
-    const n = hdr.pins.length;
-    hdr.pins.forEach((pn, i) => {
-      const dx = (i - (n - 1) / 2) * 0.3 * p;
-      if (props.axis === "y")
-        hdr.svg += trace(T, fin, [
-          [pn.x, pn.y],
-          [pn.x + (toward < 0 ? -1.1 : 1.1) * p, pn.y],
-          [pn.x + (toward < 0 ? -1.6 : 1.6) * p, pn.y + dx]
-        ]);
-      else
-        hdr.svg += trace(T, fin, [
-          [pn.x, pn.y],
-          [pn.x, pn.y + (toward < 0 ? -1.1 : 1.1) * p],
-          [pn.x + dx, pn.y + (toward < 0 ? -1.6 : 1.6) * p]
-        ]);
-    });
-    return hdr;
-  }
-  function edgeHeader(T, props) {
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const names = props.names;
-    const side = props.side || "bottom";
-    const back = !!props.back;
-    const ext = props.ext === void 0 ? (back ? 8.5 : 6) * mm : props.ext;
-    const deep = 2.5 * mm;
-    const padIn = (back ? 1.6 : 3.7) * mm;
-    let s = "";
-    const pins = [];
-    const pads = [];
-    const across = side === "top" || side === "bottom";
-    const out = side === "bottom" || side === "right" ? 1 : -1;
-    const R = function(a0, a1, c0, c1, fill, attrs2) {
-      const u0 = props.at + out * c0;
-      const u1 = props.at + out * c1;
-      const lo = Math.min(u0, u1);
-      const span = Math.abs(u1 - u0);
-      return across ? rect(a0, lo, a1 - a0, span, fill, attrs2) : rect(lo, a0, span, a1 - a0, fill, attrs2);
-    };
-    const P = function(a, c) {
-      return across ? { x: a, y: props.at + out * c } : { x: props.at + out * c, y: a };
-    };
-    names.forEach((n, i) => {
-      const a = props.from + i * p;
-      const pad = P(a, -padIn);
-      const tip = P(a, ext);
-      s += tag("pad", circle(pad.x, pad.y, T["pad-radius"], T.pad));
-      s += tag(
-        "leg",
-        R(a - 1.2, a + 1.2, back ? deep : 0, ext, T["lead-edge"], { rx: 0.5 }) + R(a - 0.8, a + 0.8, back ? deep : 0, ext, T.lead, { rx: 0.4 })
-      );
-      if (!back) s += R(a - 0.8, a + 0.8, -padIn, -deep + 0.2 * mm, T.lead, { rx: 0.4 });
-      pins.push({ name: n, x: r2(tip.x), y: r2(tip.y) });
-      pads.push({ x: r2(pad.x), y: r2(pad.y) });
-    });
-    s += tag(
-      "header",
-      R(
-        props.from - p / 2,
-        props.from + (names.length - 0.5) * p,
-        back ? 0 : -deep,
-        back ? deep : 0,
-        T["plastic-black"],
-        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
-      )
-    );
-    return { svg: s, pins, pads };
-  }
-  function silkFrame(T, f, x, y, w, h) {
-    return rect(x - 1.2, y - 1.2, w + 2.4, h + 2.4, "none", {
-      stroke: f.silk,
-      "stroke-width": T["stroke-fine"],
-      "stroke-opacity": 0.85,
-      rx: 0.4
-    });
-  }
-  function framed(T, f, kind, x, y, horizontal) {
-    const p = T.pitch;
-    const w = horizontal ? 0.9 * p : 0.55 * p;
-    const h = horizontal ? 0.55 * p : 0.9 * p;
-    return silkFrame(T, f, x, y, w, h) + smd(T, kind, x, y, horizontal);
-  }
-  function sot23(T, x, y, leads, label) {
-    const w = 1.3 * 3.78;
-    const h = 2.9 * 3.78;
-    let s = "";
-    const n = leads === 5 ? 3 : 2;
-    for (let i = 0; i < n; i++) {
-      const ly = y + h / 2 + (i - (n - 1) / 2) * 0.95 * 3.78 - 1;
-      s += rect(x - 1.8, ly, 1.8, 2, T.lead, { rx: 0.2 });
-    }
-    const m = leads === 5 ? 2 : 1;
-    for (let j = 0; j < m; j++) {
-      const ry = y + h / 2 + (j - (m - 1) / 2) * 1.9 * 3.78 - 1;
-      s += rect(x + w, ry, 1.8, 2, T.lead, { rx: 0.2 });
-    }
-    s += rect(x, y, w, h, T.chip, Object.assign({ rx: 0.4 }, edge(T, T["chip-edge"], T["stroke-detail"])));
-    if (label)
-      s += text(x + w / 2, y + h / 2, label, 4, T["chip-print"], {
-        "dominant-baseline": "middle",
-        transform: `rotate(-90 ${r2(x + w / 2)} ${r2(y + h / 2)})`
-      });
-    return tag("smd", s);
-  }
-  function soic(T, x, y, w, h, nSide, label) {
-    let s = "";
-    const pitch = 1.27 * 3.78;
-    for (let i = 0; i < nSide; i++) {
-      const ly = y + h / 2 + (i - (nSide - 1) / 2) * pitch - 0.8;
-      s += rect(x - 3.6, ly, 3.6, 1.6, T.lead, { rx: 0.2 }) + rect(x + w, ly, 3.6, 1.6, T.lead, { rx: 0.2 });
-    }
-    s += rect(x, y, w, h, T.chip, Object.assign({ rx: 0.5 }, edge(T, T["chip-edge"], T["stroke-detail"]))) + bevel(T, x, y, w, h, 1, 0.5) + circle(x + 1.8, y + 1.8, 0.6, T["chip-print"]);
-    if (label)
-      s += text(x + w / 2, y + h / 2, label, 4, T["chip-print"], {
-        "dominant-baseline": "middle",
-        transform: `rotate(-90 ${r2(x + w / 2)} ${r2(y + h / 2)})`
-      });
-    return tag("chip", s);
-  }
-  function mountHole(T, f, x, y, r) {
-    return circle(x, y, r + 2.2, "none", { stroke: f.silk, "stroke-width": T["stroke-fine"], "stroke-opacity": 0.85 }) + tag("hole", circle(x, y, r, T.hole, edge(T, T.pad)));
-  }
-  function soicAcross(T, x, y, w, h, nSide, label) {
-    let s = "";
-    const pitch = 1.27 * 3.78;
-    for (let i = 0; i < nSide; i++) {
-      const lx = x + w / 2 + (i - (nSide - 1) / 2) * pitch - 0.8;
-      s += rect(lx, y - 3.6, 1.6, 3.6, T.lead, { rx: 0.2 }) + rect(lx, y + h, 1.6, 3.6, T.lead, { rx: 0.2 });
-    }
-    s += rect(x, y, w, h, T.chip, Object.assign({ rx: 0.5 }, edge(T, T["chip-edge"], T["stroke-detail"]))) + bevel(T, x, y, w, h, 1, 0.5) + circle(x + 1.8, y + h - 1.8, 0.6, T["chip-print"]);
-    if (label) s += text(x + w / 2, y + h / 2 + 1.4, label, 4, T["chip-print"]);
-    return tag("chip", s);
-  }
-  function microsdModule(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const fin = props.finish || "blue";
-    const f = finish(T, fin);
-    const w = 16.5 * p;
-    const h = 9.5 * p;
-    let s = "";
-    const names = props.pins || ["CS", "SCK", "DI", "DO", "VCC", "GND", "CD"];
-    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 12.1 * p, y: 3.7 * p, size: 0.8 * p } });
-    [
-      [0.8 * p, 0.8 * p],
-      [w - 0.8 * p, 0.8 * p],
-      [0.8 * p, h - 0.8 * p],
-      [w - 0.8 * p, h - 0.8 * p]
-    ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
-    });
-    const hdr = padRow(
-      T,
-      fin,
-      f,
-      { x: w - 1 * p, y: 1.75 * p, axis: "y", labels: names, kind: "pad", side: "left", silk: f.silk, size: PIN_LABEL },
-      -1
-    );
-    const sx = 1.4 * p;
-    const sy = 1.6 * p;
-    const sw = 14.5 * mm;
-    const sh = 15.5 * mm;
-    s += tag(
-      "slot",
-      path(
-        `M${r2(sx)} ${r2(sy)}H${r2(sx + sw - 0.9 * p)}l${r2(0.9 * p)} ${r2(0.9 * p)}V${r2(sy + sh)}H${r2(sx)}Z`,
-        T.metal,
-        edge(T, T["metal-edge"])
-      ) + rect(sx, sy + 0.6 * p, 0.5 * p, sh - 1.2 * p, T["plastic-black"], { rx: 0.3 }) + rect(sx + 0.05 * p, sy + 0.6 * p, 0.2 * p, sh - 1.2 * p, "#ffffff", { "fill-opacity": 0.15 }) + rect(sx + sw - 0.45 * p, sy + 1 * p, 0.3 * p, sh - 2 * p, T["metal-edge"], { rx: 0.2, "fill-opacity": 0.6 })
-    );
-    s += bevel(T, sx, sy, sw, sh, 1.4);
-    for (let k = 0; k < 8; k++)
-      s += rect(sx + sw - 0.4 * p, sy + 1.3 * p + k * 0.55 * p, 0.6 * p, 0.2 * p, T.lead, { rx: 0.1 });
-    [
-      [sx + 0.4 * p, sy + 0.4 * p],
-      [sx + 0.4 * p, sy + sh - 0.4 * p],
-      [sx + sw - 0.4 * p, sy + sh - 0.4 * p]
-    ].forEach((c) => {
-      s += circle(c[0], c[1], 0.8, T["metal-edge"]);
-    });
-    s += soicAcross(T, 8.6 * p, 0.95 * p, 2.9 * p, 1.4 * p, 7, "74LVC125");
-    [
-      [7.5, 0.75],
-      [7.5, 1.55],
-      [11.9, 0.75],
-      [11.9, 1.55]
-    ].forEach((q) => {
-      s += framed(T, f, q[1] < 1 ? "capacitor" : "resistor", q[0] * p, q[1] * p, true);
-    });
-    const rx = 8.7 * p;
-    const ry = 5.6 * p;
-    const rw = 2.6 * p;
-    const rh = 1.4 * p;
-    s += tag(
-      "chip",
-      rect(rx + rw / 2 - 0.6 * p, ry - 0.5 * p, 1.2 * p, 0.5 * p, T.lead, { rx: 0.2 }) + [0.3, 1.3, 2.3].map((k) => {
-        return rect(rx + k * p, ry + rh, 0.35 * p, 0.55 * p, T.lead, { rx: 0.2 });
-      }).join("") + rect(rx, ry, rw, rh, T.chip, Object.assign({ rx: 0.5 }, edge(T, T["chip-edge"], T["stroke-detail"]))) + bevel(T, rx, ry, rw, rh, 1, 0.5) + text(rx + rw / 2, ry + rh / 2 + 1.4, "AMS1117", 4, T["chip-print"])
-    );
-    s += framed(T, f, "capacitor", 7.4 * p, 5.4 * p, true) + framed(T, f, "capacitor", 7.5 * p, 6.7 * p, true) + framed(T, f, "capacitor", 11.7 * p, 7.3 * p, true);
-    s += hdr.svg;
-    return art(w, h, "microSD card module", s, hdr.pins);
-  }
-  function rtcModule(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const fin = props.finish || "blue";
-    const f = finish(T, fin);
-    const w = 15 * p;
-    const h = 8.7 * p;
-    let s = "";
-    const names = props.pins || ["GND", "5V", "SDA", "SCL", "SQW"];
-    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 2.6 * p, y: 7.35 * p, size: 0.8 * p } });
-    [
-      [0.8 * p, 0.8 * p],
-      [w - 0.8 * p, 0.8 * p],
-      [0.8 * p, h - 0.8 * p],
-      [w - 0.8 * p, h - 0.8 * p]
-    ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
-    });
-    const hdr = padRow(
-      T,
-      fin,
-      f,
-      { x: w - 1 * p, y: 2.5 * p, axis: "y", labels: names, kind: "pad", side: "left", silk: f.silk, size: PIN_LABEL },
-      -1
-    );
-    s += text(6.9 * p, 1.1 * p, props.label || "RTC", 5, f.silk, { "font-weight": 600 });
-    const ccx = 3.9 * p;
-    const ccy = 4.5 * p;
-    const cr = 6.25 * mm;
-    s += tag(
-      "cell",
-      circle(ccx, ccy, cr + 0.45 * p, T.pad, edge(T, T["metal-edge"], T["stroke-fine"])) + rect(ccx - cr - 0.9 * p, ccy - 0.35 * p, 0.8 * p, 0.7 * p, T.pad, { rx: 0.3 }) + rect(ccx + cr + 0.2 * p, ccy - 0.35 * p, 0.8 * p, 0.7 * p, T.pad, { rx: 0.3 }) + circle(ccx, ccy, cr, T["plastic-black"], edge(T, T["plastic-black-edge"])) + circle(ccx, ccy, cr, sheen("metal"), { "fill-opacity": 0.35 }) + text(ccx, ccy - 0.6, "CR1220", 4.4, T["plastic-grey"], { "font-weight": 600 }) + text(ccx, ccy + 4.6, "3V", 4, T["plastic-grey"])
-    );
-    s += text(ccx + cr + 1.5 * p, ccy + 1.5 * p, "+", 5, f.silk, { "font-weight": 700 });
-    const qx = 8.4 * p;
-    const qy = 2 * p;
-    s += silkFrame(T, f, qx - 0.9 * p, qy - 0.45 * p, 3.4 * p, 0.9 * p);
-    s += circle(qx - 0.6 * p, qy - 0.25 * p, 1.3, T.pad) + circle(qx - 0.6 * p, qy + 0.25 * p, 1.3, T.pad) + line(qx - 0.6 * p, qy - 0.25 * p, qx + 0.1 * p, qy - 0.1 * p, T.lead, 0.9) + line(qx - 0.6 * p, qy + 0.25 * p, qx + 0.1 * p, qy + 0.1 * p, T.lead, 0.9);
-    s += tag(
-      "crystal",
-      rect(
-        qx,
-        qy - 1 * mm,
-        6 * mm,
-        2 * mm,
-        T.metal,
-        Object.assign({ rx: 1 * mm }, edge(T, T["metal-edge"], T["stroke-fine"]))
-      ) + rect(qx, qy - 1 * mm, 6 * mm, 2 * mm, sheen("metal"), { rx: 1 * mm, "fill-opacity": 0.7 })
-    );
-    s += soicAcross(T, 8.3 * p, 3.5 * p, 1.95 * p, 1.55 * p, 4, "DS1307");
-    s += framed(T, f, "resistor", 8.6 * p, 6.1 * p, true) + text(9.75 * p, 6.5 * p, "R1", 4, f.silk, { "text-anchor": "start" });
-    s += hdr.svg;
-    return art(w, h, "DS1307 real-time clock module", s, hdr.pins);
-  }
-  function rfidModule(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const fin = props.finish || "blue";
-    const f = finish(T, fin);
-    const w = 23.5 * p;
-    const h = 16 * p;
-    let s = "";
-    const names = props.pins || ["SDA", "SCK", "MOSI", "MISO", "IRQ", "GND", "RST", "3.3V"];
-    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 10.2 * p, y: 13.4 * p, size: 0.8 * p } });
-    [
-      [6.9 * p, 1.2 * p],
-      [6.9 * p, h - 1.2 * p],
-      [22.5 * p, 2 * p],
-      [22.5 * p, h - 2 * p]
-    ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
-    });
-    const hdr = padRow(
-      T,
-      fin,
-      f,
-      { x: 1 * p, y: 4 * p, axis: "y", labels: names, kind: "pad", side: "right", silk: f.silk, size: PIN_LABEL },
-      1
-    );
-    s += rect(0.45 * p, 3.4 * p, 1.1 * p, 8.2 * p, "none", {
-      rx: 0.6,
-      stroke: f.silk,
-      "stroke-width": T["stroke-fine"],
-      "stroke-opacity": 0.85
-    });
-    s += tag(
-      "crystal",
-      rect(
-        1.4 * p,
-        0.75 * p,
-        4.3 * p,
-        1.6 * p,
-        T.metal,
-        Object.assign({ rx: 0.8 * p }, edge(T, T["metal-edge"], T["stroke-fine"]))
-      ) + rect(1.4 * p, 0.75 * p, 4.3 * p, 1.6 * p, sheen("metal"), { rx: 0.8 * p, "fill-opacity": 0.7 })
-    );
-    s += text(5.95 * p, 1.75 * p, "OSC", 4, f.silk, { "text-anchor": "start" });
-    s += framed(T, f, "capacitor", 1.9 * p, 2.75 * p, true) + framed(T, f, "capacitor", 3.6 * p, 2.75 * p, true);
-    [
-      [3, 4.35],
-      [3.9, 4.35],
-      [4.8, 4.35],
-      [5.7, 4.35]
-    ].forEach((q, i) => {
-      s += framed(T, f, i === 0 || i === 3 ? "capacitor" : "resistor", q[0] * p, q[1] * p, false);
-    });
-    s += qfp(T, 3.4 * p, 6.3 * p, 2.3 * p, 2.3 * p, 8, "RC522");
-    s += text(6.6 * p, 7.45 * p, "HW-126", 4, f.silk, {
-      "dominant-baseline": "middle",
-      transform: `rotate(-90 ${r2(6.6 * p)} ${r2(7.45 * p)})`
-    });
-    [
-      [3, 9.5],
-      [3.9, 9.5],
-      [4.8, 9.5],
-      [5.7, 9.5]
-    ].forEach((q, i) => {
-      s += framed(T, f, i === 1 ? "resistor" : "capacitor", q[0] * p, q[1] * p, false);
-    });
-    s += silkFrame(T, f, 1 * p, 12 * p, 0.6 * p, 0.6 * p) + indicator({
-      x: 1 * p,
-      y: 12 * p,
-      size: 0.6 * p,
-      color: "red",
-      on: !!(props.indicators && props.indicators.power),
-      hook: "power-led",
-      state: "power",
-      finish: fin
-    });
-    [
-      [2.4, 11.9],
-      [3.3, 11.9],
-      [4.2, 11.9]
-    ].forEach((q, i) => {
-      s += framed(T, f, "resistor", q[0] * p, q[1] * p, false);
-    });
-    s += text(1.3 * p, 13.5 * p, "D1", 4, f.silk) + text(2.95 * p, 13.5 * p, "R1", 4, f.silk) + text(3.9 * p, 13.5 * p, "L1", 4, f.silk) + text(4.8 * p, 13.5 * p, "L2", 4, f.silk);
-    const turns = 3;
-    const cx0 = 8.2 * p;
-    const cy0 = 1 * p;
-    const cw = 13.4 * p;
-    const ch = h - 2 * p;
-    const gap = 0.3 * p;
-    let d = "";
-    for (let t = 0; t < turns; t++) {
-      const x = cx0 + t * gap;
-      const y = cy0 + t * gap;
-      const ww = cw - 2 * t * gap;
-      const hh = ch - 2 * t * gap;
-      const rr = 1.6 * p - t * gap;
-      d += `M${r2(x + rr)} ${r2(y)}H${r2(x + ww - rr)}A${r2(rr)} ${r2(rr)} 0 0 1 ${r2(x + ww)} ${r2(y + rr)}V${r2(y + hh - rr)}A${r2(rr)} ${r2(rr)} 0 0 1 ${r2(x + ww - rr)} ${r2(y + hh)}H${r2(x + rr)}A${r2(rr)} ${r2(rr)} 0 0 1 ${r2(x)} ${r2(y + hh - rr)}V${r2(y + rr)}A${r2(rr)} ${r2(rr)} 0 0 1 ${r2(x + rr)} ${r2(y)}Z`;
-    }
-    s += path(d, "none", { "data-hook": "antenna", stroke: T.pad, "stroke-width": 1.1, "stroke-linejoin": "round" });
-    s += rect(
-      cx0 + turns * gap + 0.4 * p,
-      cy0 + turns * gap + 0.4 * p,
-      cw - 2 * turns * gap - 0.8 * p,
-      ch - 2 * turns * gap - 0.8 * p,
-      "none",
-      { "data-hook": "field", rx: 2 }
-    );
-    for (let k = 0; k < 6; k++) s += framed(T, f, "capacitor", 9.6 * p, (5 + k * 1) * p, true);
-    const acx = 15.3 * p;
-    const acy = 8 * p;
-    let arcs = "";
-    for (let a = 1; a <= 4; a++) {
-      const ar = a * 1.1 * p;
-      const sa = -Math.PI * 0.8;
-      const ea = -Math.PI * 0.2;
-      arcs += `M${r2(acx + Math.cos(sa) * ar)} ${r2(acy + Math.sin(sa) * ar)}A${r2(ar)} ${r2(ar)} 0 0 1 ${r2(acx + Math.cos(ea) * ar)} ${r2(acy + Math.sin(ea) * ar)}`;
-      arcs += `M${r2(acx - Math.cos(sa) * ar)} ${r2(acy - Math.sin(sa) * ar)}A${r2(ar)} ${r2(ar)} 0 0 1 ${r2(acx - Math.cos(ea) * ar)} ${r2(acy - Math.sin(ea) * ar)}`;
-    }
-    s += path(arcs, "none", { stroke: f.silk, "stroke-width": 1, "stroke-linecap": "round" }) + circle(acx, acy, 1.6, f.silk);
-    s += text(20.3 * p, acy, props.label || "RFID-RC522", 6, f.silk, {
-      "font-weight": 600,
-      "dominant-baseline": "middle",
-      transform: `rotate(-90 ${r2(20.3 * p)} ${r2(acy)})`
-    });
-    s += hdr.svg;
-    return art(w, h, "MFRC522 RFID reader module", s, hdr.pins);
-  }
-  function relayModule(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const fin = props.finish || "red";
-    const f = finish(T, fin);
-    const w = 19.5 * p;
-    const h = 10 * p;
-    let s = "";
-    const ind = { power: true, status: false, ...props.indicators };
-    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 10.4 * p, y: 0.55 * p, size: 0.7 * p } });
-    [
-      [0.9 * p, 0.9 * p],
-      [w - 0.9 * p, 0.9 * p],
-      [0.9 * p, h - 0.9 * p],
-      [w - 0.9 * p, h - 0.9 * p]
-    ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
-    });
-    const hdr = padRow(
-      T,
-      fin,
-      f,
-      {
-        x: 18.75 * p,
-        y: 4 * p,
-        axis: "y",
-        labels: ["VCC", "GND", "IN"],
-        kind: "pad",
-        side: "left",
-        silk: f.silk,
-        size: PIN_LABEL
-      },
-      -1
-    );
-    const tx = 1.75 * p;
-    const tw = 2.6 * p;
-    const ty = 2 * p;
-    const th = 6 * p;
-    const names = ["NO", "COM", "NC"];
-    const pins = hdr.pins.slice();
-    s += tag(
-      "terminal",
-      rect(tx - tw / 2, ty, tw, th, T["plastic-blue"], Object.assign({ rx: 1 }, edge(T, T["plastic-blue-edge"]))) + bevel(T, tx - tw / 2, ty, tw, th, 1.6, 1)
-    );
-    names.forEach((n, i) => {
-      const y = (3 + 2 * i) * p;
-      s += circle(tx, y, 0.5 * p, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + circle(tx, y, 0.5 * p, sheen("metal"), { "fill-opacity": 0.6 }) + line(tx - 0.3 * p, y - 0.3 * p, tx + 0.3 * p, y + 0.3 * p, T["metal-edge"], 0.9) + line(tx + 0.3 * p, y - 0.3 * p, tx - 0.3 * p, y + 0.3 * p, T["metal-edge"], 0.9);
-      s += text(tx + tw / 2 + 0.45 * p, y + 1.4, n, PIN_LABEL, f.silk, { "text-anchor": "start" });
-    });
-    const rw = 19 * mm;
-    const rh = 15.5 * mm;
-    const rx = 4.6 * p;
-    const ry = (h - rh) / 2;
-    s += tag(
-      "body",
-      rect(rx, ry, rw, rh, T["plastic-blue"], Object.assign({ rx: 1.2 }, edge(T, T["plastic-blue-edge"])))
-    );
-    s += bevel(T, rx, ry, rw, rh, 1.8, 1.2);
-    s += text(rx + rw / 2, ry + 1.5 * p, "RELAY", 5, T["chip-print"], { "font-weight": 700 });
-    s += text(rx + rw / 2, ry + 2.5 * p, "10A 250VAC  10A 125VAC", PIN_LABEL, T["chip-print"]) + text(rx + rw / 2, ry + 3.1 * p, "10A 30VDC   10A 28VDC", PIN_LABEL, T["chip-print"]);
-    s += text(rx + rw / 2, ry + 4.3 * p, "SRD-05VDC-SL-C", 5, T["chip-print"], { "font-weight": 600 });
-    s += text(rx + rw / 2, ry + 5.3 * p, lotCode("SRD"), PIN_LABEL, T["chip-print"], { "fill-opacity": 0.8 });
-    s += framed(T, f, "resistor", 13 * p, 0.75 * p, true) + framed(T, f, "resistor", 15 * p, 0.75 * p, true) + framed(T, f, "resistor", 15.3 * p, 3.3 * p, true) + framed(T, f, "resistor", 15.3 * p, 4.3 * p, true);
-    s += sot23(T, 13.4 * p, 2.1 * p, 3) + text(13.3 * p, 4.5 * p, "Q1", PIN_LABEL, f.silk);
-    s += soicAcross(T, 13.1 * p, 5.6 * p, 1.6 * p, 1.4 * p, 2, "817");
-    s += silkFrame(T, f, 17 * p, 0.8 * p, 0.7 * p, 0.7 * p) + indicator({
-      x: 17 * p,
-      y: 0.8 * p,
-      size: 0.7 * p,
-      color: "red",
-      on: !!ind.power,
-      hook: "power-led",
-      state: "power-led",
-      finish: fin
-    }) + text(17.35 * p, 2.3 * p, "PWR", PIN_LABEL, f.silk);
-    s += silkFrame(T, f, 15.9 * p, 5.5 * p, 0.7 * p, 0.7 * p) + indicator({
-      x: 15.9 * p,
-      y: 5.5 * p,
-      size: 0.7 * p,
-      color: "green",
-      on: !!ind.status,
-      hook: "status-led",
-      state: "status-led",
-      finish: fin
-    }) + text(16.25 * p, 7 * p, "ON", PIN_LABEL, f.silk);
-    s += tag(
-      "jumper",
-      rect(
-        13 * p,
-        8.1 * p,
-        2.2 * p,
-        0.8 * p,
-        T["plastic-black"],
-        Object.assign({ rx: 0.3 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
-      ) + rect(13.1 * p, 8.2 * p, 1 * p, 0.6 * p, T["band-yellow"], { rx: 0.2 })
-    );
-    s += text(12.6 * p, 8.75 * p, "L", PIN_LABEL, f.silk) + text(15.6 * p, 8.75 * p, "H", PIN_LABEL, f.silk);
-    names.forEach((n, i) => {
-      pins.push({ name: n, x: tx, y: (3 + 2 * i) * p });
-    });
-    if (props.label !== false)
-      s += text(8.1 * p, 9.25 * p, props.label || "1 RELAY MODULE  HIGH/LOW TRIGGER", PIN_LABEL, f.silk);
-    s += hdr.svg;
-    return art(w, h, "Relay module with an SPDT changeover contact", s, pins);
-  }
-  var init_modules = __esm({
-    "src/modules.js"() {
-      init_core();
-      init_boards();
-    }
-  });
-
-  // src/displays.js
-  function characterLcd(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const cols = props.cols || 16;
-    const rows = props.rows || 2;
-    const lines = props.lines || [];
-    const glyphs = props.glyphs;
-    const blue = props.color === "blue";
-    const backpack = !!props.backpack;
-    const mmL = p / 2.54;
-    const big = cols >= 20 || rows >= 4;
-    const real = big ? [98, 60] : [80, 36];
-    const M = big ? { dotW: 0.55, dotH: 0.55, dotDx: 0.6, dotDy: 0.6, cellDy: 5.35, marginX: 3.3, marginY: 2.2 } : { dotW: 0.55, dotH: 0.65, dotDx: 0.6, dotDy: 0.7, cellDy: 5.95, marginX: 4.15, marginY: 2.45 };
-    const cellDx = 3.55 * mmL;
-    const cellDy = M.cellDy * mmL;
-    const dotW = M.dotW * mmL;
-    const dotH = M.dotH * mmL;
-    const dotDx = M.dotDx * mmL;
-    const dotDy = M.dotDy * mmL;
-    const charW = 4 * dotDx + dotW;
-    const charH = 7 * dotDy + dotH;
-    const activeW = (cols - 1) * cellDx + charW;
-    const activeH = (rows - 1) * cellDy + charH;
-    const glassW = activeW + 2 * M.marginX * mmL;
-    const glassH = activeH + 2 * M.marginY * mmL;
-    const w = r2(real[0] * mmL);
-    const h = r2(real[1] * mmL);
-    const bezelW = glassW + (big ? 19.8 : 6.7) * mmL;
-    const bezelH = glassH + (big ? 14.1 : 7.8) * mmL;
-    const bezelX = (w - bezelW) / 2;
-    const bezelY = big ? r2(10.35 * mmL) : r2(Math.max(3 * p, 2.6 * p + (h - 2.6 * p - 1.2 * p - bezelH) / 2));
-    const parallel = ["VSS", "VDD", "V0", "RS", "RW", "E", "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "A", "K"];
-    const names = backpack ? parallel : props.pins || parallel;
-    const f = finish(T, props.finish || "green");
-    let s = board({
-      width: w,
-      height: h,
-      finish: props.finish || "green",
-      holes: false,
-      mark: props.mark === false ? void 0 : { x: w - 2.2 * p, y: h / 2 - 0.45 * p, size: 0.9 * p }
-    });
-    [
-      [2.5, 2.5],
-      [real[0] - 2.5, 2.5],
-      [2.5, real[1] - 2.5],
-      [real[0] - 2.5, real[1] - 2.5]
-    ].forEach((c) => {
-      s += tag(
-        "hole",
-        circle(c[0] * mmL, c[1] * mmL, 2.1 * mmL, T.pad) + circle(c[0] * mmL, c[1] * mmL, 1.25 * mmL, T.hole, edge(T, T["metal-edge"], 0.5))
-      );
-    });
-    s += rect(1.2 * p, 1.8 * p, w - 2.4 * p, h - 3.2 * p, "none", {
-      rx: 1,
-      stroke: f.silk,
-      "stroke-width": T["stroke-fine"],
-      "stroke-opacity": 0.4
-    });
-    const hx = (big ? 10 : 8) * mmL;
-    const hy = 2.5 * mmL;
-    const hdr = header({ x: hx, y: hy, labels: names, side: "below", silk: f.silk, size: PIN_LABEL });
-    s += rect(hx - 0.5 * p, hy - 0.5 * p, p, p, "none", {
-      stroke: f.silk,
-      "stroke-width": T["stroke-fine"],
-      "stroke-opacity": 0.8
-    });
-    s += smd(T, "resistor", w - 4.4 * p, 0.45 * p, true) + smd(T, "capacitor", w - 4.4 * p, 1.15 * p, true);
-    hdr.pins.forEach((pn, i) => {
-      s += trace(T, props.finish || "green", [
-        [pn.x, pn.y],
-        [pn.x, pn.y + 1 * p],
-        [pn.x + 0.5 * p, pn.y + 1.6 * p]
-      ]);
-    });
-    s += via(T, 1.2 * p, h - 2.3 * p) + via(T, w - 1.3 * p, 2.6 * p) + via(T, w / 2, h - 0.55 * p);
-    let shown = hdr.pins;
-    let over = "";
-    if (backpack) {
-      hdr.pins.forEach((pn) => {
-        s += tag(
-          "solder",
-          circle(pn.x, pn.y, T["pad-radius"], T.pad) + circle(pn.x, pn.y, T["hole-radius"] + 0.4, T.metal, edge(T, T["metal-edge"], 0.5))
-        );
-      });
-      hdr.pins.forEach((pn, i) => {
-        s += text(pn.x, pn.y + T["label-drop"], names[i], PIN_LABEL, f.silk);
-      });
-      const side = header({
-        x: 0.45 * p,
-        y: 3.4 * p,
-        labels: props.pins || ["GND", "VCC", "SDA", "SCL"],
-        axis: "y",
-        side: "right",
-        silk: f.silk,
-        size: PIN_LABEL
-      });
-      over = tag(
-        "backpack-header",
-        rect(0.05 * p, 2.9 * p, 0.8 * p, 4 * p, T["plastic-black"], { rx: 0.6, "fill-opacity": 0.9 })
-      ) + side.svg;
-      shown = side.pins;
-    } else s += hdr.svg;
-    s += tag("cob", rect(bezelX + 1.2 * p, bezelY + bezelH - 0.3 * p, bezelW - 2.4 * p, 0.8 * p, T.chip, { rx: 0.5 }));
-    [0.2, 0.5, 0.8].forEach((q) => {
-      s += rect(
-        bezelX + 1.2 * p + (bezelW - 2.4 * p) * q - 0.8 * p,
-        bezelY + bezelH + 0.05 * p,
-        1.6 * p,
-        0.35 * p,
-        "#000000",
-        { rx: 0.5, "fill-opacity": 0.35 }
-      );
-    });
-    s += tag(
-      "body",
-      rect(
-        bezelX,
-        bezelY,
-        bezelW,
-        bezelH,
-        T["plastic-black"],
-        Object.assign({ rx: T["radius-bezel"] }, edge(T, T["plastic-black-edge"]))
-      )
-    );
-    s += rect(bezelX + 1.5, bezelY + 1.5, bezelW - 3, bezelH - 3, "none", {
-      rx: T["radius-bezel"],
-      stroke: "#ffffff",
-      "stroke-width": 0.5,
-      "stroke-opacity": 0.12
-    });
-    const gx = bezelX + (bezelW - glassW) / 2;
-    const gy = bezelY + (bezelH - glassH) / 2;
-    s += rect(gx, gy, glassW, glassH, blue ? T["lcd-blue"] : T["lcd-green"], { "data-hook": "glass", rx: 0.8 });
-    s += rect(gx, gy, glassW, glassH, "none", {
-      rx: 0.8,
-      stroke: "#000000",
-      "stroke-width": 0.6,
-      "stroke-opacity": 0.25
-    });
-    const ink = blue ? T["lcd-ink-light"] : T["lcd-ink"];
-    const ox = gx + M.marginX * mmL;
-    const oy = gy + M.marginY * mmL;
-    let cells = "";
-    for (let r = 0; r < rows; r++)
-      for (let c = 0; c < cols; c++) {
-        const x = ox + c * cellDx;
-        const y = oy + r * cellDy;
-        const ch = (lines[r] || "")[c];
-        const dots = glyphs ? glyphs[r * cols + c] : null;
-        cells += rect(x, y, charW, charH, ink, { "fill-opacity": 0.06 });
-        if (dots) {
-          for (let dy = 0; dy < 8; dy++)
-            for (let dx = 0; dx < 5; dx++)
-              if (dots[dy] >> 4 - dx & 1) cells += rect(x + dx * dotDx, y + dy * dotDy, dotW, dotH, ink);
-        } else if (!glyphs && ch && ch !== " ")
-          cells += text(x + charW / 2, y + charH * 0.86, ch, charH * 0.92, ink, { "font-weight": 700 });
-      }
-    s += el(
-      "g",
-      {
-        "data-hook": "matrix",
-        "data-cols": cols,
-        "data-rows": rows,
-        "data-x": r2(ox),
-        "data-y": r2(oy),
-        "data-cell-dx": r2(cellDx),
-        "data-cell-dy": r2(cellDy),
-        "data-dot-dx": r2(dotDx),
-        "data-dot-dy": r2(dotDy),
-        "data-dot-w": r2(dotW),
-        "data-dot-h": r2(dotH)
-      },
-      cells
-    ) + over;
-    const shownText = glyphs ? "" : lines.length ? ` showing ${lines.join(" / ")}` : "";
-    return art(w, h, `${cols}×${rows} character LCD${backpack ? " with an I2C backpack" : ""}${shownText}`, s, shown);
-  }
-  function silkName(n) {
-    return String(n).replace(/\.\d+$/, "");
-  }
-  function sevenSegment(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const digits = Math.max(1, Math.min(4, props.digits || 1));
-    const value = String(props.value === void 0 ? "8" : props.value);
-    const color = lensColor(T, props.color || "red");
-    const cellW = 5 * p;
-    const w = digits * cellW;
-    let h = 9 * p;
-    let s = "";
-    const off = T["segment-off"];
-    const dim = T["opacity-segment-dim"];
-    const LAYOUTS = {
-      1: { top: ["G", "F", "COM.2", "A", "B"], bottom: ["E", "D", "COM", "C", "DP"] },
-      2: { top: ["A", "B", "DIG1", "DIG2", "F"], bottom: ["C", "DP", "E", "D", "G"] },
-      3: { top: ["DIG1", "A", "F", "DIG2", "DIG3", "B"], bottom: ["E", "D", "DP", "C", "G", null] },
-      4: { top: ["DIG1", "A", "F", "DIG2", "DIG3", "B", "CLN"], bottom: ["E", "D", "DP", "C", "G", "DIG4", "COM"] }
-    };
-    const names = props.pins || LAYOUTS[digits];
-    const named = function(n) {
-      return n !== null && n !== void 0;
-    };
-    const allNames = names ? names.top.concat(names.bottom).filter(named).map(silkName) : [];
-    const maxLen = allNames.reduce((m, n) => {
-      return Math.max(m, n.length);
-    }, 0);
-    const rot = maxLen * PIN_LABEL * 0.62 > p - 1.6;
-    const pinTop = rot ? 1.6 * p : 1 * p;
-    const dy = pinTop - 1 * p;
-    h = rot ? 9.2 * p : 9 * p;
-    s += tag(
-      "body",
-      rect(
-        T["board-inset"],
-        1.4 * p + dy,
-        w - 2 * T["board-inset"],
-        5.5 * p,
-        T["segment-face"],
-        Object.assign({ rx: 1.2 }, edge(T, T["plastic-black-edge"]))
-      )
-    );
-    s += rect(T["board-inset"] + 1.5, 1.4 * p + dy + 1.5, w - 2 * T["board-inset"] - 3, 5.5 * p - 3, "none", {
-      rx: 1,
-      stroke: "#ffffff",
-      "stroke-width": 0.5,
-      "stroke-opacity": 0.1
-    });
-    const clamp2 = function(v) {
-      v = Number(v);
-      return v > 0 ? Math.min(1, v) : 0;
-    };
-    const level = function(on2, d, sgm) {
-      return props.levels ? clamp2(props.levels[d * 8 + sgm]) : on2 ? 1 : 0;
-    };
-    const glow = function(lv) {
-      return lv > 0 ? r2(dim + (1 - dim) * lv) : 0;
-    };
-    const bar = function(x, y, len, horizontal, lv, d, sgm) {
-      const t = 0.42 * p;
-      const bx = horizontal ? x : x - t / 2;
-      const by = horizontal ? y - t / 2 : y;
-      const bw = horizontal ? len : t;
-      const bh = horizontal ? t : len;
-      return rect(bx, by, bw, bh, off, { rx: t / 2 }) + rect(bx, by, bw, bh, color, {
-        rx: t / 2,
-        "fill-opacity": glow(lv),
-        "data-segment": `${d}-${sgm}`,
-        "data-level": r2(lv)
-      });
-    };
-    const dot = function(cx, cy, lv, hook) {
-      return circle(cx, cy, 0.24 * p, off) + circle(cx, cy, 0.24 * p, color, Object.assign({ "fill-opacity": glow(lv), "data-level": r2(lv) }, hook));
-    };
-    const colonLevel = typeof props.colon === "number" ? clamp2(props.colon) : props.colon ? 1 : 0;
-    for (let d = 0; d < digits; d++) {
-      const lit2 = SEG_OF[value[d] === void 0 ? " " : value[d]] || "";
-      const ox = d * cellW + 1.2 * p;
-      const oy = 2 * p + dy;
-      const sw = 2 * p;
-      const sh = 2 * p;
-      const on2 = function(k) {
-        return lit2.indexOf(k) >= 0;
-      };
-      const skew = `skewX(-10) translate(${r2((oy + sh) * 0.176)} 0)`;
-      let g = "";
-      g += bar(ox + 0.25 * p, oy, sw, true, level(on2("a"), d, 0), d, 0);
-      g += bar(ox + sw + 0.25 * p, oy + 0.2 * p, sh - 0.4 * p, false, level(on2("b"), d, 1), d, 1);
-      g += bar(ox + sw + 0.25 * p, oy + sh + 0.2 * p, sh - 0.4 * p, false, level(on2("c"), d, 2), d, 2);
-      g += bar(ox + 0.25 * p, oy + 2 * sh, sw, true, level(on2("d"), d, 3), d, 3);
-      g += bar(ox + 0.25 * p, oy + sh + 0.2 * p, sh - 0.4 * p, false, level(on2("e"), d, 4), d, 4);
-      g += bar(ox + 0.25 * p, oy + 0.2 * p, sh - 0.4 * p, false, level(on2("f"), d, 5), d, 5);
-      g += bar(ox + 0.25 * p, oy + sh, sw, true, level(on2("g"), d, 6), d, 6);
-      s += el("g", { "data-digit": d + 1, transform: skew }, g);
-      if (digits === 4 && d === 1 && props.showColon !== false)
-        s += dot(ox + sw + 1 * p, oy + sh * 0.5, colonLevel, { "data-colon": "true" }) + dot(ox + sw + 1 * p, oy + sh * 1.5, colonLevel, { "data-colon": "true" });
-      s += dot(ox + sw + 1 * p, oy + 2 * sh, level(!!(props.dp && props.dp[d]), d, 7), { "data-segment": `${d}-7` });
-    }
-    const pins = [];
-    if (names) {
-      const tx0 = r2(Math.round((w - (names.top.length - 1) * p) / 2 / p * 2) / 2 * p);
-      const bx0 = tx0 + Math.round(((w - (names.bottom.length - 1) * p) / 2 - tx0) / p) * p;
-      const row = function(x0, y, list, side) {
-        list.forEach((n, i) => {
-          if (!named(n)) return;
-          s += pin({
-            x: x0 + i * p,
-            y,
-            kind: "leg",
-            label: silkName(n),
-            side,
-            silk: "currentColor",
-            size: PIN_LABEL,
-            rotate: rot
-          });
-          pins.push({ name: n, x: x0 + i * p, y });
-        });
-      };
-      names.top.forEach((_, i) => {
-        s = wire(tx0 + i * p, pinTop, tx0 + i * p, pinTop + 0.6 * p) + s;
-      });
-      names.bottom.forEach((_, i) => {
-        s = wire(bx0 + i * p, pinTop + 5.8 * p, bx0 + i * p, pinTop + 6 * p) + s;
-      });
-      row(tx0, pinTop, names.top, "above");
-      row(bx0, pinTop + 6 * p, names.bottom, "below");
-    } else {
-      for (let i = 0; i < digits * 5; i++) {
-        s = wire(0.5 * p + i * p, 1 * p, 0.5 * p + i * p, 1.6 * p) + wire(0.5 * p + i * p, 6.8 * p, 0.5 * p + i * p, 7 * p) + s;
-        pins.push({ name: `t${i + 1}`, x: 0.5 * p + i * p, y: 1 * p });
-        pins.push({ name: `b${i + 1}`, x: 0.5 * p + i * p, y: 7 * p });
-      }
-    }
-    return art(
-      w,
-      h,
-      `${digits}-digit seven-segment display${props.levels || !value.trim() ? "" : ` showing ${value}`}`,
-      s,
-      pins
-    );
-  }
-  function barePad(T, x, y) {
-    return tag(
-      "pad",
-      circle(x, y, T["pad-radius"], T.pad) + circle(x, y, T["hole-radius"], T.hole, edge(T, T["metal-edge"], 0.5))
-    );
-  }
-  function screenPicture(props, x, y, w, h, ink, colour) {
-    const px = props.pixels;
-    if (!px || !(px.width > 0) || !(px.height > 0) || !px.data) return "";
-    const cw = w / px.width;
-    const ch = h / px.height;
-    const paths = {};
-    const order = [];
-    const fill = function(v) {
-      return colour && typeof v === "string" ? v : ink;
-    };
-    for (let row = 0; row < px.height; row++) {
-      for (let col = 0; col < px.width; col++) {
-        const v = px.data[row * px.width + col];
-        if (!v) continue;
-        const c = fill(v);
-        let run = col;
-        while (run + 1 < px.width && px.data[row * px.width + run + 1] && fill(px.data[row * px.width + run + 1]) === c)
-          run++;
-        if (!(c in paths)) {
-          paths[c] = "";
-          order.push(c);
-        }
-        paths[c] += `M${r2(x + col * cw)} ${r2(y + row * ch)}h${r2((run - col + 1) * cw)}v${r2(ch)}h${r2(-(run - col + 1) * cw)}z`;
-        col = run;
-      }
-    }
-    const out = order.map((c) => {
-      return el("path", { d: paths[c], fill: c, "shape-rendering": "crispEdges" });
-    }).join("");
-    return out ? el("g", { "data-hook": "picture", "data-width": px.width, "data-height": px.height }, out) : "";
-  }
-  function flexTab(T, x, y, w, h) {
-    return tag(
-      "smd",
-      rect(x, y, w, h, "#b8792f", Object.assign({ rx: 0.6 }, edge(T, "#8a5a20", T["stroke-fine"]))) + rect(x + 1, y, w - 2, h * 0.45, T["plastic-black"], { rx: 0.4 })
-    );
-  }
-  function oledBreakout(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const fin = props.finish || "blue";
-    const f = finish(T, fin);
-    const names = props.pins || ["DATA", "CLK", "DC", "RST", "CS", "3V3", "VIN", "GND"];
-    const maxLen = names.reduce((m, n) => {
-      return Math.max(m, n.length);
-    }, 0);
-    const rotate = maxLen * PIN_LABEL * 0.62 > p - 1.6;
-    const w = 10.6 * p;
-    const h = rotate ? 11 * p : 10.6 * p;
-    const gy = rotate ? 2.3 * p : 1.6 * p;
-    let s = "";
-    s += board({
-      width: w,
-      height: h,
-      finish: fin,
-      holes: true,
-      mark: { x: w - 2.4 * p, y: h - 1.15 * p, size: 0.6 * p }
-    });
-    const hdr = header({
-      x: r2((w - (names.length - 1) * p) / 2),
-      y: 0.6 * p,
-      labels: names,
-      kind: "pad",
-      side: "below",
-      silk: f.silk,
-      size: PIN_LABEL,
-      rotate
-    });
-    hdr.pins.forEach((pn) => {
-      s += trace(T, fin, [
-        [pn.x, pn.y],
-        [pn.x, gy + 0.6 * p]
-      ]);
-    });
-    const gw = 26.7 * mm;
-    const gh = 19.26 * mm;
-    const gx = (w - gw) / 2;
-    s += flexTab(T, w / 2 - 5 * mm, gy + gh - 0.5, 10 * mm, 0.45 * p + 0.5);
-    s += tag("body", rect(gx, gy, gw, gh, T.bezel, Object.assign({ rx: 1 }, edge(T, T["plastic-black-edge"]))));
-    s += rect(gx + 1.5, gy + gh - 2.6 * mm - 1.5, gw - 3, 2.6 * mm, T["plastic-black"], { rx: 0.6 });
-    s += rect(gx + 1.5, gy + 1.5, gw - 3, 0.6 * mm, "#ffffff", { "fill-opacity": 0.12 });
-    const ww = 21.74 * mm;
-    const wh = 10.86 * mm;
-    const wx = gx + (gw - ww) / 2;
-    const wy = gy + 1.4 * mm;
-    s += rect(wx, wy, ww, wh, T.glass, { "data-hook": "display", "data-width": 128, "data-height": 64, rx: 0.5 });
-    s += screenPicture(props, wx, wy, ww, wh, T["readout-text"]);
-    if (props.caption)
-      s += text(wx + ww / 2, wy + wh / 2 + 2.4, props.caption, 6.4, T["readout-text"], { "font-weight": 600 });
-    s += hdr.svg;
-    return art(w, h, `0.96 inch OLED module, ${names.length}-pin`, s, hdr.pins);
-  }
-  function oledSquare(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const fin = props.finish || "blue";
-    const f = finish(T, fin);
-    const cols = props.columns || 128;
-    const rows = props.rows || 128;
-    const names = props.pins || ["GND", "VCC", "SCL", "SDA"];
-    const w = 34.3 * mm;
-    const h = 45.5 * mm;
-    let s = "";
-    s += board({
-      width: w,
-      height: h,
-      finish: fin,
-      holes: false,
-      mark: { x: w - 2.6 * p, y: h - 1.05 * p, size: 0.6 * p }
-    });
-    [
-      [2.5, 2.5],
-      [31.8, 2.5],
-      [2.5, 43],
-      [31.8, 43]
-    ].forEach((c) => {
-      s += tag("hole", circle(c[0] * mm, c[1] * mm, 1.3 * mm, T.hole, edge(T, T.pad, 1)));
-    });
-    const hdr = header({
-      x: r2((w - (names.length - 1) * p) / 2),
-      y: 0.6 * p,
-      labels: names,
-      kind: "pad",
-      side: "below",
-      silk: f.silk,
-      size: PIN_LABEL
-    });
-    const gw = 31 * mm;
-    const gh = 35 * mm;
-    const gx = (w - gw) / 2;
-    const gy = 1.6 * p;
-    const aw = 26.9 * mm;
-    const ah = 26.9 * mm;
-    hdr.pins.forEach((pn) => {
-      s += trace(T, fin, [
-        [pn.x, pn.y],
-        [pn.x, gy + 0.5 * p]
-      ]);
-    });
-    s += flexTab(T, w / 2 - 5 * mm, gy + gh - 0.5, 10 * mm, 0.5 * p + 0.5);
-    s += tag(
-      "body",
-      rect(gx, gy, gw, gh, T.bezel, Object.assign({ rx: 1, "data-hook": "glass" }, edge(T, T["plastic-black-edge"])))
-    );
-    s += rect(gx + 1.5, gy + gh - 3.3 * mm - 1.5, gw - 3, 3.3 * mm, T["plastic-black"], { rx: 0.6 });
-    s += rect(gx + 1.5, gy + 1.5, gw - 3, 0.6 * mm, "#ffffff", { "fill-opacity": 0.1 });
-    const ax = gx + (gw - aw) / 2;
-    const ay = gy + 2 * mm;
-    s += rect(ax, ay, aw, ah, T.glass, { "data-hook": "display", "data-width": cols, "data-height": rows });
-    s += screenPicture(props, ax, ay, aw, ah, T["readout-text"]);
-    if (props.caption)
-      s += text(ax + aw / 2, ay + ah / 2 + 3, props.caption, 7.5, T["readout-text"], { "font-weight": 600 });
-    s += text(4.6 * mm, h - 1.6 * mm, props.label || `${cols}x${rows} OLED`, PIN_LABEL, f.silk, {
-      "text-anchor": "start"
-    });
-    s += hdr.svg;
-    return art(w, h, `${cols} x ${rows} OLED module`, s, hdr.pins);
-  }
-  function tftModule(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const fin = props.finish || "red";
-    const f = finish(T, fin);
-    const cap2 = !!props.touch;
-    let s = "";
-    const names = props.pins || ["VCC", "GND", "CS", "RST", "D/C", "MOSI", "SCK", "LED", "MISO"];
-    const G = cap2 ? {
-      w: 50,
-      h: 86,
-      gy: 6.4,
-      gh: 69.2,
-      ww: 43.2,
-      wh: 57.6,
-      wx: 3.4,
-      wy: 9.3,
-      holes: [
-        [3, 3],
-        [47, 3],
-        [3, 79.08],
-        [47, 79.08]
-      ],
-      jx: 8.49
-    } : {
-      w: 42.72,
-      h: 77.18,
-      gy: 6.51,
-      gh: 60.26,
-      ww: 36.72,
-      wh: 48.96,
-      wx: 3,
-      wy: 9.26,
-      holes: [
-        [3, 3],
-        [39.72, 3],
-        [3, 70.26],
-        [39.72, 70.26]
-      ],
-      jx: 4.85
-    };
-    const w = G.w * mm;
-    const h = G.h * mm;
-    s += board({
-      width: w,
-      height: h,
-      finish: fin,
-      holes: false,
-      mark: props.mark === false ? void 0 : { x: 10 * mm, y: 3 * mm, size: 0.7 * p }
-    });
-    G.holes.forEach((c) => {
-      s += tag("hole", circle(c[0] * mm, c[1] * mm, 1.5 * mm, T.hole, edge(T, T.pad, 1)));
-    });
-    const jx = G.jx * mm;
-    const jy = h - 2 * mm;
-    if (!cap2) {
-      for (let k = 0; k < 4; k++) s += barePad(T, (17.23 + k * 2.54) * mm, 2.17 * mm);
-      s += text((17.23 + 3 * 2.54) * mm + 2.4 * mm, 2.17 * mm + 1.4, "J4", PIN_LABEL, f.silk);
-    }
-    s += text(jx - 0.55 * p, jy + 1.4, "J2", PIN_LABEL, f.silk, { "text-anchor": "end" });
-    const gx = 0.2 * mm;
-    const gy = G.gy * mm;
-    const gw = w - 0.4 * mm;
-    const gh = G.gh * mm;
-    s += flexTab(T, gx + gw / 2 - 9 * mm, gy + gh - 0.5, 18 * mm, 0.5 * p + 0.5);
-    s += tag(
-      "body",
-      rect(gx, gy, gw, gh, T.bezel, Object.assign({ rx: 1, "data-hook": "glass" }, edge(T, T["plastic-black-edge"])))
-    );
-    const ww = G.ww * mm;
-    const wh = G.wh * mm;
-    const wx = G.wx * mm;
-    const wy = G.wy * mm;
-    s += rect(wx, wy, ww, wh, T.glass, { "data-hook": "display", "data-width": 240, "data-height": 320, rx: 0.5 });
-    s += rect(gx + 2, gy + gh - 5.6 * mm, gw - 4, 4.2 * mm, T["plastic-black"], { rx: 0.6 });
-    s += rect(gx + 2, gy + 1.5, gw - 4, 0.8 * mm, "#ffffff", { "fill-opacity": 0.1 });
-    s += screenPicture(props, wx, wy, ww, wh, "#ffffff", true);
-    if (props.caption)
-      s += text(wx + ww / 2, wy + wh / 2 + 3, props.caption, 7.5, T["readout-text"], { "font-weight": 600 });
-    const pins = [];
-    for (let i = 0; i < 14; i++) {
-      const x = jx + i * p;
-      const n = names[i];
-      if (typeof n === "string") {
-        s += pin({ x, y: jy, kind: "pad", label: n, side: "above", silk: f.silk, size: PIN_LABEL, rotate: true });
-        pins.push({ name: n, x, y: jy });
-      } else s += barePad(T, x, jy);
-    }
-    return art(w, h, cap2 ? "2.8 inch TFT module with capacitive touch" : "2.4 inch TFT module", s, pins);
-  }
-  function nokiaModule(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const fin = props.finish || "red";
-    const f = finish(T, fin);
-    const w = 18 * p;
-    const h = 18 * p;
-    let s = "";
-    const names = props.pins || ["RST", "CE", "DC", "DIN", "CLK", "VCC", "BL", "GND"];
-    s += board({ width: w, height: h, finish: fin, holes: true, mark: { x: 14.6 * p, y: h - 1.1 * p, size: 0.6 * p } });
-    const x0 = r2((w - (names.length - 1) * p) / 2);
-    s += rect(x0 - 0.6 * p, 0.7 * p - 0.4 * p, (names.length - 1) * p + 1.2 * p, 0.8 * p, "none", {
-      stroke: f.silk,
-      "stroke-width": T["stroke-fine"],
-      "stroke-opacity": 0.8,
-      rx: 0.4
-    });
-    names.forEach((n, i) => {
-      s += barePad(T, x0 + i * p, 0.7 * p);
-    });
-    s += rect(x0 - 0.6 * p, h - 0.7 * p - 0.4 * p, (names.length - 1) * p + 1.2 * p, 0.8 * p, "none", {
-      stroke: f.silk,
-      "stroke-width": T["stroke-fine"],
-      "stroke-opacity": 0.8,
-      rx: 0.4
-    });
-    s += rect(x0 - 0.45 * p, h - 1.15 * p, 0.9 * p, 0.9 * p, "none", {
-      stroke: f.silk,
-      "stroke-width": T["stroke-fine"],
-      "stroke-opacity": 0.9
-    });
-    const hdr = header({
-      x: x0,
-      y: h - 0.7 * p,
-      labels: names,
-      kind: "pad",
-      side: "above",
-      silk: f.silk,
-      size: PIN_LABEL
-    });
-    s += smd(T, "capacitor", 1.5 * p, 0.45 * p, true) + text(1.5 * p, 0.35 * p, "C1", PIN_LABEL, f.silk, { "text-anchor": "start" });
-    s += smd(T, "resistor", w - 2.4 * p, 0.45 * p, true) + text(w - 2.4 * p, 0.35 * p, "D1", PIN_LABEL, f.silk, { "text-anchor": "start" });
-    const gw = 40 * mm;
-    const gh = 34 * mm;
-    const fr = 1.2 * mm;
-    const gx = (w - gw) / 2;
-    const gy = 1.9 * p + fr;
-    [0.25, 0.75].forEach((q) => {
-      const ty = gy + gh * q - 0.5 * p;
-      s += tag(
-        "smd",
-        rect(
-          gx - fr - 0.25 * p,
-          ty,
-          0.25 * p + 1,
-          p,
-          T.metal,
-          Object.assign({ rx: 0.5 }, edge(T, T["metal-edge"], T["stroke-fine"]))
-        ) + rect(
-          gx + gw + fr - 1,
-          ty,
-          0.25 * p + 1,
-          p,
-          T.metal,
-          Object.assign({ rx: 0.5 }, edge(T, T["metal-edge"], T["stroke-fine"]))
-        )
-      );
-    });
-    s += tag(
-      "body",
-      rect(gx - fr, gy - fr, gw + 2 * fr, gh + 2 * fr, T.metal, Object.assign({ rx: 1.4 }, edge(T, T["metal-edge"])))
-    );
-    s += bevel(T, gx - fr, gy - fr, gw + 2 * fr, gh + 2 * fr, 1.4, 1.4);
-    s += rect(
-      gx,
-      gy,
-      gw,
-      gh,
-      "#c9d3bd",
-      Object.assign({ "data-hook": "glass", rx: 0.8 }, edge(T, "#8d9a85", T["stroke-fine"]))
-    );
-    s += rect(gx + 1.2 * mm, gy + gh - 5 * mm, gw - 2.4 * mm, 3.4 * mm, "#2a2f33", { rx: 0.6, "fill-opacity": 0.55 });
-    const dw = 30 * mm;
-    const dh = 20 * mm;
-    const dx = gx + (gw - dw) / 2;
-    const dy = gy + 4.6 * mm;
-    s += rect(dx, dy, dw, dh, "none", { "data-hook": "display", "data-width": 84, "data-height": 48 });
-    s += screenPicture(props, dx, dy, dw, dh, "#1c2a1a");
-    if (props.caption) s += text(dx + dw / 2, dy + dh / 2 + 2.6, props.caption, 6.8, "#1c2a1a", { "font-weight": 700 });
-    s += text(1.2 * p, h - 0.6 * p, props.label || "PCD8544 84x48", PIN_LABEL, f.silk, { "text-anchor": "start" });
-    s += hdr.svg;
-    return art(w, h, "PCD8544 84 x 48 graphic LCD module", s, hdr.pins);
-  }
-  function epaperModule(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const M = function(v) {
-      return v * mm;
-    };
-    const fin = props.finish || "blue";
-    const f = finish(T, fin);
-    const w = M(89.5);
-    const h = M(38);
-    let s = "";
-    const names = props.pins || ["BUSY", "RST", "DC", "CS", "CLK", "DIN", "GND", "VCC"];
-    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: M(84.7), y: M(30.2), size: 0.7 * p } });
-    [
-      [M(2.5), M(2.5)],
-      [M(2.5), M(35.5)],
-      [M(87.5), M(2.5)],
-      [M(87.5), M(35.5)]
-    ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], M(1.5), T.hole, edge(T, T.pad, 1)));
-    });
-    const pw = M(79);
-    const ph = M(36.7);
-    const px = M(5);
-    const py = (h - ph) / 2;
-    s += tag(
-      "smd",
-      rect(M(0.6), M(10.5), M(4.8), M(16.5), "#b8792f", Object.assign({ rx: 0.8 }, edge(T, "#8a5a20", T["stroke-fine"])))
-    );
-    s += tag(
-      "body",
-      rect(px, py, pw, ph, "#d9d7cf", Object.assign({ rx: 1 }, edge(T, T["metal-edge"], T["stroke-fine"])))
-    );
-    s += rect(px + M(0.4), py + M(0.4), M(3.4), ph - M(0.8), "#efeee8", { rx: 0.6 }) + rect(px + M(1.6), h / 2 - M(4), M(1), M(8), T.chip, { rx: 0.3 });
-    s += rect(px + M(4.2), py + M(0.6), pw - M(4.8), ph - M(1.2), "#f2f0ea", { "data-hook": "paper", rx: 0.8 });
-    const dw = M(66.89);
-    const dh = M(29.05);
-    const dx = px + pw - M(2.3) - dw;
-    const dy = (h - dh) / 2;
-    s += rect(dx, dy, dw, dh, "#f2f0ea", { "data-hook": "display", "data-width": 296, "data-height": 128 });
-    s += screenPicture(props, dx, dy, dw, dh, "#1a1a1a");
-    if (props.caption) s += text(dx + dw / 2, dy + dh / 2 + 2.8, props.caption, 7.5, "#1a1a1a", { "font-weight": 700 });
-    const hdr = header({
-      x: M(88.2),
-      y: h / 2 - (names.length - 1) * p / 2,
-      axis: "y",
-      labels: names,
-      kind: "pad",
-      side: "left",
-      silk: f.silk,
-      size: PIN_LABEL
-    });
-    s += hdr.svg;
-    return art(w, h, "2.9 inch 296 x 128 e-paper module", s, hdr.pins);
-  }
-  function max7219Matrix(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    let fin = "blue";
-    let f = finish(T, fin);
-    const chain = Math.max(1, Math.min(32, Math.floor(Number(props.chain) || 1)));
-    const face = 32 * mm;
-    let w = (Math.ceil(12.6 * chain) + 5) * p;
-    let h = 13 * p;
-    let s = "";
-    const on2 = lensColor(T, props.color || "red");
-    const off = T["indicator-off-light"];
-    const lit2 = props.lit || [];
-    const pins = [];
-    const wells = function(fx, fy, k) {
-      let g = rect(
-        fx,
-        fy,
-        face,
-        face,
-        T["segment-face"],
-        Object.assign(
-          { rx: 1.2, "data-hook": `face-${k}`, "data-rows": 8, "data-cols": 8 },
-          edge(T, T["plastic-black-edge"], T["stroke-fine"])
-        )
-      );
-      const pitch = 3.8 * mm;
-      const ox = fx + (face - 7 * pitch) / 2;
-      const oy = fy + (face - 7 * pitch) / 2;
-      const rowsLit = lit2[k] || [];
-      for (let r = 0; r < 8; r++)
-        for (let c = 0; c < 8; c++) {
-          const isOn = String(rowsLit[r] || "")[c] === "1";
-          const cx = ox + c * pitch;
-          const cy = oy + r * pitch;
-          g += circle(cx, cy, 1.5 * mm, isOn ? on2 : off, {
-            "data-led": `${k}-${r}-${c}`,
-            "data-lit": isOn ? "true" : "false"
-          });
-          g += circle(cx, cy, 0.8 * mm, isOn ? "#ffffff" : T["plastic-white-edge"], {
-            "fill-opacity": isOn ? 0.55 : 0.35
-          });
-        }
-      return tag("body", g);
-    };
-    if (chain === 1) {
-      fin = "green";
-      f = finish(T, fin);
-      w = 13 * p;
-      h = 22 * p;
-      s = "";
-      const inOrder = ["CLK", "CS", "DIN", "GND", "V+"];
-      const outOrder = ["CLK.2", "CS.2", "DOUT", "GND.2", "V+.2"];
-      const x0 = 4.5 * p;
-      const at = {};
-      s += board({
-        width: w,
-        height: 20 * p,
-        y: 1 * p,
-        finish: fin,
-        holes: "top",
-        mark: { x: 1.2 * p, y: 2.6 * p, size: 0.7 * p }
-      });
-      inOrder.forEach((n, i) => {
-        const x = x0 + i * p;
-        s += tag(
-          "leg",
-          rect(x - 1.45, 0, 2.9, 1 * p, T["lead-edge"], { rx: 0.6 }) + rect(x - 0.95, 0, 1.9, 1 * p, T.lead, { rx: 0.5 })
-        );
-        s += pin({ x, y: 1 * p, kind: "leg", label: n, side: "below", rotate: true, silk: f.silk, size: PIN_LABEL });
-        s += tag(
-          "leg",
-          rect(x - 1.45, 21 * p, 2.9, 1 * p, T["lead-edge"], { rx: 0.6 }) + rect(x - 0.95, 21 * p, 1.9, 1 * p, T.lead, { rx: 0.5 })
-        );
-        s += text(x, 20.65 * p, outOrder[i].replace(".2", ""), PIN_LABEL, f.silk);
-        at[n] = { x, y: 1 * p };
-        at[outOrder[i]] = { x, y: 21 * p };
-      });
-      s += dipOnBoard(T, 0.5 * p, 5.6 * p, 12, "MAX7219");
-      s += wells(0.2 * p, 20 * p - face, 0);
-      ["V+", "GND", "DIN", "CS", "CLK", "V+.2", "GND.2", "DOUT", "CS.2", "CLK.2"].forEach((n) => {
-        pins.push({ name: n, x: at[n].x, y: at[n].y });
-      });
-      return art(w, h, "1 x MAX7219 8x8 LED matrix", s, pins);
-    }
-    const bw = chain * face;
-    const i0 = T["board-inset"];
-    w = Math.ceil((bw + 4 * mm) / p) * p;
-    h = face;
-    const ext = (w - bw) / 2;
-    s += tag(
-      "board",
-      rect(ext + i0, i0, bw - 2 * i0, h - 2 * i0, f.board, Object.assign({ rx: T["radius-board"] }, edge(T, f.edge)))
-    );
-    const inNames = ["V+", "GND", "DIN", "CS", "CLK"];
-    const outNames = ["V+.2", "GND.2", "DOUT", "CS.2", "CLK.2"];
-    for (let i = 0; i < 5; i++) {
-      const y = h / 2 + (i - 2) * p;
-      s += tag(
-        "leg",
-        rect(w - ext - 2 * mm, y - 1.45, ext + 2 * mm, 2.9, T["lead-edge"], { rx: 0.6 }) + rect(w - ext - 2 * mm, y - 0.95, ext + 2 * mm, 1.9, T.lead, { rx: 0.5 })
-      );
-      s += tag(
-        "leg",
-        rect(0, y - 1.45, ext + 2 * mm, 2.9, T["lead-edge"], { rx: 0.6 }) + rect(0, y - 0.95, ext + 2 * mm, 1.9, T.lead, { rx: 0.5 })
-      );
-      pins.push({ name: inNames[i], x: w, y });
-    }
-    for (let k = 0; k < chain; k++) s += wells(ext + (chain - 1 - k) * face, 0, k);
-    outNames.forEach((n, i) => {
-      pins.push({ name: n, x: 0, y: h / 2 + (i - 2) * p });
-    });
-    return art(w, h, `${chain} x MAX7219 8x8 LED matrix`, s, pins);
-  }
-  function tm1637Module(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const fin = props.finish || "blue";
-    const f = finish(T, fin);
-    const bw = 42 * mm;
-    const w = bw + p;
-    const h = 24 * mm;
-    let s = "";
-    const color = lensColor(T, props.color || "red");
-    const value = String(props.value === void 0 ? "" : props.value);
-    const dp = props.type === "dp";
-    const off = T["indicator-off-light"];
-    s += board({ width: bw, height: h, finish: fin, holes: false, mark: { x: 1.3 * p, y: h / 2, size: 0.7 * p } });
-    [
-      [2.5 * mm, 2.5 * mm],
-      [2.5 * mm, h - 2.5 * mm]
-    ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
-    });
-    const names = props.pins || ["CLK", "DIO", "VCC", "GND"];
-    const pins = [];
-    names.forEach((n, i) => {
-      const y = h / 2 + (i - 1.5) * p;
-      s += trace(T, fin, [
-        [bw - 1 * p, y],
-        [bw - 2.4 * p, y],
-        [bw - 3 * p, y - 0.4 * p]
-      ]);
-      s += tag(
-        "leg",
-        rect(bw - 1 * p, y - 1.45, 2 * p, 2.9, T["lead-edge"], { rx: 0.6 }) + rect(bw - 1 * p, y - 0.95, 2 * p, 1.9, T.lead, { rx: 0.5 })
-      ) + text(bw - 1.15 * p, y + 1.4, n, PIN_LABEL, f.silk, { "text-anchor": "end" });
-      pins.push({ name: n, x: w, y });
-    });
-    const fw = 30 * mm;
-    const fh = 14 * mm;
-    const fx = 2.5 * p;
-    const fy = (h - fh) / 2;
-    const rim = 0.3 * p;
-    s += tag(
-      "body",
-      rect(fx, fy, fw, fh, T["plastic-white"], Object.assign({ rx: 1.2 }, edge(T, T["plastic-white-edge"])))
-    );
-    s += bevel(T, fx, fy, fw, fh, 1.4, 1.2);
-    s += rect(fx + rim, fy + rim, fw - 2 * rim, fh - 2 * rim - 0.25 * p, T["segment-face"], { rx: 0.8 });
-    s += text(fx + fw - rim - 1.5, fy + fh - 0.1 * p, "3642BS", PIN_LABEL, T["plastic-white-edge"], {
-      "text-anchor": "end",
-      "fill-opacity": 0.9
-    });
-    const sw = 1.35 * p;
-    const sh = 1.35 * p;
-    const cell = 2.7 * p;
-    const t = 0.3 * p;
-    const bar = function(x, y, len, horizontal, on2, d, sgm) {
-      return rect(
-        horizontal ? x : x - t / 2,
-        horizontal ? y - t / 2 : y,
-        horizontal ? len : t,
-        horizontal ? t : len,
-        on2 ? color : off,
-        { rx: t / 2, "fill-opacity": on2 ? 1 : 0.6, "data-segment": `${d}-${sgm}`, "data-lit": on2 ? "true" : "false" }
-      );
-    };
-    const oy = fy + 1.1 * p;
-    for (let d = 0; d < 4; d++) {
-      const litSeg = SEG_OF[value[d] === void 0 ? " " : value[d]] || "";
-      const ox = fx + 0.9 * p + d * cell + (d >= 2 ? 0.5 * p : 0);
-      let g = "";
-      g += bar(ox + 0.2 * p, oy, sw, true, litSeg.indexOf("a") >= 0, d, 0);
-      g += bar(ox + sw + 0.2 * p, oy + 0.15 * p, sh - 0.3 * p, false, litSeg.indexOf("b") >= 0, d, 1);
-      g += bar(ox + sw + 0.2 * p, oy + sh + 0.15 * p, sh - 0.3 * p, false, litSeg.indexOf("c") >= 0, d, 2);
-      g += bar(ox + 0.2 * p, oy + 2 * sh, sw, true, litSeg.indexOf("d") >= 0, d, 3);
-      g += bar(ox + 0.2 * p, oy + sh + 0.15 * p, sh - 0.3 * p, false, litSeg.indexOf("e") >= 0, d, 4);
-      g += bar(ox + 0.2 * p, oy + 0.15 * p, sh - 0.3 * p, false, litSeg.indexOf("f") >= 0, d, 5);
-      g += bar(ox + 0.2 * p, oy + sh, sw, true, litSeg.indexOf("g") >= 0, d, 6);
-      s += el("g", { "data-digit": d + 1, transform: `skewX(-10) translate(${r2((oy + sh) * 0.176)} 0)` }, g);
-      if (dp) {
-        const pon = !!(props.dp && props.dp[d]);
-        s += circle(ox + sw + 0.75 * p, oy + 2 * sh, 0.17 * p, pon ? color : off, {
-          "fill-opacity": pon ? 1 : 0.6,
-          "data-segment": `${d}-7`,
-          "data-lit": pon ? "true" : "false"
-        });
-      }
-    }
-    if (!dp) {
-      const cx = fx + 0.9 * p + 2 * cell + 0.05 * p;
-      const con = !!props.colon;
-      s += circle(cx, oy + sh * 0.55, 0.19 * p, con ? color : off, {
-        "fill-opacity": con ? 1 : 0.6,
-        "data-colon": "true",
-        "data-lit": con ? "true" : "false"
-      }) + circle(cx, oy + sh * 1.45, 0.19 * p, con ? color : off, {
-        "fill-opacity": con ? 1 : 0.6,
-        "data-colon": "true",
-        "data-lit": con ? "true" : "false"
-      });
-    }
-    s += smd(T, "capacitor", 15 * p, 1 * p, true) + smd(T, "resistor", 15 * p, h - 1.6 * p, true) + via(T, 1.6 * p, h / 2 + 1.1 * p);
-    s += text(fx + fw / 2, h - 0.5 * p, props.label || "4-DIGIT DISPLAY", PIN_LABEL, f.silk);
-    return art(w, h, `TM1637 4-digit display${value ? ` showing ${value}` : ""}`, s, pins);
-  }
-  var SEG_OF;
-  var init_displays = __esm({
-    "src/displays.js"() {
-      init_core();
-      init_passives();
-      init_modules();
-      SEG_OF = {
-        0: "abcdef",
-        1: "bc",
-        2: "abdeg",
-        3: "abcdg",
-        4: "bcfg",
-        5: "acdfg",
-        6: "acdefg",
-        7: "abc",
-        8: "abcdefg",
-        9: "abcdfg",
-        "-": "g",
-        " ": "",
-        A: "abcefg",
-        b: "cdefg",
-        C: "adef",
-        d: "bcdeg",
-        E: "adefg",
-        F: "aefg",
-        H: "bcefg",
-        L: "def",
-        P: "abefg",
-        o: "cdeg",
-        r: "eg",
-        U: "bcdef"
-      };
-    }
-  });
-
   // src/boards.js
-  function silkName2(n) {
-    return String(n).replace(/\.\d+$/, "");
-  }
   function silkOf(props) {
     const labels = props && props.labels || {};
     return function(n) {
-      return Object.prototype.hasOwnProperty.call(labels, n) ? String(labels[n]) : silkName2(n);
+      return Object.prototype.hasOwnProperty.call(labels, n) ? String(labels[n]) : silkName(n);
     };
   }
   function devBoardTemplate(props) {
@@ -3844,35 +2064,6 @@ var PartsKit = (() => {
       });
     }
     return art(w, h, props.description || props.label || "Microcontroller board", s, pins);
-  }
-  function qfp(T, x, y, w, h, nSide, label) {
-    let s = "";
-    const lead = 1.5;
-    const lw = Math.min(1.2, (w - 4) / nSide * 0.55);
-    for (let i = 0; i < nSide; i++) {
-      const ox = 2 + (i + 0.5) * (w - 4) / nSide - lw / 2;
-      const oy = 2 + (i + 0.5) * (h - 4) / nSide - lw / 2;
-      s += rect(x - lead, y + oy, lead, lw, T.lead, { rx: 0.2 }) + rect(x + w, y + oy, lead, lw, T.lead, { rx: 0.2 });
-      s += rect(x + ox, y - lead, lw, lead, T.lead, { rx: 0.2 }) + rect(x + ox, y + h, lw, lead, T.lead, { rx: 0.2 });
-    }
-    s += rect(x, y, w, h, T.chip, Object.assign({ rx: T["radius-chip"] }, edge(T, T["chip-edge"])));
-    s += rect(x + 0.6, y + 0.6, w - 1.2, 1.1, "#ffffff", { rx: 0.5, "fill-opacity": T["opacity-light"] * 0.4 });
-    s += circle(x + 3.2, y + 3.2, 0.9, T["chip-print"]);
-    if (label) {
-      const fit = Math.floor((w - 2.4) / (PIN_LABEL * 0.62));
-      const lbl = String(label);
-      const cx = x + w / 2;
-      const cy = y + h / 2;
-      if (lbl.length <= fit && h >= 3 * PIN_LABEL + 2)
-        s += text(cx, cy - 0.6, lbl, PIN_LABEL, T["chip-print"]) + text(cx, cy + PIN_LABEL + 0.4, lotCode(lbl), PIN_LABEL, T["chip-print"], { "fill-opacity": 0.85 });
-      else if (lbl.length <= fit) s += text(cx, cy + 1.4, lbl, PIN_LABEL, T["chip-print"]);
-      else if (fit >= 4 && lbl.length <= 2 * fit) {
-        const dm = /^[A-Za-z]+(?=\d)/.exec(lbl);
-        const cut = dm && dm[0].length <= fit && lbl.length - dm[0].length <= fit ? dm[0].length : Math.ceil(lbl.length / 2);
-        s += text(cx, cy - 0.8, lbl.slice(0, cut), PIN_LABEL, T["chip-print"]) + text(cx, cy + PIN_LABEL - 0.4, lbl.slice(cut), PIN_LABEL, T["chip-print"]);
-      }
-    }
-    return tag("chip", s);
   }
   function axialOnBoard(T, x0, y0, x1, y1, props) {
     const vert = x0 === x1;
@@ -5125,7 +3316,7 @@ var PartsKit = (() => {
         s += pin({ x, y, kind: "socket" });
         return;
       }
-      s += pin({ x, y, kind: "socket", label: silkName2(name), side, silk: f.silk, size: PIN_LABEL });
+      s += pin({ x, y, kind: "socket", label: silkName(name), side, silk: f.silk, size: PIN_LABEL });
       pins.push({ name, x, y });
     };
     const powerRow = 12 - power.length;
@@ -5143,9 +3334,6 @@ var PartsKit = (() => {
     });
     s += text(AL, rowYof(powerRow - 1) - 0.35 * p, "POWER", PIN_LABEL, f.silk) + text(AL, rowYof(12) + 1.4, "ANALOG", PIN_LABEL, f.silk) + text(AR, rowYof(0) - 0.35 * p, "DIGITAL", PIN_LABEL, f.silk);
     return art(w, h, props.description || props.label || "Nucleo-64 board", s, pins);
-  }
-  function usbC(T, cx, y, w, h, mouth) {
-    return usbPort(T, { kind: "c", x: cx - w / 2, y, w, h, mouth: mouth || "down" });
   }
   function picoBoardTemplate(props) {
     props = props || {};
@@ -5222,7 +3410,7 @@ var PartsKit = (() => {
       x: leftX,
       y: top,
       axis: "y",
-      labels: left.map(silkName2),
+      labels: left.map(silkName),
       kind: "pad",
       side: "right",
       silk: f.silk,
@@ -5232,7 +3420,7 @@ var PartsKit = (() => {
       x: rightX,
       y: top,
       axis: "y",
-      labels: right.map(silkName2),
+      labels: right.map(silkName),
       kind: "pad",
       side: "left",
       silk: f.silk,
@@ -5343,7 +3531,7 @@ var PartsKit = (() => {
       x: leftX,
       y: top,
       axis: "y",
-      labels: left.map(silkName2),
+      labels: left.map(silkName),
       kind: "pad",
       side: "right",
       silk: f.silk,
@@ -5353,7 +3541,7 @@ var PartsKit = (() => {
       x: rightX,
       y: top,
       axis: "y",
-      labels: right.map(silkName2),
+      labels: right.map(silkName),
       kind: "pad",
       side: "left",
       silk: f.silk,
@@ -5573,13 +3761,13 @@ var PartsKit = (() => {
       const x = (c + 1) * p;
       const y = 1.5 * p;
       at[n] = { x, y };
-      s += pin({ x, y, kind: "pad", label: silkName2(n), side: "below", silk: f.silk, size: PIN_LABEL });
+      s += pin({ x, y, kind: "pad", label: silkName(n), side: "below", silk: f.silk, size: PIN_LABEL });
     });
     bottom.forEach((n, c) => {
       const x = (c + 1) * p;
       const y = 7.5 * p;
       at[n] = { x, y };
-      s += pin({ x, y, kind: "pad", label: silkName2(n), side: "above", silk: f.silk, size: PIN_LABEL });
+      s += pin({ x, y, kind: "pad", label: silkName(n), side: "above", silk: f.silk, size: PIN_LABEL });
     });
     const pins = order.filter((n) => {
       return at[n];
@@ -5588,14 +3776,2792 @@ var PartsKit = (() => {
     });
     return art(w, h, props.description || props.label || "STM32F103C8 Blue Pill board", s, pins);
   }
-  var ESP_MODULES;
+  function lights(props, user) {
+    const ind = props && props.indicators || {};
+    return user === false ? { power: ind.power === true } : { power: ind.power === true, user: ind.user || false };
+  }
+  function unoClassBoard(props) {
+    return devBoardTemplate({
+      layout: "landscape",
+      label: "UNO-CLASS",
+      chipLabel: "ATMEGA328P",
+      labels: { "A5.2": "SCL", "A4.2": "SDA" },
+      top: [
+        ["A5.2", "A4.2", "AREF", "GND", "13", "12", "11", "10", "9", "8"],
+        ["7", "6", "5", "4", "3", "2", "1", "0"]
+      ],
+      bottom: [
+        ["NC", "IOREF", "RESET", "3.3V", "5V", "GND.2", "GND.3", "VIN"],
+        ["A0", "A1", "A2", "A3", "A4", "A5"]
+      ],
+      groupNames: { top: ["DIGITAL (PWM ~)"], bottom: ["POWER", "ANALOG IN"] },
+      pwm: ["3", "5", "6", "9", "10", "11"],
+      indicators: lights(props),
+      description: "Uno-class board"
+    });
+  }
+  function nanoClassBoard(props) {
+    return devBoardTemplate({
+      label: "NANO-CLASS",
+      chipLabel: "ATMEGA328P",
+      pinKind: "pad",
+      widthPitches: 7.2,
+      labels: NANO_LABELS,
+      left: ["13", "3.3V", "AREF", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "5V", "RESET", "GND", "VIN"],
+      right: ["12", "11", "10", "9", "8", "7", "6", "5", "4", "3", "2", "GND.2", "RESET.2", "0", "1"],
+      icsp: ["12.2", "5V.2", "13.2", "11.2", "RESET.3", "GND.3"],
+      indicators: lights(props),
+      description: "Nano-class board"
+    });
+  }
+  function numbered(from, count, step) {
+    const out = [];
+    for (let i = 0; i < count; i++) out.push(String(from + i * step));
+    return out;
+  }
+  function megaClassBoard(props) {
+    return megaBoardTemplate({
+      label: "MEGA-CLASS",
+      chipLabel: "ATMEGA2560",
+      top: [
+        ["SCL", "SDA", "AREF", "GND", "13", "12", "11", "10", "9", "8"],
+        ["7", "6", "5", "4", "3", "2", "1", "0"],
+        numbered(14, 8, 1)
+      ],
+      block: {
+        left: ["5V.2"].concat(numbered(22, 16, 2), ["GND.4"]),
+        right: ["5V.3"].concat(numbered(23, 16, 2), ["GND.5"])
+      },
+      bottom: [
+        ["IOREF", "RESET", "3.3V", "5V", "GND.2", "GND.3", "VIN"],
+        numbered(0, 8, 1).map((n) => {
+          return `A${n}`;
+        }),
+        numbered(8, 8, 1).map((n) => {
+          return `A${n}`;
+        })
+      ],
+      groupNames: { top: ["DIGITAL (PWM ~)", "COMMUNICATION"], bottom: ["POWER", "ANALOG IN"] },
+      pwm: numbered(2, 12, 1),
+      indicators: lights(props),
+      description: "Mega-class board"
+    });
+  }
+  function nanoRp2040Board(props) {
+    return nanoConnectTemplate({
+      label: "NANO RP2040",
+      chipLabel: "RP2040",
+      left: ["TX", "RX", "RESET", "GND", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12"],
+      right: ["VIN", "GND.2", "REC", "5V", "A7", "A6", "A5", "A4", "A3", "A2", "A1", "A0", "AREF", "3.3V", "D13"],
+      indicators: lights(props),
+      description: "Nano RP2040 Connect board"
+    });
+  }
+  function picoClassBoard(props) {
+    return picoBoardTemplate({
+      label: "PICO-CLASS",
+      chipLabel: "RP2040",
+      debugPins: false,
+      indicators: lights(props),
+      description: "Pico-class board",
+      left: [
+        "GP0",
+        "GP1",
+        "GND",
+        "GP2",
+        "GP3",
+        "GP4",
+        "GP5",
+        "GND.2",
+        "GP6",
+        "GP7",
+        "GP8",
+        "GP9",
+        "GND.3",
+        "GP10",
+        "GP11",
+        "GP12",
+        "GP13",
+        "GND.4",
+        "GP14",
+        "GP15"
+      ],
+      right: [
+        "VBUS",
+        "VSYS",
+        "GND.8",
+        "3V3_EN",
+        "3V3",
+        "ADC_VREF",
+        "GP28",
+        "GND.7",
+        "GP27",
+        "GP26",
+        "RUN",
+        "GP22",
+        "GND.6",
+        "GP21",
+        "GP20",
+        "GP19",
+        "GP18",
+        "GND.5",
+        "GP17",
+        "GP16"
+      ]
+    });
+  }
+  function esp32DevKitV1(props) {
+    return espDevKitTemplate({
+      label: "ESP32 DEVKIT V1",
+      chipLabel: "ESP-WROOM-32",
+      indicators: lights(props),
+      description: "ESP32 development board",
+      left: ["EN", "VP", "VN", "D34", "D35", "D32", "D33", "D25", "D26", "D27", "D14", "D12", "D13", "GND.2", "VIN"],
+      right: ["D23", "D22", "TX0", "RX0", "D21", "D19", "D18", "D5", "TX2", "RX2", "D4", "D2", "D15", "GND", "3V3"]
+    });
+  }
+  function esp32DevKitCV4(props) {
+    return espDevKitTemplate({
+      label: "ESP32 DEVKITC V4",
+      chipLabel: "ESP32-WROOM-32D",
+      layout: "devkitc",
+      indicators: lights(props, false),
+      description: "ESP32 development board",
+      left: [
+        "3V3",
+        "EN",
+        "VP",
+        "VN",
+        "34",
+        "35",
+        "32",
+        "33",
+        "25",
+        "26",
+        "27",
+        "14",
+        "12",
+        "GND",
+        "13",
+        "D2",
+        "D3",
+        "CMD",
+        "5V"
+      ],
+      right: [
+        "GND.2",
+        "23",
+        "22",
+        "TX",
+        "RX",
+        "21",
+        "GND.3",
+        "19",
+        "18",
+        "5",
+        "17",
+        "16",
+        "4",
+        "0",
+        "2",
+        "15",
+        "D1",
+        "D0",
+        "CLK"
+      ]
+    });
+  }
+  function moduleDevKit(spec, props) {
+    return espDevKitTemplate({
+      layout: "devkit-1",
+      module: spec.size[0],
+      length: spec.size[1],
+      overhang: spec.size[2],
+      firstPin: spec.size[3],
+      usb: spec.usb,
+      buttons: spec.buttons,
+      bridge: spec.bridge,
+      label: spec.label,
+      chipLabel: spec.module,
+      left: spec.left,
+      right: spec.right,
+      indicators: { power: lights(props).power },
+      description: spec.description
+    });
+  }
+  function esp32C3DevKit(props) {
+    return moduleDevKit(
+      {
+        module: "ESP32-C3-MINI-1",
+        label: "DEVKITM-1",
+        size: ["mini", 38.91, 5.35, 1.68],
+        usb: "micro",
+        buttons: ["BOOT", "RST"],
+        bridge: "CP2102N",
+        description: "ESP32-C3 development board",
+        left: ["GND", "3V3", "3V3.2", "2", "3", "GND.2", "RST", "GND.3", "0", "1", "10", "GND.4", "5V", "5V.2", "GND.5"],
+        right: ["GND.6", "TX", "RX", "GND.7", "9", "8", "GND.8", "7", "6", "5", "4", "GND.9", "18", "19", "GND.10"]
+      },
+      props
+    );
+  }
+  function esp32S2DevKit(props) {
+    return moduleDevKit(
+      {
+        module: "ESP32-S2-MINI-1",
+        label: "DEVKITM-1",
+        size: ["mini-s2", 54, 5.6, 1.6],
+        usb: "micro",
+        buttons: ["BOOT", "RST"],
+        bridge: "CP2102N",
+        description: "ESP32-S2 development board",
+        left: [
+          "3V3",
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "5V",
+          "GND"
+        ],
+        right: [
+          "GND.2",
+          "RST",
+          "46",
+          "45",
+          "RX",
+          "TX",
+          "42",
+          "41",
+          "40",
+          "39",
+          "38",
+          "37",
+          "36",
+          "35",
+          "34",
+          "33",
+          "26",
+          "21",
+          "20",
+          "19",
+          "18"
+        ]
+      },
+      props
+    );
+  }
+  function esp32S3DevKit(props) {
+    return moduleDevKit(
+      {
+        module: "ESP32-S3-WROOM-1",
+        label: "DEVKITC-1",
+        size: ["wroom", 62.74, 8.25, 1.53],
+        usb: "dual-micro",
+        buttons: ["BOOT", "RESET"],
+        bridge: "CP2102N",
+        description: "ESP32-S3 development board",
+        left: [
+          "3V3",
+          "3V3.2",
+          "RST",
+          "4",
+          "5",
+          "6",
+          "7",
+          "15",
+          "16",
+          "17",
+          "18",
+          "8",
+          "3",
+          "46",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "5V",
+          "GND"
+        ],
+        right: [
+          "GND.2",
+          "TX",
+          "RX",
+          "1",
+          "2",
+          "42",
+          "41",
+          "40",
+          "39",
+          "38",
+          "37",
+          "36",
+          "35",
+          "0",
+          "45",
+          "48",
+          "47",
+          "21",
+          "20",
+          "19",
+          "GND.3",
+          "GND.4"
+        ]
+      },
+      props
+    );
+  }
+  function esp32C5DevKit(props) {
+    return moduleDevKit(
+      {
+        module: "ESP32-C5-WROOM-1",
+        label: "DEVKITC-1",
+        size: ["wroom", 53.6, 6.5, 1.575],
+        usb: "dual-c",
+        buttons: ["RESET", "BOOT"],
+        description: "ESP32-C5 development board",
+        left: ["3V3", "RST", "2", "3", "0", "1", "6", "7", "8", "9", "10", "26", "25", "5V", "GND", "NC0"],
+        right: ["GND.2", "TX", "RX", "24", "23", "15", "27", "4", "5", "NC1", "28", "GND.3", "14", "13", "GND.4", "NC2"]
+      },
+      props
+    );
+  }
+  function esp32C6DevKit(props) {
+    return moduleDevKit(
+      {
+        module: "ESP32-C6-WROOM-1",
+        label: "DEVKITC-1",
+        size: ["wroom", 51.8, 6.35, 1.575],
+        usb: "dual-c",
+        buttons: ["BOOT", "RESET"],
+        description: "ESP32-C6 development board",
+        left: ["3V3", "RST", "4", "5", "6", "7", "0", "1", "8", "10", "11", "2", "3", "5V", "GND", null],
+        right: ["GND.2", "TX", "RX", "15", "23", "22", "21", "20", "19", "18", "9", "GND.3", "13", "12", "GND.4", null]
+      },
+      props
+    );
+  }
+  function esp32H2DevKit(props) {
+    return moduleDevKit(
+      {
+        module: "ESP32-H2-MINI-1",
+        label: "DEVKITM-1",
+        size: ["mini", 48.26, 5.4, 1.46],
+        usb: "dual-c",
+        buttons: ["RESET", "BOOT"],
+        description: "ESP32-H2 development board",
+        left: ["3V3", "RST", "0", "1", "2", "3", "13", "14", "4", "5", "NC", "VBAT", "GND", "5V", "GND.2"],
+        right: ["GND.3", "TX", "RX", "10", "11", "25", "12", "8", "22", "GND.4", "9", "GND.5", "27", "26", "GND.6"]
+      },
+      props
+    );
+  }
+  function stm32L031K6Board(props) {
+    return nucleo32BoardTemplate({
+      label: "L031K6 BOARD",
+      chipLabel: "STM32L031K6",
+      indicators: { power: lights(props).power },
+      description: "Nucleo-32 board with an STM32L031K6",
+      left: ["D1", "D0", "RST", "GND", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12"],
+      right: ["VIN", "GND.2", "RST.2", "5V", "A7", "A6", "A5", "A4", "A3", "A2", "A1", "A0", "REF", "3V3", "D13"]
+    });
+  }
+  function stm32C031C6Board(props) {
+    return nucleo64BoardTemplate({
+      label: "C031C6 BOARD",
+      chipLabel: "STM32C031C6",
+      indicators: { power: lights(props).power },
+      description: "Nucleo-64 board with an STM32C031C6",
+      left: [
+        ["PD0", "PD1"],
+        ["PD2", "PD2.2"],
+        ["VDD", "E5V"],
+        ["PA14", "GND.4"],
+        [null, null],
+        [null, "IOREF.2"],
+        ["PA13", "NRST.2"],
+        ["PC6", "3V3.2"],
+        [null, "5V.2"],
+        ["GND.5", "GND.6"],
+        [null, "GND.7"],
+        ["PC13", "VIN.2"],
+        ["PC14", null],
+        [null, "PA0"],
+        ["PF0", "PA1"],
+        ["PF1", "PA4"],
+        ["PB11", "PB0.2"],
+        ["PA2", "PA11"],
+        [null, "PA12"]
+      ],
+      right: [
+        ["PD3", "PA3"],
+        ["PB8", "PC15"],
+        ["PB9", "PB12"],
+        ["AVDD.2", "5V.3"],
+        ["GND.8", null],
+        ["PA5", "PF3"],
+        ["PA6", "PA8"],
+        ["PA7", "PB12.2"],
+        ["PB0", null],
+        ["PC7", "GND.9"],
+        ["PA9", "PB2"],
+        ["PA15", "PB1"],
+        ["PB5", "PB15"],
+        ["PB4", "PB14"],
+        ["PB10", "PB13"],
+        ["PB3", "AGND"],
+        ["PA10", null],
+        ["PB6", null],
+        ["PB7", null]
+      ],
+      power: [null, "IOREF", "NRST", "3V3", "5V", "GND", "GND.2", "VIN"],
+      analog: ["A0", "A1", "A2", "A3", "A4", "A5"],
+      digitalHigh: ["D15", "D14", "AVDD", "GND.3", "D13", "D12", "D11", "D10", "D9", "D8"],
+      digitalLow: ["D7", "D6", "D5", "D4", "D3", "D2", "D1", "D0"]
+    });
+  }
+  var ESP_MODULES, NANO_LABELS;
   var init_boards = __esm({
     "src/boards.js"() {
       init_core();
-      init_displays();
-      init_modules();
+      init_pieces();
       init_passives();
       ESP_MODULES = { mini: [13.2, 16.6], "mini-s2": [15.4, 20.5], wroom: [18, 25.5] };
+      NANO_LABELS = { 0: "RX0", 1: "TX1", "3.3V": "3V3", AREF: "REF", RESET: "RST", "RESET.2": "RST" };
+      for (let nanoDigit = 2; nanoDigit <= 13; nanoDigit++) NANO_LABELS[String(nanoDigit)] = `D${nanoDigit}`;
+    }
+  });
+
+  // src/families/boards.js
+  var boards_exports = {};
+  __export(boards_exports, {
+    bluePillBoard: () => bluePillBoard,
+    esp32C3DevKit: () => esp32C3DevKit,
+    esp32C5DevKit: () => esp32C5DevKit,
+    esp32C6DevKit: () => esp32C6DevKit,
+    esp32DevKitCV4: () => esp32DevKitCV4,
+    esp32DevKitV1: () => esp32DevKitV1,
+    esp32H2DevKit: () => esp32H2DevKit,
+    esp32S2DevKit: () => esp32S2DevKit,
+    esp32S3DevKit: () => esp32S3DevKit,
+    franzininho: () => franzininho,
+    megaClassBoard: () => megaClassBoard,
+    nanoClassBoard: () => nanoClassBoard,
+    nanoRp2040Board: () => nanoRp2040Board,
+    picoClassBoard: () => picoClassBoard,
+    stm32C031C6Board: () => stm32C031C6Board,
+    stm32L031K6Board: () => stm32L031K6Board,
+    unoClassBoard: () => unoClassBoard
+  });
+  var init_boards2 = __esm({
+    "src/families/boards.js"() {
+      init_boards();
+    }
+  });
+
+  // src/displays.js
+  function characterLcd(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const cols = props.cols || 16;
+    const rows = props.rows || 2;
+    const lines = props.lines || [];
+    const glyphs = props.glyphs;
+    const blue = props.color === "blue";
+    const backpack = !!props.backpack;
+    const mmL = p / 2.54;
+    const big = cols >= 20 || rows >= 4;
+    const real = big ? [98, 60] : [80, 36];
+    const M = big ? { dotW: 0.55, dotH: 0.55, dotDx: 0.6, dotDy: 0.6, cellDy: 5.35, marginX: 3.3, marginY: 2.2 } : { dotW: 0.55, dotH: 0.65, dotDx: 0.6, dotDy: 0.7, cellDy: 5.95, marginX: 4.15, marginY: 2.45 };
+    const cellDx = 3.55 * mmL;
+    const cellDy = M.cellDy * mmL;
+    const dotW = M.dotW * mmL;
+    const dotH = M.dotH * mmL;
+    const dotDx = M.dotDx * mmL;
+    const dotDy = M.dotDy * mmL;
+    const charW = 4 * dotDx + dotW;
+    const charH = 7 * dotDy + dotH;
+    const activeW = (cols - 1) * cellDx + charW;
+    const activeH = (rows - 1) * cellDy + charH;
+    const glassW = activeW + 2 * M.marginX * mmL;
+    const glassH = activeH + 2 * M.marginY * mmL;
+    const w = r2(real[0] * mmL);
+    const h = r2(real[1] * mmL);
+    const bezelW = glassW + (big ? 19.8 : 6.7) * mmL;
+    const bezelH = glassH + (big ? 14.1 : 7.8) * mmL;
+    const bezelX = (w - bezelW) / 2;
+    const bezelY = big ? r2(10.35 * mmL) : r2(Math.max(3 * p, 2.6 * p + (h - 2.6 * p - 1.2 * p - bezelH) / 2));
+    const parallel = ["VSS", "VDD", "V0", "RS", "RW", "E", "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "A", "K"];
+    const names = backpack ? parallel : props.pins || parallel;
+    const f = finish(T, props.finish || "green");
+    let s = board({
+      width: w,
+      height: h,
+      finish: props.finish || "green",
+      holes: false,
+      mark: props.mark === false ? void 0 : { x: w - 2.2 * p, y: h / 2 - 0.45 * p, size: 0.9 * p }
+    });
+    [
+      [2.5, 2.5],
+      [real[0] - 2.5, 2.5],
+      [2.5, real[1] - 2.5],
+      [real[0] - 2.5, real[1] - 2.5]
+    ].forEach((c) => {
+      s += tag(
+        "hole",
+        circle(c[0] * mmL, c[1] * mmL, 2.1 * mmL, T.pad) + circle(c[0] * mmL, c[1] * mmL, 1.25 * mmL, T.hole, edge(T, T["metal-edge"], 0.5))
+      );
+    });
+    s += rect(1.2 * p, 1.8 * p, w - 2.4 * p, h - 3.2 * p, "none", {
+      rx: 1,
+      stroke: f.silk,
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.4
+    });
+    const hx = (big ? 10 : 8) * mmL;
+    const hy = 2.5 * mmL;
+    const hdr = header({ x: hx, y: hy, labels: names, side: "below", silk: f.silk, size: PIN_LABEL });
+    s += rect(hx - 0.5 * p, hy - 0.5 * p, p, p, "none", {
+      stroke: f.silk,
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.8
+    });
+    s += smd(T, "resistor", w - 4.4 * p, 0.45 * p, true) + smd(T, "capacitor", w - 4.4 * p, 1.15 * p, true);
+    hdr.pins.forEach((pn, i) => {
+      s += trace(T, props.finish || "green", [
+        [pn.x, pn.y],
+        [pn.x, pn.y + 1 * p],
+        [pn.x + 0.5 * p, pn.y + 1.6 * p]
+      ]);
+    });
+    s += via(T, 1.2 * p, h - 2.3 * p) + via(T, w - 1.3 * p, 2.6 * p) + via(T, w / 2, h - 0.55 * p);
+    let shown = hdr.pins;
+    let over = "";
+    if (backpack) {
+      hdr.pins.forEach((pn) => {
+        s += tag(
+          "solder",
+          circle(pn.x, pn.y, T["pad-radius"], T.pad) + circle(pn.x, pn.y, T["hole-radius"] + 0.4, T.metal, edge(T, T["metal-edge"], 0.5))
+        );
+      });
+      hdr.pins.forEach((pn, i) => {
+        s += text(pn.x, pn.y + T["label-drop"], names[i], PIN_LABEL, f.silk);
+      });
+      const side = header({
+        x: 0.45 * p,
+        y: 3.4 * p,
+        labels: props.pins || ["GND", "VCC", "SDA", "SCL"],
+        axis: "y",
+        side: "right",
+        silk: f.silk,
+        size: PIN_LABEL
+      });
+      over = tag(
+        "backpack-header",
+        rect(0.05 * p, 2.9 * p, 0.8 * p, 4 * p, T["plastic-black"], { rx: 0.6, "fill-opacity": 0.9 })
+      ) + side.svg;
+      shown = side.pins;
+    } else s += hdr.svg;
+    s += tag("cob", rect(bezelX + 1.2 * p, bezelY + bezelH - 0.3 * p, bezelW - 2.4 * p, 0.8 * p, T.chip, { rx: 0.5 }));
+    [0.2, 0.5, 0.8].forEach((q) => {
+      s += rect(
+        bezelX + 1.2 * p + (bezelW - 2.4 * p) * q - 0.8 * p,
+        bezelY + bezelH + 0.05 * p,
+        1.6 * p,
+        0.35 * p,
+        "#000000",
+        { rx: 0.5, "fill-opacity": 0.35 }
+      );
+    });
+    s += tag(
+      "body",
+      rect(
+        bezelX,
+        bezelY,
+        bezelW,
+        bezelH,
+        T["plastic-black"],
+        Object.assign({ rx: T["radius-bezel"] }, edge(T, T["plastic-black-edge"]))
+      )
+    );
+    s += rect(bezelX + 1.5, bezelY + 1.5, bezelW - 3, bezelH - 3, "none", {
+      rx: T["radius-bezel"],
+      stroke: "#ffffff",
+      "stroke-width": 0.5,
+      "stroke-opacity": 0.12
+    });
+    const gx = bezelX + (bezelW - glassW) / 2;
+    const gy = bezelY + (bezelH - glassH) / 2;
+    s += rect(gx, gy, glassW, glassH, blue ? T["lcd-blue"] : T["lcd-green"], { "data-hook": "glass", rx: 0.8 });
+    s += rect(gx, gy, glassW, glassH, "none", {
+      rx: 0.8,
+      stroke: "#000000",
+      "stroke-width": 0.6,
+      "stroke-opacity": 0.25
+    });
+    const ink = blue ? T["lcd-ink-light"] : T["lcd-ink"];
+    const ox = gx + M.marginX * mmL;
+    const oy = gy + M.marginY * mmL;
+    let cells = "";
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const x = ox + c * cellDx;
+        const y = oy + r * cellDy;
+        const ch = (lines[r] || "")[c];
+        const dots = glyphs ? glyphs[r * cols + c] : null;
+        cells += rect(x, y, charW, charH, ink, { "fill-opacity": 0.06 });
+        if (dots) {
+          for (let dy = 0; dy < 8; dy++)
+            for (let dx = 0; dx < 5; dx++)
+              if (dots[dy] >> 4 - dx & 1) cells += rect(x + dx * dotDx, y + dy * dotDy, dotW, dotH, ink);
+        } else if (!glyphs && ch && ch !== " ")
+          cells += text(x + charW / 2, y + charH * 0.86, ch, charH * 0.92, ink, { "font-weight": 700 });
+      }
+    s += el(
+      "g",
+      {
+        "data-hook": "matrix",
+        "data-cols": cols,
+        "data-rows": rows,
+        "data-x": r2(ox),
+        "data-y": r2(oy),
+        "data-cell-dx": r2(cellDx),
+        "data-cell-dy": r2(cellDy),
+        "data-dot-dx": r2(dotDx),
+        "data-dot-dy": r2(dotDy),
+        "data-dot-w": r2(dotW),
+        "data-dot-h": r2(dotH)
+      },
+      cells
+    ) + over;
+    const shownText = glyphs ? "" : lines.length ? ` showing ${lines.join(" / ")}` : "";
+    return art(w, h, `${cols}×${rows} character LCD${backpack ? " with an I2C backpack" : ""}${shownText}`, s, shown);
+  }
+  function sevenSegment(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const digits = Math.max(1, Math.min(4, props.digits || 1));
+    const value = String(props.value === void 0 ? "8" : props.value);
+    const color = lensColor(T, props.color || "red");
+    const cellW = 5 * p;
+    const w = digits * cellW;
+    let h = 9 * p;
+    let s = "";
+    const off = T["segment-off"];
+    const dim = T["opacity-segment-dim"];
+    const LAYOUTS = {
+      1: { top: ["G", "F", "COM.2", "A", "B"], bottom: ["E", "D", "COM", "C", "DP"] },
+      2: { top: ["A", "B", "DIG1", "DIG2", "F"], bottom: ["C", "DP", "E", "D", "G"] },
+      3: { top: ["DIG1", "A", "F", "DIG2", "DIG3", "B"], bottom: ["E", "D", "DP", "C", "G", null] },
+      4: { top: ["DIG1", "A", "F", "DIG2", "DIG3", "B", "CLN"], bottom: ["E", "D", "DP", "C", "G", "DIG4", "COM"] }
+    };
+    const names = props.pins || LAYOUTS[digits];
+    const named = function(n) {
+      return n !== null && n !== void 0;
+    };
+    const allNames = names ? names.top.concat(names.bottom).filter(named).map(silkName) : [];
+    const maxLen = allNames.reduce((m, n) => {
+      return Math.max(m, n.length);
+    }, 0);
+    const rot = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+    const pinTop = rot ? 1.6 * p : 1 * p;
+    const dy = pinTop - 1 * p;
+    h = rot ? 9.2 * p : 9 * p;
+    s += tag(
+      "body",
+      rect(
+        T["board-inset"],
+        1.4 * p + dy,
+        w - 2 * T["board-inset"],
+        5.5 * p,
+        T["segment-face"],
+        Object.assign({ rx: 1.2 }, edge(T, T["plastic-black-edge"]))
+      )
+    );
+    s += rect(T["board-inset"] + 1.5, 1.4 * p + dy + 1.5, w - 2 * T["board-inset"] - 3, 5.5 * p - 3, "none", {
+      rx: 1,
+      stroke: "#ffffff",
+      "stroke-width": 0.5,
+      "stroke-opacity": 0.1
+    });
+    const clamp2 = function(v) {
+      v = Number(v);
+      return v > 0 ? Math.min(1, v) : 0;
+    };
+    const level = function(on2, d, sgm) {
+      return props.levels ? clamp2(props.levels[d * 8 + sgm]) : on2 ? 1 : 0;
+    };
+    const glow = function(lv) {
+      return lv > 0 ? r2(dim + (1 - dim) * lv) : 0;
+    };
+    const bar = function(x, y, len, horizontal, lv, d, sgm) {
+      const t = 0.42 * p;
+      const bx = horizontal ? x : x - t / 2;
+      const by = horizontal ? y - t / 2 : y;
+      const bw = horizontal ? len : t;
+      const bh = horizontal ? t : len;
+      return rect(bx, by, bw, bh, off, { rx: t / 2 }) + rect(bx, by, bw, bh, color, {
+        rx: t / 2,
+        "fill-opacity": glow(lv),
+        "data-segment": `${d}-${sgm}`,
+        "data-level": r2(lv)
+      });
+    };
+    const dot = function(cx, cy, lv, hook) {
+      return circle(cx, cy, 0.24 * p, off) + circle(cx, cy, 0.24 * p, color, Object.assign({ "fill-opacity": glow(lv), "data-level": r2(lv) }, hook));
+    };
+    const colonLevel = typeof props.colon === "number" ? clamp2(props.colon) : props.colon ? 1 : 0;
+    for (let d = 0; d < digits; d++) {
+      const lit2 = SEG_OF[value[d] === void 0 ? " " : value[d]] || "";
+      const ox = d * cellW + 1.2 * p;
+      const oy = 2 * p + dy;
+      const sw = 2 * p;
+      const sh = 2 * p;
+      const on2 = function(k) {
+        return lit2.indexOf(k) >= 0;
+      };
+      const skew = `skewX(-10) translate(${r2((oy + sh) * 0.176)} 0)`;
+      let g = "";
+      g += bar(ox + 0.25 * p, oy, sw, true, level(on2("a"), d, 0), d, 0);
+      g += bar(ox + sw + 0.25 * p, oy + 0.2 * p, sh - 0.4 * p, false, level(on2("b"), d, 1), d, 1);
+      g += bar(ox + sw + 0.25 * p, oy + sh + 0.2 * p, sh - 0.4 * p, false, level(on2("c"), d, 2), d, 2);
+      g += bar(ox + 0.25 * p, oy + 2 * sh, sw, true, level(on2("d"), d, 3), d, 3);
+      g += bar(ox + 0.25 * p, oy + sh + 0.2 * p, sh - 0.4 * p, false, level(on2("e"), d, 4), d, 4);
+      g += bar(ox + 0.25 * p, oy + 0.2 * p, sh - 0.4 * p, false, level(on2("f"), d, 5), d, 5);
+      g += bar(ox + 0.25 * p, oy + sh, sw, true, level(on2("g"), d, 6), d, 6);
+      s += el("g", { "data-digit": d + 1, transform: skew }, g);
+      if (digits === 4 && d === 1 && props.showColon !== false)
+        s += dot(ox + sw + 1 * p, oy + sh * 0.5, colonLevel, { "data-colon": "true" }) + dot(ox + sw + 1 * p, oy + sh * 1.5, colonLevel, { "data-colon": "true" });
+      s += dot(ox + sw + 1 * p, oy + 2 * sh, level(!!(props.dp && props.dp[d]), d, 7), { "data-segment": `${d}-7` });
+    }
+    const pins = [];
+    if (names) {
+      const tx0 = r2(Math.round((w - (names.top.length - 1) * p) / 2 / p * 2) / 2 * p);
+      const bx0 = tx0 + Math.round(((w - (names.bottom.length - 1) * p) / 2 - tx0) / p) * p;
+      const row = function(x0, y, list, side) {
+        list.forEach((n, i) => {
+          if (!named(n)) return;
+          s += pin({
+            x: x0 + i * p,
+            y,
+            kind: "leg",
+            label: silkName(n),
+            side,
+            silk: "currentColor",
+            size: PIN_LABEL,
+            rotate: rot
+          });
+          pins.push({ name: n, x: x0 + i * p, y });
+        });
+      };
+      names.top.forEach((_, i) => {
+        s = wire(tx0 + i * p, pinTop, tx0 + i * p, pinTop + 0.6 * p) + s;
+      });
+      names.bottom.forEach((_, i) => {
+        s = wire(bx0 + i * p, pinTop + 5.8 * p, bx0 + i * p, pinTop + 6 * p) + s;
+      });
+      row(tx0, pinTop, names.top, "above");
+      row(bx0, pinTop + 6 * p, names.bottom, "below");
+    } else {
+      for (let i = 0; i < digits * 5; i++) {
+        s = wire(0.5 * p + i * p, 1 * p, 0.5 * p + i * p, 1.6 * p) + wire(0.5 * p + i * p, 6.8 * p, 0.5 * p + i * p, 7 * p) + s;
+        pins.push({ name: `t${i + 1}`, x: 0.5 * p + i * p, y: 1 * p });
+        pins.push({ name: `b${i + 1}`, x: 0.5 * p + i * p, y: 7 * p });
+      }
+    }
+    return art(
+      w,
+      h,
+      `${digits}-digit seven-segment display${props.levels || !value.trim() ? "" : ` showing ${value}`}`,
+      s,
+      pins
+    );
+  }
+  function screenPicture(props, x, y, w, h, ink, colour) {
+    const px = props.pixels;
+    if (!px || !(px.width > 0) || !(px.height > 0) || !px.data) return "";
+    const cw = w / px.width;
+    const ch = h / px.height;
+    const paths = {};
+    const order = [];
+    const fill = function(v) {
+      return colour && typeof v === "string" ? v : ink;
+    };
+    for (let row = 0; row < px.height; row++) {
+      for (let col = 0; col < px.width; col++) {
+        const v = px.data[row * px.width + col];
+        if (!v) continue;
+        const c = fill(v);
+        let run = col;
+        while (run + 1 < px.width && px.data[row * px.width + run + 1] && fill(px.data[row * px.width + run + 1]) === c)
+          run++;
+        if (!(c in paths)) {
+          paths[c] = "";
+          order.push(c);
+        }
+        paths[c] += `M${r2(x + col * cw)} ${r2(y + row * ch)}h${r2((run - col + 1) * cw)}v${r2(ch)}h${r2(-(run - col + 1) * cw)}z`;
+        col = run;
+      }
+    }
+    const out = order.map((c) => {
+      return el("path", { d: paths[c], fill: c, "shape-rendering": "crispEdges" });
+    }).join("");
+    return out ? el("g", { "data-hook": "picture", "data-width": px.width, "data-height": px.height }, out) : "";
+  }
+  function flexTab(T, x, y, w, h) {
+    return tag(
+      "smd",
+      rect(x, y, w, h, "#b8792f", Object.assign({ rx: 0.6 }, edge(T, "#8a5a20", T["stroke-fine"]))) + rect(x + 1, y, w - 2, h * 0.45, T["plastic-black"], { rx: 0.4 })
+    );
+  }
+  function oledBreakout(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const names = props.pins || ["DATA", "CLK", "DC", "RST", "CS", "3V3", "VIN", "GND"];
+    const maxLen = names.reduce((m, n) => {
+      return Math.max(m, n.length);
+    }, 0);
+    const rotate = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+    const w = 10.6 * p;
+    const h = rotate ? 11 * p : 10.6 * p;
+    const gy = rotate ? 2.3 * p : 1.6 * p;
+    let s = "";
+    s += board({
+      width: w,
+      height: h,
+      finish: fin,
+      holes: true,
+      mark: { x: w - 2.4 * p, y: h - 1.15 * p, size: 0.6 * p }
+    });
+    const hdr = header({
+      x: r2((w - (names.length - 1) * p) / 2),
+      y: 0.6 * p,
+      labels: names,
+      kind: "pad",
+      side: "below",
+      silk: f.silk,
+      size: PIN_LABEL,
+      rotate
+    });
+    hdr.pins.forEach((pn) => {
+      s += trace(T, fin, [
+        [pn.x, pn.y],
+        [pn.x, gy + 0.6 * p]
+      ]);
+    });
+    const gw = 26.7 * mm;
+    const gh = 19.26 * mm;
+    const gx = (w - gw) / 2;
+    s += flexTab(T, w / 2 - 5 * mm, gy + gh - 0.5, 10 * mm, 0.45 * p + 0.5);
+    s += tag("body", rect(gx, gy, gw, gh, T.bezel, Object.assign({ rx: 1 }, edge(T, T["plastic-black-edge"]))));
+    s += rect(gx + 1.5, gy + gh - 2.6 * mm - 1.5, gw - 3, 2.6 * mm, T["plastic-black"], { rx: 0.6 });
+    s += rect(gx + 1.5, gy + 1.5, gw - 3, 0.6 * mm, "#ffffff", { "fill-opacity": 0.12 });
+    const ww = 21.74 * mm;
+    const wh = 10.86 * mm;
+    const wx = gx + (gw - ww) / 2;
+    const wy = gy + 1.4 * mm;
+    s += rect(wx, wy, ww, wh, T.glass, { "data-hook": "display", "data-width": 128, "data-height": 64, rx: 0.5 });
+    s += screenPicture(props, wx, wy, ww, wh, T["readout-text"]);
+    if (props.caption)
+      s += text(wx + ww / 2, wy + wh / 2 + 2.4, props.caption, 6.4, T["readout-text"], { "font-weight": 600 });
+    s += hdr.svg;
+    return art(w, h, `0.96 inch OLED module, ${names.length}-pin`, s, hdr.pins);
+  }
+  function oledSquare(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const cols = props.columns || 128;
+    const rows = props.rows || 128;
+    const names = props.pins || ["GND", "VCC", "SCL", "SDA"];
+    const w = 34.3 * mm;
+    const h = 45.5 * mm;
+    let s = "";
+    s += board({
+      width: w,
+      height: h,
+      finish: fin,
+      holes: false,
+      mark: { x: w - 2.6 * p, y: h - 1.05 * p, size: 0.6 * p }
+    });
+    [
+      [2.5, 2.5],
+      [31.8, 2.5],
+      [2.5, 43],
+      [31.8, 43]
+    ].forEach((c) => {
+      s += tag("hole", circle(c[0] * mm, c[1] * mm, 1.3 * mm, T.hole, edge(T, T.pad, 1)));
+    });
+    const hdr = header({
+      x: r2((w - (names.length - 1) * p) / 2),
+      y: 0.6 * p,
+      labels: names,
+      kind: "pad",
+      side: "below",
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    const gw = 31 * mm;
+    const gh = 35 * mm;
+    const gx = (w - gw) / 2;
+    const gy = 1.6 * p;
+    const aw = 26.9 * mm;
+    const ah = 26.9 * mm;
+    hdr.pins.forEach((pn) => {
+      s += trace(T, fin, [
+        [pn.x, pn.y],
+        [pn.x, gy + 0.5 * p]
+      ]);
+    });
+    s += flexTab(T, w / 2 - 5 * mm, gy + gh - 0.5, 10 * mm, 0.5 * p + 0.5);
+    s += tag(
+      "body",
+      rect(gx, gy, gw, gh, T.bezel, Object.assign({ rx: 1, "data-hook": "glass" }, edge(T, T["plastic-black-edge"])))
+    );
+    s += rect(gx + 1.5, gy + gh - 3.3 * mm - 1.5, gw - 3, 3.3 * mm, T["plastic-black"], { rx: 0.6 });
+    s += rect(gx + 1.5, gy + 1.5, gw - 3, 0.6 * mm, "#ffffff", { "fill-opacity": 0.1 });
+    const ax = gx + (gw - aw) / 2;
+    const ay = gy + 2 * mm;
+    s += rect(ax, ay, aw, ah, T.glass, { "data-hook": "display", "data-width": cols, "data-height": rows });
+    s += screenPicture(props, ax, ay, aw, ah, T["readout-text"]);
+    if (props.caption)
+      s += text(ax + aw / 2, ay + ah / 2 + 3, props.caption, 7.5, T["readout-text"], { "font-weight": 600 });
+    s += text(4.6 * mm, h - 1.6 * mm, props.label || `${cols}x${rows} OLED`, PIN_LABEL, f.silk, {
+      "text-anchor": "start"
+    });
+    s += hdr.svg;
+    return art(w, h, `${cols} x ${rows} OLED module`, s, hdr.pins);
+  }
+  function tftModule(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "red";
+    const f = finish(T, fin);
+    const cap2 = !!props.touch;
+    let s = "";
+    const names = props.pins || ["VCC", "GND", "CS", "RST", "D/C", "MOSI", "SCK", "LED", "MISO"];
+    const G = cap2 ? {
+      w: 50,
+      h: 86,
+      gy: 6.4,
+      gh: 69.2,
+      ww: 43.2,
+      wh: 57.6,
+      wx: 3.4,
+      wy: 9.3,
+      holes: [
+        [3, 3],
+        [47, 3],
+        [3, 79.08],
+        [47, 79.08]
+      ],
+      jx: 8.49
+    } : {
+      w: 42.72,
+      h: 77.18,
+      gy: 6.51,
+      gh: 60.26,
+      ww: 36.72,
+      wh: 48.96,
+      wx: 3,
+      wy: 9.26,
+      holes: [
+        [3, 3],
+        [39.72, 3],
+        [3, 70.26],
+        [39.72, 70.26]
+      ],
+      jx: 4.85
+    };
+    const w = G.w * mm;
+    const h = G.h * mm;
+    s += board({
+      width: w,
+      height: h,
+      finish: fin,
+      holes: false,
+      mark: props.mark === false ? void 0 : { x: 10 * mm, y: 3 * mm, size: 0.7 * p }
+    });
+    G.holes.forEach((c) => {
+      s += tag("hole", circle(c[0] * mm, c[1] * mm, 1.5 * mm, T.hole, edge(T, T.pad, 1)));
+    });
+    const jx = G.jx * mm;
+    const jy = h - 2 * mm;
+    if (!cap2) {
+      for (let k = 0; k < 4; k++) s += barePad(T, (17.23 + k * 2.54) * mm, 2.17 * mm);
+      s += text((17.23 + 3 * 2.54) * mm + 2.4 * mm, 2.17 * mm + 1.4, "J4", PIN_LABEL, f.silk);
+    }
+    s += text(jx - 0.55 * p, jy + 1.4, "J2", PIN_LABEL, f.silk, { "text-anchor": "end" });
+    const gx = 0.2 * mm;
+    const gy = G.gy * mm;
+    const gw = w - 0.4 * mm;
+    const gh = G.gh * mm;
+    s += flexTab(T, gx + gw / 2 - 9 * mm, gy + gh - 0.5, 18 * mm, 0.5 * p + 0.5);
+    s += tag(
+      "body",
+      rect(gx, gy, gw, gh, T.bezel, Object.assign({ rx: 1, "data-hook": "glass" }, edge(T, T["plastic-black-edge"])))
+    );
+    const ww = G.ww * mm;
+    const wh = G.wh * mm;
+    const wx = G.wx * mm;
+    const wy = G.wy * mm;
+    s += rect(wx, wy, ww, wh, T.glass, { "data-hook": "display", "data-width": 240, "data-height": 320, rx: 0.5 });
+    s += rect(gx + 2, gy + gh - 5.6 * mm, gw - 4, 4.2 * mm, T["plastic-black"], { rx: 0.6 });
+    s += rect(gx + 2, gy + 1.5, gw - 4, 0.8 * mm, "#ffffff", { "fill-opacity": 0.1 });
+    s += screenPicture(props, wx, wy, ww, wh, "#ffffff", true);
+    if (props.caption)
+      s += text(wx + ww / 2, wy + wh / 2 + 3, props.caption, 7.5, T["readout-text"], { "font-weight": 600 });
+    const pins = [];
+    for (let i = 0; i < 14; i++) {
+      const x = jx + i * p;
+      const n = names[i];
+      if (typeof n === "string") {
+        s += pin({ x, y: jy, kind: "pad", label: n, side: "above", silk: f.silk, size: PIN_LABEL, rotate: true });
+        pins.push({ name: n, x, y: jy });
+      } else s += barePad(T, x, jy);
+    }
+    return art(w, h, cap2 ? "2.8 inch TFT module with capacitive touch" : "2.4 inch TFT module", s, pins);
+  }
+  function nokiaModule(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "red";
+    const f = finish(T, fin);
+    const w = 18 * p;
+    const h = 18 * p;
+    let s = "";
+    const names = props.pins || ["RST", "CE", "DC", "DIN", "CLK", "VCC", "BL", "GND"];
+    s += board({ width: w, height: h, finish: fin, holes: true, mark: { x: 14.6 * p, y: h - 1.1 * p, size: 0.6 * p } });
+    const x0 = r2((w - (names.length - 1) * p) / 2);
+    s += rect(x0 - 0.6 * p, 0.7 * p - 0.4 * p, (names.length - 1) * p + 1.2 * p, 0.8 * p, "none", {
+      stroke: f.silk,
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.8,
+      rx: 0.4
+    });
+    names.forEach((n, i) => {
+      s += barePad(T, x0 + i * p, 0.7 * p);
+    });
+    s += rect(x0 - 0.6 * p, h - 0.7 * p - 0.4 * p, (names.length - 1) * p + 1.2 * p, 0.8 * p, "none", {
+      stroke: f.silk,
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.8,
+      rx: 0.4
+    });
+    s += rect(x0 - 0.45 * p, h - 1.15 * p, 0.9 * p, 0.9 * p, "none", {
+      stroke: f.silk,
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.9
+    });
+    const hdr = header({
+      x: x0,
+      y: h - 0.7 * p,
+      labels: names,
+      kind: "pad",
+      side: "above",
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    s += smd(T, "capacitor", 1.5 * p, 0.45 * p, true) + text(1.5 * p, 0.35 * p, "C1", PIN_LABEL, f.silk, { "text-anchor": "start" });
+    s += smd(T, "resistor", w - 2.4 * p, 0.45 * p, true) + text(w - 2.4 * p, 0.35 * p, "D1", PIN_LABEL, f.silk, { "text-anchor": "start" });
+    const gw = 40 * mm;
+    const gh = 34 * mm;
+    const fr = 1.2 * mm;
+    const gx = (w - gw) / 2;
+    const gy = 1.9 * p + fr;
+    [0.25, 0.75].forEach((q) => {
+      const ty = gy + gh * q - 0.5 * p;
+      s += tag(
+        "smd",
+        rect(
+          gx - fr - 0.25 * p,
+          ty,
+          0.25 * p + 1,
+          p,
+          T.metal,
+          Object.assign({ rx: 0.5 }, edge(T, T["metal-edge"], T["stroke-fine"]))
+        ) + rect(
+          gx + gw + fr - 1,
+          ty,
+          0.25 * p + 1,
+          p,
+          T.metal,
+          Object.assign({ rx: 0.5 }, edge(T, T["metal-edge"], T["stroke-fine"]))
+        )
+      );
+    });
+    s += tag(
+      "body",
+      rect(gx - fr, gy - fr, gw + 2 * fr, gh + 2 * fr, T.metal, Object.assign({ rx: 1.4 }, edge(T, T["metal-edge"])))
+    );
+    s += bevel(T, gx - fr, gy - fr, gw + 2 * fr, gh + 2 * fr, 1.4, 1.4);
+    s += rect(
+      gx,
+      gy,
+      gw,
+      gh,
+      "#c9d3bd",
+      Object.assign({ "data-hook": "glass", rx: 0.8 }, edge(T, "#8d9a85", T["stroke-fine"]))
+    );
+    s += rect(gx + 1.2 * mm, gy + gh - 5 * mm, gw - 2.4 * mm, 3.4 * mm, "#2a2f33", { rx: 0.6, "fill-opacity": 0.55 });
+    const dw = 30 * mm;
+    const dh = 20 * mm;
+    const dx = gx + (gw - dw) / 2;
+    const dy = gy + 4.6 * mm;
+    s += rect(dx, dy, dw, dh, "none", { "data-hook": "display", "data-width": 84, "data-height": 48 });
+    s += screenPicture(props, dx, dy, dw, dh, "#1c2a1a");
+    if (props.caption) s += text(dx + dw / 2, dy + dh / 2 + 2.6, props.caption, 6.8, "#1c2a1a", { "font-weight": 700 });
+    s += text(1.2 * p, h - 0.6 * p, props.label || "PCD8544 84x48", PIN_LABEL, f.silk, { "text-anchor": "start" });
+    s += hdr.svg;
+    return art(w, h, "PCD8544 84 x 48 graphic LCD module", s, hdr.pins);
+  }
+  function epaperModule(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const M = function(v) {
+      return v * mm;
+    };
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const w = M(89.5);
+    const h = M(38);
+    let s = "";
+    const names = props.pins || ["BUSY", "RST", "DC", "CS", "CLK", "DIN", "GND", "VCC"];
+    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: M(84.7), y: M(30.2), size: 0.7 * p } });
+    [
+      [M(2.5), M(2.5)],
+      [M(2.5), M(35.5)],
+      [M(87.5), M(2.5)],
+      [M(87.5), M(35.5)]
+    ].forEach((c) => {
+      s += tag("hole", circle(c[0], c[1], M(1.5), T.hole, edge(T, T.pad, 1)));
+    });
+    const pw = M(79);
+    const ph = M(36.7);
+    const px = M(5);
+    const py = (h - ph) / 2;
+    s += tag(
+      "smd",
+      rect(M(0.6), M(10.5), M(4.8), M(16.5), "#b8792f", Object.assign({ rx: 0.8 }, edge(T, "#8a5a20", T["stroke-fine"])))
+    );
+    s += tag(
+      "body",
+      rect(px, py, pw, ph, "#d9d7cf", Object.assign({ rx: 1 }, edge(T, T["metal-edge"], T["stroke-fine"])))
+    );
+    s += rect(px + M(0.4), py + M(0.4), M(3.4), ph - M(0.8), "#efeee8", { rx: 0.6 }) + rect(px + M(1.6), h / 2 - M(4), M(1), M(8), T.chip, { rx: 0.3 });
+    s += rect(px + M(4.2), py + M(0.6), pw - M(4.8), ph - M(1.2), "#f2f0ea", { "data-hook": "paper", rx: 0.8 });
+    const dw = M(66.89);
+    const dh = M(29.05);
+    const dx = px + pw - M(2.3) - dw;
+    const dy = (h - dh) / 2;
+    s += rect(dx, dy, dw, dh, "#f2f0ea", { "data-hook": "display", "data-width": 296, "data-height": 128 });
+    s += screenPicture(props, dx, dy, dw, dh, "#1a1a1a");
+    if (props.caption) s += text(dx + dw / 2, dy + dh / 2 + 2.8, props.caption, 7.5, "#1a1a1a", { "font-weight": 700 });
+    const hdr = header({
+      x: M(88.2),
+      y: h / 2 - (names.length - 1) * p / 2,
+      axis: "y",
+      labels: names,
+      kind: "pad",
+      side: "left",
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    s += hdr.svg;
+    return art(w, h, "2.9 inch 296 x 128 e-paper module", s, hdr.pins);
+  }
+  function max7219Matrix(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    let fin = "blue";
+    let f = finish(T, fin);
+    const chain = Math.max(1, Math.min(32, Math.floor(Number(props.chain) || 1)));
+    const face = 32 * mm;
+    let w = (Math.ceil(12.6 * chain) + 5) * p;
+    let h = 13 * p;
+    let s = "";
+    const on2 = lensColor(T, props.color || "red");
+    const off = T["indicator-off-light"];
+    const lit2 = props.lit || [];
+    const pins = [];
+    const wells = function(fx, fy, k) {
+      let g = rect(
+        fx,
+        fy,
+        face,
+        face,
+        T["segment-face"],
+        Object.assign(
+          { rx: 1.2, "data-hook": `face-${k}`, "data-rows": 8, "data-cols": 8 },
+          edge(T, T["plastic-black-edge"], T["stroke-fine"])
+        )
+      );
+      const pitch = 3.8 * mm;
+      const ox = fx + (face - 7 * pitch) / 2;
+      const oy = fy + (face - 7 * pitch) / 2;
+      const rowsLit = lit2[k] || [];
+      for (let r = 0; r < 8; r++)
+        for (let c = 0; c < 8; c++) {
+          const isOn = String(rowsLit[r] || "")[c] === "1";
+          const cx = ox + c * pitch;
+          const cy = oy + r * pitch;
+          g += circle(cx, cy, 1.5 * mm, isOn ? on2 : off, {
+            "data-led": `${k}-${r}-${c}`,
+            "data-lit": isOn ? "true" : "false"
+          });
+          g += circle(cx, cy, 0.8 * mm, isOn ? "#ffffff" : T["plastic-white-edge"], {
+            "fill-opacity": isOn ? 0.55 : 0.35
+          });
+        }
+      return tag("body", g);
+    };
+    if (chain === 1) {
+      fin = "green";
+      f = finish(T, fin);
+      w = 13 * p;
+      h = 22 * p;
+      s = "";
+      const inOrder = ["CLK", "CS", "DIN", "GND", "V+"];
+      const outOrder = ["CLK.2", "CS.2", "DOUT", "GND.2", "V+.2"];
+      const x0 = 4.5 * p;
+      const at = {};
+      s += board({
+        width: w,
+        height: 20 * p,
+        y: 1 * p,
+        finish: fin,
+        holes: "top",
+        mark: { x: 1.2 * p, y: 2.6 * p, size: 0.7 * p }
+      });
+      inOrder.forEach((n, i) => {
+        const x = x0 + i * p;
+        s += tag(
+          "leg",
+          rect(x - 1.45, 0, 2.9, 1 * p, T["lead-edge"], { rx: 0.6 }) + rect(x - 0.95, 0, 1.9, 1 * p, T.lead, { rx: 0.5 })
+        );
+        s += pin({ x, y: 1 * p, kind: "leg", label: n, side: "below", rotate: true, silk: f.silk, size: PIN_LABEL });
+        s += tag(
+          "leg",
+          rect(x - 1.45, 21 * p, 2.9, 1 * p, T["lead-edge"], { rx: 0.6 }) + rect(x - 0.95, 21 * p, 1.9, 1 * p, T.lead, { rx: 0.5 })
+        );
+        s += text(x, 20.65 * p, outOrder[i].replace(".2", ""), PIN_LABEL, f.silk);
+        at[n] = { x, y: 1 * p };
+        at[outOrder[i]] = { x, y: 21 * p };
+      });
+      s += dipOnBoard(T, 0.5 * p, 5.6 * p, 12, "MAX7219");
+      s += wells(0.2 * p, 20 * p - face, 0);
+      ["V+", "GND", "DIN", "CS", "CLK", "V+.2", "GND.2", "DOUT", "CS.2", "CLK.2"].forEach((n) => {
+        pins.push({ name: n, x: at[n].x, y: at[n].y });
+      });
+      return art(w, h, "1 x MAX7219 8x8 LED matrix", s, pins);
+    }
+    const bw = chain * face;
+    const i0 = T["board-inset"];
+    w = Math.ceil((bw + 4 * mm) / p) * p;
+    h = face;
+    const ext = (w - bw) / 2;
+    s += tag(
+      "board",
+      rect(ext + i0, i0, bw - 2 * i0, h - 2 * i0, f.board, Object.assign({ rx: T["radius-board"] }, edge(T, f.edge)))
+    );
+    const inNames = ["V+", "GND", "DIN", "CS", "CLK"];
+    const outNames = ["V+.2", "GND.2", "DOUT", "CS.2", "CLK.2"];
+    for (let i = 0; i < 5; i++) {
+      const y = h / 2 + (i - 2) * p;
+      s += tag(
+        "leg",
+        rect(w - ext - 2 * mm, y - 1.45, ext + 2 * mm, 2.9, T["lead-edge"], { rx: 0.6 }) + rect(w - ext - 2 * mm, y - 0.95, ext + 2 * mm, 1.9, T.lead, { rx: 0.5 })
+      );
+      s += tag(
+        "leg",
+        rect(0, y - 1.45, ext + 2 * mm, 2.9, T["lead-edge"], { rx: 0.6 }) + rect(0, y - 0.95, ext + 2 * mm, 1.9, T.lead, { rx: 0.5 })
+      );
+      pins.push({ name: inNames[i], x: w, y });
+    }
+    for (let k = 0; k < chain; k++) s += wells(ext + (chain - 1 - k) * face, 0, k);
+    outNames.forEach((n, i) => {
+      pins.push({ name: n, x: 0, y: h / 2 + (i - 2) * p });
+    });
+    return art(w, h, `${chain} x MAX7219 8x8 LED matrix`, s, pins);
+  }
+  function tm1637Module(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const bw = 42 * mm;
+    const w = bw + p;
+    const h = 24 * mm;
+    let s = "";
+    const color = lensColor(T, props.color || "red");
+    const value = String(props.value === void 0 ? "" : props.value);
+    const dp = props.type === "dp";
+    const off = T["indicator-off-light"];
+    s += board({ width: bw, height: h, finish: fin, holes: false, mark: { x: 1.3 * p, y: h / 2, size: 0.7 * p } });
+    [
+      [2.5 * mm, 2.5 * mm],
+      [2.5 * mm, h - 2.5 * mm]
+    ].forEach((c) => {
+      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+    });
+    const names = props.pins || ["CLK", "DIO", "VCC", "GND"];
+    const pins = [];
+    names.forEach((n, i) => {
+      const y = h / 2 + (i - 1.5) * p;
+      s += trace(T, fin, [
+        [bw - 1 * p, y],
+        [bw - 2.4 * p, y],
+        [bw - 3 * p, y - 0.4 * p]
+      ]);
+      s += tag(
+        "leg",
+        rect(bw - 1 * p, y - 1.45, 2 * p, 2.9, T["lead-edge"], { rx: 0.6 }) + rect(bw - 1 * p, y - 0.95, 2 * p, 1.9, T.lead, { rx: 0.5 })
+      ) + text(bw - 1.15 * p, y + 1.4, n, PIN_LABEL, f.silk, { "text-anchor": "end" });
+      pins.push({ name: n, x: w, y });
+    });
+    const fw = 30 * mm;
+    const fh = 14 * mm;
+    const fx = 2.5 * p;
+    const fy = (h - fh) / 2;
+    const rim = 0.3 * p;
+    s += tag(
+      "body",
+      rect(fx, fy, fw, fh, T["plastic-white"], Object.assign({ rx: 1.2 }, edge(T, T["plastic-white-edge"])))
+    );
+    s += bevel(T, fx, fy, fw, fh, 1.4, 1.2);
+    s += rect(fx + rim, fy + rim, fw - 2 * rim, fh - 2 * rim - 0.25 * p, T["segment-face"], { rx: 0.8 });
+    s += text(fx + fw - rim - 1.5, fy + fh - 0.1 * p, "3642BS", PIN_LABEL, T["plastic-white-edge"], {
+      "text-anchor": "end",
+      "fill-opacity": 0.9
+    });
+    const sw = 1.35 * p;
+    const sh = 1.35 * p;
+    const cell = 2.7 * p;
+    const t = 0.3 * p;
+    const bar = function(x, y, len, horizontal, on2, d, sgm) {
+      return rect(
+        horizontal ? x : x - t / 2,
+        horizontal ? y - t / 2 : y,
+        horizontal ? len : t,
+        horizontal ? t : len,
+        on2 ? color : off,
+        { rx: t / 2, "fill-opacity": on2 ? 1 : 0.6, "data-segment": `${d}-${sgm}`, "data-lit": on2 ? "true" : "false" }
+      );
+    };
+    const oy = fy + 1.1 * p;
+    for (let d = 0; d < 4; d++) {
+      const litSeg = SEG_OF[value[d] === void 0 ? " " : value[d]] || "";
+      const ox = fx + 0.9 * p + d * cell + (d >= 2 ? 0.5 * p : 0);
+      let g = "";
+      g += bar(ox + 0.2 * p, oy, sw, true, litSeg.indexOf("a") >= 0, d, 0);
+      g += bar(ox + sw + 0.2 * p, oy + 0.15 * p, sh - 0.3 * p, false, litSeg.indexOf("b") >= 0, d, 1);
+      g += bar(ox + sw + 0.2 * p, oy + sh + 0.15 * p, sh - 0.3 * p, false, litSeg.indexOf("c") >= 0, d, 2);
+      g += bar(ox + 0.2 * p, oy + 2 * sh, sw, true, litSeg.indexOf("d") >= 0, d, 3);
+      g += bar(ox + 0.2 * p, oy + sh + 0.15 * p, sh - 0.3 * p, false, litSeg.indexOf("e") >= 0, d, 4);
+      g += bar(ox + 0.2 * p, oy + 0.15 * p, sh - 0.3 * p, false, litSeg.indexOf("f") >= 0, d, 5);
+      g += bar(ox + 0.2 * p, oy + sh, sw, true, litSeg.indexOf("g") >= 0, d, 6);
+      s += el("g", { "data-digit": d + 1, transform: `skewX(-10) translate(${r2((oy + sh) * 0.176)} 0)` }, g);
+      if (dp) {
+        const pon = !!(props.dp && props.dp[d]);
+        s += circle(ox + sw + 0.75 * p, oy + 2 * sh, 0.17 * p, pon ? color : off, {
+          "fill-opacity": pon ? 1 : 0.6,
+          "data-segment": `${d}-7`,
+          "data-lit": pon ? "true" : "false"
+        });
+      }
+    }
+    if (!dp) {
+      const cx = fx + 0.9 * p + 2 * cell + 0.05 * p;
+      const con = !!props.colon;
+      s += circle(cx, oy + sh * 0.55, 0.19 * p, con ? color : off, {
+        "fill-opacity": con ? 1 : 0.6,
+        "data-colon": "true",
+        "data-lit": con ? "true" : "false"
+      }) + circle(cx, oy + sh * 1.45, 0.19 * p, con ? color : off, {
+        "fill-opacity": con ? 1 : 0.6,
+        "data-colon": "true",
+        "data-lit": con ? "true" : "false"
+      });
+    }
+    s += smd(T, "capacitor", 15 * p, 1 * p, true) + smd(T, "resistor", 15 * p, h - 1.6 * p, true) + via(T, 1.6 * p, h / 2 + 1.1 * p);
+    s += text(fx + fw / 2, h - 0.5 * p, props.label || "4-DIGIT DISPLAY", PIN_LABEL, f.silk);
+    return art(w, h, `TM1637 4-digit display${value ? ` showing ${value}` : ""}`, s, pins);
+  }
+  function screen(props, own) {
+    props = props || {};
+    return Object.assign({ caption: props.caption, pixels: props.pixels }, own);
+  }
+  function ssd1306Module(props) {
+    return oledBreakout(screen(props, { pins: ["GND", "VCC", "SCL", "SDA"] }));
+  }
+  function sh1107Module(props) {
+    return oledSquare(screen(props, { label: "SH1107 128x128", pins: ["GND", "VCC", "SCL", "SDA"] }));
+  }
+  function ili9341TouchDisplay(props) {
+    return tftModule(
+      screen(props, {
+        touch: true,
+        pins: ["VCC", "GND", "CS", "RST", "D/C", "MOSI", "SCK", "LED", "MISO", "SCL", null, "SDA"]
+      })
+    );
+  }
+  var SEG_OF;
+  var init_displays = __esm({
+    "src/displays.js"() {
+      init_core();
+      init_pieces();
+      SEG_OF = {
+        0: "abcdef",
+        1: "bc",
+        2: "abdeg",
+        3: "abcdg",
+        4: "bcfg",
+        5: "acdfg",
+        6: "acdefg",
+        7: "abc",
+        8: "abcdefg",
+        9: "abcdfg",
+        "-": "g",
+        " ": "",
+        A: "abcefg",
+        b: "cdefg",
+        C: "adef",
+        d: "bcdeg",
+        E: "adefg",
+        F: "aefg",
+        H: "bcefg",
+        L: "def",
+        P: "abefg",
+        o: "cdeg",
+        r: "eg",
+        U: "bcdef"
+      };
+    }
+  });
+
+  // src/pixels.js
+  function pixelColor(T, c) {
+    if (typeof c === "string" && c) return { fill: c, level: 1 };
+    if (c && typeof c === "object") {
+      const ch = ["r", "g", "b"].map((k) => {
+        const v = Number(c[k]);
+        return isNaN(v) ? 0 : Math.max(0, Math.min(1, v));
+      });
+      const level = Math.max(ch[0], ch[1], ch[2]);
+      if (level > 0.02) {
+        const hx = function(v) {
+          const n = Math.round(v * 255).toString(16);
+          return (n.length < 2 ? "0" : "") + n;
+        };
+        return { fill: `#${hx(ch[0] / level)}${hx(ch[1] / level)}${hx(ch[2] / level)}`, level };
+      }
+    }
+    return { fill: T["indicator-off"], level: 0 };
+  }
+  function pixelPackage(T, x, y, hook, c, size) {
+    const mm = T.pitch / 2.54;
+    const k = (size || 5) / 5;
+    const h = 2.5 * mm * k;
+    const pc = pixelColor(T, c);
+    let s = "";
+    const die = function(dx, fill) {
+      return rect(x + dx * k, y - 0.35 * mm * k, 0.6 * mm * k, 0.7 * mm * k, T[fill], { "fill-opacity": 0.55 });
+    };
+    s += tag("glow", circle(x, y, 3.2 * mm * k, pc.fill, { "fill-opacity": r2(T["opacity-glow"] * pc.level) }));
+    s += tag(
+      "body",
+      rect(
+        x - h,
+        y - h,
+        2 * h,
+        2 * h,
+        T["plastic-white"],
+        Object.assign({ rx: 0.4 * mm * k }, edge(T, T["plastic-white-edge"], T["stroke-fine"]))
+      ) + circle(x, y, 1.6 * mm * k, T["plastic-white-edge"], { "fill-opacity": 0.5 }) + die(-1.05 * mm, "lens-red") + die(-0.3 * mm, "lens-green") + die(0.45 * mm, "lens-blue") + circle(x, y, 1.75 * mm * k, pc.fill, {
+        "data-hook": hook,
+        "data-level": r2(pc.level),
+        "fill-opacity": pc.level > 0 ? r2(0.55 + 0.45 * pc.level) : 0
+      }) + circle(x, y, 1.6 * mm * k, sheen("lens"), { "fill-opacity": 0.6 })
+    );
+    return s;
+  }
+  function pixel5050(T, x, y, hook, c) {
+    return pixelPackage(T, x, y, hook, c, 5);
+  }
+  function neopixel(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const w = 3 * p;
+    const h = 2 * p;
+    let s = "";
+    const pins = [
+      { name: "VDD", x: 0.5 * p, y: 0.5 * p },
+      { name: "DIN", x: 2.5 * p, y: 0.5 * p },
+      { name: "DOUT", x: 0.5 * p, y: 1.5 * p },
+      { name: "VSS", x: 2.5 * p, y: 1.5 * p }
+    ];
+    pins.forEach((pn) => {
+      s += tag("pin", rect(pn.x - 2.4, pn.y - 1.8, 4.8, 3.6, T.pad, { rx: 0.4 }));
+    });
+    s += pixel5050(T, 1.5 * p, 1 * p, "pixel", props.color || props);
+    s += path(`M${r2(0.5 * p - 2.4)} ${r2(0.5 * p - 1.8)}l3 3`, "none", {
+      stroke: T["plastic-black-edge"],
+      "stroke-width": T["stroke-fine"]
+    });
+    return art(w, h, `NeoPixel${pixelColor(T, props.color || props).level ? ", lit" : ""}`, s, pins);
+  }
+  function ledRing(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const f = finish(T, "black");
+    const n = Math.max(1, Math.min(1024, Math.floor(Number(props.pixels)) || 16));
+    const colors = props.colors || [];
+    const OD = { 8: 29.7, 12: 36.8, 16: 44.5, 24: 65.5 }[n] || Math.max(18, n * 2.75 + 0.5);
+    const R = OD / 2 * mm;
+    const Ri = R - 6.4 * mm;
+    const pitchR = R - 3.2 * mm;
+    const w = Math.ceil((2 * R + 1.2 * p) / p) * p;
+    const cx = w / 2;
+    const cy = 0.6 * p + R;
+    const h = cy + R + 2.2 * p;
+    let s = "";
+    const ring = `M${r2(cx - R)} ${r2(cy)}a${r2(R)} ${r2(R)} 0 1 0 ${r2(2 * R)} 0a${r2(R)} ${r2(R)} 0 1 0 ${r2(-2 * R)} 0zM${r2(cx - Ri)} ${r2(cy)}a${r2(Ri)} ${r2(Ri)} 0 1 0 ${r2(2 * Ri)} 0a${r2(Ri)} ${r2(Ri)} 0 1 0 ${r2(-2 * Ri)} 0z`;
+    s += tag(
+      "board",
+      path(ring, f.board, { "fill-rule": "evenodd", stroke: f.edge, "stroke-width": T["stroke-outline"] })
+    );
+    s += tag(
+      "board",
+      rect(
+        cx - 2.4 * p,
+        cy + R - 1.2 * p,
+        4.8 * p,
+        1.2 * p + 1.6 * p,
+        f.board,
+        Object.assign({ rx: 1 }, edge(T, f.edge))
+      )
+    );
+    for (let i = 0; i < n; i++) {
+      const deg = -90 + i * 360 / n;
+      const a = deg * Math.PI / 180;
+      const px = r2(cx + Math.cos(a) * pitchR);
+      const py = r2(cy + Math.sin(a) * pitchR);
+      s += el("g", { transform: `rotate(${r2(deg + 90)} ${px} ${py})` }, pixel5050(T, px, py, `px-${i + 1}`, colors[i]));
+    }
+    const hdr = header({
+      x: cx - 1.5 * p,
+      y: h - 0.6 * p,
+      labels: props.pins || ["GND", "VCC", "DIN", "DOUT"],
+      kind: "pad",
+      side: "above",
+      silk: f.silk,
+      size: PIN_LABEL,
+      rotate: true
+    });
+    s += hdr.svg;
+    return art(w, h, `${n}-pixel LED ring`, s, hdr.pins);
+  }
+  function ledStrip(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const n = Math.max(1, Math.min(LED_STRIP_MAX_PIXELS, Math.floor(Number(props.pixels) || 8)));
+    const kind = STRIP_SIZES[props.pixelSize] || STRIP_SIZES["5050"];
+    const step = kind.step * p;
+    const k = kind.size / 5;
+    const round2 = props.pixelShape === "round" || props.pixelShape === "circle";
+    const w = Math.ceil((4.8 * p + n * step) / p) * p;
+    const h = 4 * p;
+    let s = "";
+    const colors = props.colors || [];
+    s += tag(
+      "board",
+      rect(
+        T["board-inset"],
+        T["board-inset"],
+        w - 2 * T["board-inset"],
+        h - 2 * T["board-inset"],
+        T["plastic-black"],
+        Object.assign({ rx: 1.5 }, edge(T, T["plastic-black-edge"]))
+      )
+    );
+    s += bevel(T, T["board-inset"], T["board-inset"], w - 2 * T["board-inset"], h - 2 * T["board-inset"], 1.6);
+    const inNames = ["VDD", "DIN", "VSS"];
+    const outNames = ["VDD", "DOUT", "VSS"];
+    const pins = [];
+    [0, 1, 2].forEach((i) => {
+      const y = (i + 1) * p;
+      s += tag("pad", rect(0, y - 0.3 * p, 0.9 * p, 0.6 * p, T.pad, { rx: 1 })) + text(1.1 * p, y + 1.4, inNames[i], PIN_LABEL, T.silk, { "text-anchor": "start" });
+      s += tag("pad", rect(w - 0.9 * p, y - 0.3 * p, 0.9 * p, 0.6 * p, T.pad, { rx: 1 })) + text(w - 1.1 * p, y + 1.4, outNames[i], PIN_LABEL, T.silk, { "text-anchor": "end" });
+      pins.push({ name: inNames[i], x: 0, y });
+    });
+    for (let i = 0; i < n; i++) {
+      const cx = (w - n * step) / 2 + (i + 0.5) * step;
+      const cy = 2 * p;
+      const c = colors[i] || null;
+      const pc = pixelColor(T, c);
+      let g = "";
+      if (round2) {
+        g += tag("glow", circle(cx, cy, 3.4 * mm * k, pc.fill, { "fill-opacity": r2(T["opacity-glow"] * pc.level) }));
+        g += tag(
+          "body",
+          circle(cx, cy, 2.6 * mm * k, T["plastic-white"], edge(T, T["plastic-white-edge"], T["stroke-fine"])) + circle(cx, cy, 1.75 * mm * k, pc.fill, {
+            "data-hook": `px-${i}`,
+            "data-level": r2(pc.level),
+            "fill-opacity": pc.level > 0 ? r2(0.55 + 0.45 * pc.level) : 0
+          })
+        );
+      } else g += pixelPackage(T, cx, cy, `px-${i}`, c, kind.size);
+      s += el("g", { "data-pixel": i, "data-lit": pc.level > 0 ? "true" : "false" }, g);
+      if (i < n - 1) {
+        const xb = cx + step / 2;
+        if (step >= 3 * p) {
+          s += path(`M${r2(xb)} ${r2(T["board-inset"] + 1)}V${r2(h - T["board-inset"] - 1)}`, "none", {
+            stroke: T.silk,
+            "stroke-width": T["stroke-fine"],
+            "stroke-opacity": 0.5,
+            "stroke-dasharray": "1.2 1.2"
+          });
+          [1, 2, 3].forEach((q) => {
+            s += tag(
+              "pad",
+              rect(xb - 0.5 * p, q * p - 0.25 * p, 0.3 * p, 0.5 * p, T.pad, { rx: 0.6 }) + rect(xb + 0.2 * p, q * p - 0.25 * p, 0.3 * p, 0.5 * p, T.pad, { rx: 0.6 })
+            );
+          });
+        } else
+          s += path(
+            `M${r2(xb - 1.6 * k)} ${r2(cy - 1.4 * k)}l${r2(1.6 * k)} ${r2(1.4 * k)}l${r2(-1.6 * k)} ${r2(1.4 * k)}`,
+            "none",
+            { stroke: T.silk, "stroke-width": 0.6, "stroke-opacity": 0.6 }
+          );
+      }
+    }
+    pins.push({ name: "VDD.2", x: w, y: p }, { name: "DOUT", x: w, y: 2 * p }, { name: "VSS.2", x: w, y: 3 * p });
+    return art(w, h, `${n}-pixel WS2812 strip`, s, pins);
+  }
+  function formatMilliamps(amps) {
+    const ma = (Number(amps) || 0) * 1e3;
+    return `${ma >= 10 ? Math.round(ma) : Math.round(ma * 10) / 10} mA`;
+  }
+  function meterLines(props) {
+    props = props || {};
+    if (!props.status || props.status === "idle") return ["-- FPS", "Connect DIN to a WS2812 data line", ""];
+    return [
+      `${Number(props.fps) || 0} FPS · ${Number(props.pixels) || 0} px`,
+      `${formatMilliamps(props.amps)} · ${(Number(props.watts) || 0).toFixed(2)} W`,
+      `peak ${formatMilliamps(props.peakAmps)} of ${Number(props.limitAmps) || 0} A`
+    ];
+  }
+  function neopixelMeter(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const w = 20 * p;
+    const h = 7 * p;
+    let s = "";
+    const status = { ok: 1, near: 1, over: 1 }[props.status] ? props.status : "idle";
+    const lines = meterLines(props);
+    const tone = status === "idle" ? T["readout-dim"] : T[`status-${status}`];
+    const limit = Number(props.limitAmps) || 0;
+    const share = status === "idle" || !(limit > 0) ? 0 : Math.max(0, Math.min(1, (Number(props.peakAmps) || 0) / limit));
+    s += line(0, 2 * p, 1.4 * p, 2 * p, T["lead-edge"], 2.9) + line(0, 2 * p, 1.4 * p, 2 * p, T.lead, 1.9);
+    s += tag(
+      "body",
+      rect(
+        1.2 * p,
+        0.5 * p,
+        w - 1.7 * p,
+        h - 1 * p,
+        T["plastic-black"],
+        Object.assign({ rx: 3 }, edge(T, T["plastic-black-edge"]))
+      )
+    );
+    s += rect(1.2 * p + 1.5, 0.5 * p + 1.5, w - 1.7 * p - 3, 2.2, "#ffffff", { rx: 1, "fill-opacity": 0.08 });
+    const rx = 2.2 * p;
+    const ry = 1.2 * p;
+    const rw = w - 4.4 * p;
+    const rh = h - 2.4 * p;
+    s += rect(rx, ry, rw, rh, T.readout, { rx: 2 });
+    let g = circle(rx + rw - 0.6 * p, ry + 0.6 * p, 0.25 * p, tone, { "data-lamp": status });
+    g += text(rx + 0.6 * p, ry + 1.05 * p, lines[0], 5.2, T["readout-text"], {
+      "text-anchor": "start",
+      "font-weight": 600
+    });
+    g += text(
+      rx + 0.6 * p,
+      ry + 2.2 * p,
+      lines[1],
+      lines[2] ? 5.2 : PIN_LABEL,
+      status === "idle" ? T["readout-dim"] : T["readout-text"],
+      { "text-anchor": "start" }
+    );
+    if (lines[2]) g += text(rx + 0.6 * p, ry + 3.3 * p, lines[2], PIN_LABEL, tone, { "text-anchor": "start" });
+    s += el(
+      "g",
+      {
+        "data-status": status,
+        "data-fps": Number(props.fps) || 0,
+        "data-pixels": Number(props.pixels) || 0,
+        "data-amps": r2(Number(props.amps) || 0)
+      },
+      g
+    );
+    s += rect(rx + 0.6 * p, ry + rh - 0.55 * p, rw - 1.2 * p, 0.2 * p, T["readout-text"], {
+      rx: 1,
+      "fill-opacity": 0.25
+    });
+    s += rect(rx + 0.6 * p, ry + rh - 0.55 * p, r2((rw - 1.2 * p) * share), 0.2 * p, tone, { rx: 1 });
+    s += text(w - 1.6 * p, h - 0.75 * p, "DIN", PIN_LABEL, T.silk, { "text-anchor": "end", "fill-opacity": 0.8 }) + text(2.2 * p, h - 0.75 * p, "PIXEL METER", PIN_LABEL, T.silk, { "text-anchor": "start", "fill-opacity": 0.8 });
+    return art(w, h, `NeoPixel meter: ${lines.filter(Boolean).join(", ")}`, s, [{ name: "DIN", x: 0, y: 2 * p }]);
+  }
+  function ledBarGraph(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const n = 10;
+    const values = props.levels || [];
+    const colors = props.colors || [];
+    const colorOf = function(k) {
+      return lensColor(T, colors[k] || props.color || "red");
+    };
+    const w = 11 * p;
+    const h = 5 * p;
+    const cy = 2.5 * p;
+    let s = "";
+    const pins = [];
+    for (let i = 0; i < n; i++) pins.push({ name: `A${i + 1}`, x: (i + 1) * p, y: 1 * p });
+    for (let j = 0; j < n; j++) pins.push({ name: `K${j + 1}`, x: (j + 1) * p, y: 4 * p });
+    const bx0 = 0.5 * p;
+    const by0 = 0.8 * p;
+    const bw = 10 * p;
+    const bh = 3.4 * p;
+    for (let q = 0; q < n; q++) {
+      const lx = (q + 1) * p;
+      [
+        [0.45 * p, by0],
+        [by0 + bh, 4.55 * p]
+      ].forEach((seg) => {
+        s += tag(
+          "leg",
+          rect(lx - 1.45, seg[0], 2.9, seg[1] - seg[0], T["lead-edge"], { rx: 0.6 }) + rect(lx - 0.95, seg[0], 1.9, seg[1] - seg[0], T.lead, { rx: 0.5 })
+        );
+      });
+    }
+    s += tag(
+      "body",
+      rect(bx0, by0, bw, bh, T["plastic-white"], Object.assign({ rx: 1 }, edge(T, T["plastic-white-edge"])))
+    );
+    s += bevel(T, bx0, by0, bw, bh, 1.6, 1);
+    const mm = p / 2.54;
+    const bp = 2.2 * mm;
+    const bwid = 1.6 * mm;
+    const bht = 2 * p;
+    s += rect(bx0 + 1.2 * mm, by0 + 0.38 * p, bw - 2.4 * mm, bh - 0.76 * p, T["segment-face"], { rx: 0.8 });
+    for (let k = 0; k < n; k++) {
+      const lv = Math.max(0, Math.min(1, Number(values[k]) || 0));
+      const bx = w / 2 + (k - (n - 1) / 2) * bp;
+      s += rect(bx - bwid / 2, cy - bht / 2, bwid, bht, T["indicator-off-light"], { rx: 1, "fill-opacity": 0.75 });
+      s += rect(bx - bwid / 2, cy - bht / 2, bwid, bht, colorOf(k), {
+        "data-hook": `bar-${k + 1}`,
+        "data-level": r2(lv),
+        rx: 1,
+        "fill-opacity": lv > 0 ? r2(T["opacity-segment-dim"] + (1 - T["opacity-segment-dim"]) * lv) : 0
+      });
+    }
+    s += rect(bx0 + 0.9 * mm, by0 + 0.08 * p, 0.3 * p, 0.3 * p, T["plastic-white-edge"], {
+      rx: 0.4,
+      "fill-opacity": 0.9
+    });
+    if (props.vertical)
+      return art(
+        h,
+        w,
+        "LED bar graph",
+        el("g", { transform: "matrix(0 1 1 0 0 0)" }, s),
+        pins.map((q) => {
+          return { name: q.name, x: q.y, y: q.x };
+        })
+      );
+    return art(w, h, "LED bar graph", s, pins);
+  }
+  function neopixelMatrix(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const f = finish(T, "black");
+    const rows = Math.max(1, Math.min(1024, Math.floor(Number(props.rows)) || 8));
+    const cols = Math.max(1, Math.min(1024, Math.floor(Number(props.cols)) || 8));
+    const colors = props.colors || [];
+    const pitch = 3.5 * p;
+    const w = cols * pitch;
+    const h = rows * pitch;
+    const x0 = pitch / 2;
+    const y0 = pitch / 2;
+    let s = "";
+    const names = props.pins || ["GND", "VCC", "DIN", "DOUT"];
+    s += board({
+      width: w,
+      height: h,
+      finish: "black",
+      holes: false,
+      mark: { x: w / 2 + 1.2 * p, y: y0 + Math.max(0, rows - 2) * pitch + pitch / 2 - 0.35 * p, size: 0.7 * p }
+    });
+    const gapTop = rows > 1 ? y0 + pitch / 2 : h;
+    const gapBottom = rows > 1 ? y0 + (rows - 1.5) * pitch : h;
+    if (rows >= 6 && cols >= 6)
+      [
+        [cols / 2 - 1.5, 0.5],
+        [cols / 2 + 1.5, 0.5],
+        [cols / 2 - 1.5, rows / 2 - 0.5],
+        [cols / 2 + 1.5, rows / 2 - 0.5],
+        [cols / 2 - 1.5, rows - 1.5],
+        [cols / 2 + 1.5, rows - 1.5]
+      ].forEach((c) => {
+        s += tag("hole", circle(x0 + c[0] * pitch, y0 + c[1] * pitch, T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      });
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++) {
+        const cx = x0 + c * pitch;
+        const cy = y0 + r * pitch;
+        s += pixel5050(T, cx, cy, `px-${r * cols + c + 1}`, colors[r * cols + c]);
+        s += tag(
+          "smd",
+          rect(cx + 1.2 * p, cy - 0.22 * p, 0.28 * p, 0.44 * p, T["cap-ceramic"], { rx: 0.3 }) + rect(cx + 1.2 * p, cy - 0.22 * p, 0.28 * p, 0.09 * p, T.lead) + rect(cx + 1.2 * p, cy + 0.13 * p, 0.28 * p, 0.09 * p, T.lead)
+        );
+      }
+    const pins = [];
+    [0, 1, 2].forEach((i) => {
+      s += pin({
+        x: (0.5 + i) * p,
+        y: gapTop,
+        kind: "pad",
+        label: names[i],
+        side: "below",
+        silk: f.silk,
+        size: PIN_LABEL
+      });
+      pins.push({ name: names[i], x: (0.5 + i) * p, y: gapTop });
+    });
+    s += barePad(T, w - 2.5 * p, gapBottom) + barePad(T, w - 1.5 * p, gapBottom);
+    s += pin({
+      x: w - 0.5 * p,
+      y: gapBottom,
+      kind: "pad",
+      label: names[3],
+      side: "below",
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    pins.push({ name: names[3], x: w - 0.5 * p, y: gapBottom });
+    if (cols >= 6) s += text(w / 2, y0 + (rows / 2 - 0.5) * pitch + 1.4, `${rows} x ${cols} RGB`, PIN_LABEL, f.silk);
+    return art(w, h, `${rows} x ${cols} NeoPixel matrix`, s, pins);
+  }
+  var LED_STRIP_MAX_PIXELS, STRIP_SIZES;
+  var init_pixels = __esm({
+    "src/pixels.js"() {
+      init_core();
+      init_pieces();
+      LED_STRIP_MAX_PIXELS = 1024;
+      STRIP_SIZES = { 5050: { step: 3, size: 5 }, 3535: { step: 2, size: 3.5 }, 2020: { step: 1.5, size: 2 } };
+    }
+  });
+
+  // src/families/displays.js
+  var displays_exports = {};
+  __export(displays_exports, {
+    characterLcd: () => characterLcd,
+    epaperModule: () => epaperModule,
+    ili9341TouchDisplay: () => ili9341TouchDisplay,
+    ledRing: () => ledRing,
+    max7219Matrix: () => max7219Matrix,
+    neopixelMatrix: () => neopixelMatrix,
+    nokiaModule: () => nokiaModule,
+    oledBreakout: () => oledBreakout,
+    oledSquare: () => oledSquare,
+    sevenSegment: () => sevenSegment,
+    sh1107Module: () => sh1107Module,
+    ssd1306Module: () => ssd1306Module,
+    tftModule: () => tftModule,
+    tm1637Module: () => tm1637Module
+  });
+  var init_displays2 = __esm({
+    "src/families/displays.js"() {
+      init_displays();
+      init_pixels();
+    }
+  });
+
+  // src/modules.js
+  function moduleTemplate(props) {
+    const T = tokens();
+    const p = T.pitch;
+    const names = props.pins || ["VCC", "OUT", "GND"];
+    const f = finish(T, props.finish || "purple");
+    const mm = p / 2.54;
+    const minW = (names.length + 1) * p;
+    const w = props.width ? props.width * mm : Math.max(minW, (props.widthPitches || 0) * p);
+    const h = props.height ? props.height * mm : (props.heightPitches || 4.6) * p;
+    const rowY = h - 0.6 * p;
+    let s = "";
+    const startX = r2((w - (names.length - 1) * p) / 2);
+    s += board({
+      width: w,
+      height: h,
+      finish: props.finish || "purple",
+      holes: props.holes === false || w < 5 * p ? false : startX - 0.6 * p < 1.25 * p ? "top" : true,
+      title: (props.part || "chip") === "dual-can" ? void 0 : props.label,
+      titleY: props.extraPads && props.extraPads.length ? rowY - Math.floor((rowY - 0.8 * p) / p) * p + 1.4 * p : 1.1 * p,
+      titleSize: Math.min(5, (w - 2 * p) / Math.max(4, (props.label || "").length) * 1.5),
+      mark: w >= 8 * p && props.mark !== false && ((props.part || "chip") !== "dual-can" || w >= 14 * p) ? {
+        x: w - 2 * p,
+        y: props.extraPads && props.extraPads.length ? rowY - Math.floor((rowY - 0.8 * p) / p) * p + 1.8 * p : 0.55 * p,
+        size: 0.8 * p
+      } : void 0
+    });
+    const maxLen = names.reduce((m, n) => {
+      return Math.max(m, n.length);
+    }, 0);
+    const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+    const labelSpan = rotateLabels ? T["pad-radius"] + 1 + maxLen * PIN_LABEL * 0.62 + 1.2 : T["label-rise"] + 3.6;
+    const extraY = rowY - Math.floor((rowY - 0.8 * p) / p) * p;
+    const extra = props.extraPads && props.extraPads.length ? header({
+      x: r2((w - (props.extraPads.length - 1) * p) / 2),
+      y: extraY,
+      labels: props.extraPads,
+      kind: "pad",
+      side: "below",
+      silk: f.silk,
+      size: PIN_LABEL
+    }) : null;
+    const part = props.part || "chip";
+    const top = part === "dual-can" ? 0.7 * p : extra ? extraY + 1.7 * p : 1.6 * p;
+    const bottom = rowY - labelSpan;
+    const mid = (top + bottom) / 2;
+    const cx = w / 2;
+    const room = bottom - top;
+    if (extra) {
+      s += extra.svg;
+      extra.pins.forEach((pn) => {
+        s += trace(T, props.finish || "purple", [
+          [pn.x, pn.y],
+          [pn.x, pn.y + 1 * p],
+          [pn.x + (pn.x < cx ? 0.3 : -0.3) * p, pn.y + 1.5 * p]
+        ]);
+      });
+    }
+    if (part !== "dual-can")
+      s += rect(0.5 * p, top - 0.25 * p, w - p, bottom - top + 0.5 * p, "none", {
+        rx: 1,
+        stroke: f.silk,
+        "stroke-width": T["stroke-fine"],
+        "stroke-opacity": 0.55
+      });
+    const hdr = header({ x: startX, y: rowY, labels: names, side: "above", silk: f.silk, rotate: rotateLabels });
+    hdr.pins.forEach((pn, i) => {
+      const dx = (i - (names.length - 1) / 2) * 0.35 * p;
+      s += trace(T, props.finish || "purple", [
+        [pn.x, pn.y],
+        [pn.x, rowY - 1.1 * p],
+        [pn.x + dx, bottom + 0.1 * p]
+      ]);
+    });
+    if (w >= 8 * p && part !== "sensor" && part !== "dome" && (part !== "dual-can" || w >= 14 * p))
+      s += via(T, 0.8 * p, rotateLabels ? Math.min(h - 1.9 * p, bottom - 0.7 * p) : h - 1.9 * p) + via(T, w - 0.8 * p, Math.max(top + 0.2 * p, 1.8 * p));
+    if (part === "chip") {
+      const half = Math.min(0.9 * p, (bottom - top) / 2 - 0.12 * p);
+      const ic = props.ic || "soic";
+      let chipS = "";
+      if (ic === "lga") {
+        chipS += rect(
+          cx - half,
+          mid - half,
+          2 * half,
+          2 * half,
+          T.metal,
+          Object.assign({ rx: 1 }, edge(T, T["metal-edge"], T["stroke-detail"]))
+        );
+        chipS += rect(cx - half + 0.5, mid - half + 0.5, 2 * half - 1, 0.9, "#ffffff", {
+          rx: 0.4,
+          "fill-opacity": T["opacity-light"] * 0.5
+        }) + circle(cx + half * 0.3, mid + half * 0.3, half * 0.22, T.hole);
+      } else {
+        chipS += rect(
+          cx - half,
+          mid - half,
+          2 * half,
+          2 * half,
+          T.chip,
+          Object.assign({ rx: ic === "qfn" ? 0.5 : 1 }, edge(T, T["chip-edge"], T["stroke-detail"]))
+        );
+        if (ic === "qfn") {
+          for (let i = 0; i < 4; i++) {
+            const lq = -half * 0.66 + i * half * 0.44;
+            chipS += rect(cx - half, mid + lq, 1, 0.2 * p, T.lead) + rect(cx + half - 1, mid + lq, 1, 0.2 * p, T.lead) + rect(cx + lq, mid - half, 0.2 * p, 1, T.lead) + rect(cx + lq, mid + half - 1, 0.2 * p, 1, T.lead);
+          }
+        } else {
+          for (let i = 0; i < 4; i++) {
+            const ly = mid - half * 0.69 + i * half * 0.46;
+            chipS += rect(cx - half - 1.2, ly, 1.2, 0.22 * p, T.lead, { rx: 0.2 }) + rect(cx + half, ly, 1.2, 0.22 * p, T.lead, { rx: 0.2 });
+          }
+        }
+        chipS += circle(cx - half * 0.66, mid - half * 0.66, 0.6, T["chip-print"]);
+        if (ic !== "qfn")
+          chipS += rect(cx - half + 0.5, mid - half + 0.5, 0.9, 2 * half - 1, "#ffffff", {
+            rx: 0.4,
+            "fill-opacity": T["opacity-light"] * 0.4
+          });
+      }
+      s += tag("chip", chipS);
+      const codeFit = Math.floor((2 * half - 1.6) / (PIN_LABEL * 0.62));
+      if (half >= 0.8 * p && codeFit >= 4)
+        s += text(cx, mid + half * 0.55, lotCode(props.label || "IC").slice(0, codeFit), PIN_LABEL, T["chip-print"], {
+          "fill-opacity": 0.85
+        });
+      if (cx - 2.3 * p >= 0.6 * p && room >= 1.9 * p)
+        s += smd(T, "resistor", cx - 2.3 * p, mid - 0.9 * p, true) + smd(T, "capacitor", cx - 2.3 * p, mid + 0.05 * p, true);
+      if (cx + 2.1 * p <= w - 0.6 * p && room >= 1.5 * p) s += smd(T, "crystal", cx + 1.35 * p, mid - 0.65 * p, false);
+      if (w >= 8 * p && room >= 1.3 * p)
+        s += smd(T, "capacitor", cx - 3.3 * p, mid - 0.45 * p, false) + smd(T, "resistor", cx + 2.4 * p, mid - 0.45 * p, false);
+    } else if (part === "sensor") {
+      const sw = Math.min(w - 1.6 * p, 6 * p);
+      const sh = Math.min(bottom - top, 10 * p);
+      const sx = cx - sw / 2;
+      const sy = mid - sh / 2;
+      const hp = props.housing === "blue" ? T["plastic-blue"] : T["plastic-white"];
+      const he = props.housing === "blue" ? T["plastic-blue-edge"] : T["plastic-white-edge"];
+      s += tag("housing", rect(sx, sy, sw, sh, hp, Object.assign({ rx: 1.2 }, edge(T, he))));
+      s += rect(sx + 1, sy + 1, sw - 2, sh - 2, "none", {
+        rx: 0.8,
+        stroke: he,
+        "stroke-width": T["stroke-fine"],
+        "stroke-opacity": 0.6
+      });
+      if (props.vent === "holes") {
+        for (let gy = sy + 0.5 * p; gy < sy + sh - 0.3 * p; gy += 0.45 * p)
+          for (let gx = sx + 0.5 * p; gx < sx + sw - 0.3 * p; gx += 0.45 * p)
+            s += circle(gx, gy, 0.95, T["plastic-white-edge"]) + circle(gx - 0.25, gy - 0.25, 0.4, "#000000", { "fill-opacity": 0.25 });
+      } else {
+        const slotH = Math.min(1.2 * p, (sh - 1.2 * p) / 3);
+        const rowsN = Math.max(1, Math.floor(sh * 0.68 / (slotH + 0.25 * p)));
+        for (let rr = 0; rr < rowsN; rr++)
+          for (let sxx = sx + 0.4 * p; sxx < sx + sw - 0.4 * p; sxx += 0.42 * p)
+            s += rect(sxx, sy + 0.4 * p + rr * (slotH + 0.25 * p), 0.22 * p, slotH, T["plastic-white-edge"], {
+              rx: 0.1 * p
+            }) + rect(sxx + 0.04 * p, sy + 0.4 * p + rr * (slotH + 0.25 * p), 0.1 * p, slotH, "#000000", {
+              rx: 0.05 * p,
+              "fill-opacity": 0.3
+            });
+      }
+      s += bevel(T, sx, sy, sw, sh);
+    } else if (part === "can" || part === "dual-can") {
+      let r;
+      let cs;
+      let cyc = mid;
+      if (part === "dual-can") {
+        const zoneHalf = (names.length - 1) * p / 2 + (rotateLabels ? PIN_LABEL / 2 : maxLen * PIN_LABEL * 0.62 / 2) + 0.6;
+        const canBottom = rowY - T["pad-radius"] - 0.6;
+        r = Math.min(
+          (props.canPitches || 2.6) * p / 2,
+          (canBottom - top) / 2 - 1.2,
+          (cx - zoneHalf - 2.8 - 0.6 * p) / 2
+        );
+        cyc = (top + canBottom) / 2;
+        cs = [cx - (zoneHalf + r + 1.6), cx + (zoneHalf + r + 1.6)];
+      } else {
+        r = Math.min((props.canPitches || 2.6) * p / 2, room / 2 - 2.4, w / 2 - 0.8 * p - 1.2);
+        cs = [cx];
+      }
+      if (r < 2) r = 2;
+      cs.forEach((x) => {
+        s += tag("can", circle(x, cyc, r + 1.2, T["metal-edge"]));
+        s += circle(x, cyc, r, T.metal, edge(T, T["metal-edge"])) + circle(x, cyc, r, sheen("metal"), { "fill-opacity": 0.6 });
+        s += circle(x, cyc, r * 0.74, T["plastic-black"], edge(T, T["metal-edge"], T["stroke-fine"]));
+        s += circle(x, cyc, r * 0.74, T["metal-edge"], { "fill-opacity": 0.55 });
+        for (let k = 0; k < 8; k++) {
+          const a = k * Math.PI / 4 + Math.PI / 8;
+          s += circle(x + Math.cos(a) * r * 0.86, cyc + Math.sin(a) * r * 0.86, r * 0.045, T["metal-edge"]);
+        }
+        for (let m = 0; m < 5; m++)
+          s += circle(x, cyc, r * (0.12 + m * 0.13), "none", {
+            stroke: "#ffffff",
+            "stroke-width": 0.4,
+            "stroke-opacity": 0.22
+          });
+        s += path(
+          `M${r2(x - r * 0.6)} ${r2(cyc - r * 0.35)}A${r2(r * 0.7)} ${r2(r * 0.7)} 0 0 1 ${r2(x - r * 0.3)} ${r2(cyc - r * 0.64)}`,
+          "none",
+          { stroke: "#ffffff", "stroke-width": 1, "stroke-linecap": "round", "stroke-opacity": 0.35 }
+        );
+      });
+      if (part === "dual-can") {
+        const gap = cs[1] - cs[0] - 2 * r - 2.4;
+        if (props.label && gap >= 8 && mid - 1.45 * p - 4.2 >= top)
+          s += text(
+            cx,
+            mid - 0.9 * p,
+            props.label,
+            Math.min(5, (gap - 2) / Math.max(4, props.label.length) * 1.6),
+            f.silk
+          );
+        if (w >= 14 * p)
+          s += text(1.35 * p, h - 0.45 * p, "T", PIN_LABEL, f.silk) + text(w - 1.35 * p, h - 0.45 * p, "R", PIN_LABEL, f.silk);
+        if (r >= 2.2 * p)
+          s += smd(T, "crystal", cx - 0.65 * p, mid - 2.3 * p, true) + tag("chip", rect(cx - 0.6 * p, mid - 0.3 * p, 1.2 * p, 0.9 * p, T.chip, { rx: 0.6 })) + smd(T, "capacitor", cx - 0.45 * p, mid + 0.8 * p, true);
+      } else if (cx - r - 0.9 * p >= 0.6 * p + 1.2 && room >= 1.2 * p)
+        s += smd(T, "resistor", cx - r - 0.9 * p, mid - 0.45 * p, false) + smd(T, "capacitor", cx + r + 0.45 * p, mid - 0.45 * p, false);
+    } else if (part === "microsd") {
+      const sw2 = Math.min(w - 1.6 * p, 6 * p);
+      const sh2 = Math.min(room - 0.3 * p, 5.6 * p);
+      const sx2 = cx - sw2 / 2;
+      const sy2 = mid - sh2 / 2;
+      s += tag(
+        "slot",
+        path(
+          `M${r2(sx2)} ${r2(sy2)}H${r2(sx2 + sw2 - 0.9 * p)}l${r2(0.9 * p)} ${r2(0.9 * p)}V${r2(sy2 + sh2)}H${r2(sx2)}Z`,
+          T.metal,
+          edge(T, T["metal-edge"])
+        ) + rect(sx2 + 0.5 * p, sy2 + sh2 - 1.2 * p, sw2 - 1 * p, 0.9 * p, T["plastic-black"], { rx: 0.3 }) + rect(sx2 + 0.5 * p, sy2 + sh2 - 1.2 * p, sw2 - 1 * p, 0.25 * p, "#ffffff", { "fill-opacity": 0.15 })
+      );
+      s += bevel(T, sx2, sy2, sw2, sh2, 1.2);
+      [
+        [sx2 + 0.35 * p, sy2 + 0.35 * p],
+        [sx2 + sw2 - 0.35 * p, sy2 + sh2 - 0.35 * p],
+        [sx2 + 0.35 * p, sy2 + sh2 - 0.35 * p]
+      ].forEach((c) => {
+        s += circle(c[0], c[1], 0.8, T["metal-edge"]);
+      });
+    } else if (part === "rtc") {
+      const cr = Math.min(3.9 * p, room / 2 - 0.2 * p, w / 2 - 0.8 * p);
+      const ccx = Math.min(w - 0.8 * p - cr, cx + 1 * p);
+      s += tag(
+        "cell",
+        circle(ccx, mid, cr + 0.9, T["metal-edge"]) + circle(ccx, mid, cr, T.metal, edge(T, T["metal-edge"])) + circle(ccx, mid, cr * 0.82, "none", {
+          stroke: T["metal-edge"],
+          "stroke-width": T["stroke-fine"],
+          "stroke-opacity": 0.6
+        }) + text(ccx, mid + 2.4, "CR2032", Math.max(PIN_LABEL, Math.min(6.4, cr * 0.5)), T["metal-edge"], {
+          "font-weight": 600
+        }) + text(ccx, mid - cr * 0.45, "+", PIN_LABEL + 2, T["metal-edge"], { "font-weight": 700 })
+      );
+      s += el("ellipse", {
+        cx: ccx - cr * 0.35,
+        cy: mid - cr * 0.45,
+        rx: cr * 0.35,
+        ry: cr * 0.16,
+        fill: "#ffffff",
+        "fill-opacity": 0.45,
+        transform: `rotate(-30 ${r2(ccx - cr * 0.35)} ${r2(mid - cr * 0.45)})`
+      });
+      if (ccx - cr - 0.6 * p - 1.3 * p >= 0.6 * p) {
+        const qx = 0.7 * p;
+        const qy = mid - 0.6 * p;
+        s += tag(
+          "chip",
+          rect(
+            qx,
+            qy,
+            1.3 * p,
+            1.2 * p,
+            T.chip,
+            Object.assign({ rx: 0.6 }, edge(T, T["chip-edge"], T["stroke-detail"]))
+          ) + circle(qx + 2.2, qy + 2.2, 0.6, T["chip-print"])
+        );
+        for (let ql = 0; ql < 4; ql++)
+          s += rect(qx - 1.2, qy + 1.6 + ql * 2.5, 1.2, 1.4, T.lead, { rx: 0.2 }) + rect(qx + 1.3 * p, qy + 1.6 + ql * 2.5, 1.2, 1.4, T.lead, { rx: 0.2 });
+        s += tag(
+          "crystal",
+          rect(
+            qx,
+            qy + 1.6 * p,
+            0.7 * p,
+            1.8 * p,
+            T.metal,
+            Object.assign({ rx: 0.35 * p }, edge(T, T["metal-edge"], T["stroke-fine"]))
+          )
+        );
+      }
+    } else if (part === "dome") {
+      const dr = Math.min((props.domePitches || 3) * p / 2, room / 2 - 1.4, w / 2 - 0.8 * p - 1);
+      s += tag("dome", circle(cx, mid, dr + 1, T["plastic-white-edge"]));
+      s += circle(cx, mid, dr, T["plastic-white"], edge(T, T["plastic-white-edge"]));
+      for (let q = 1; q <= 3; q++)
+        s += circle(cx, mid, dr * q / 3.6, "none", {
+          stroke: T["plastic-white-edge"],
+          "stroke-width": T["stroke-fine"]
+        });
+      s += path(`M${r2(cx - dr)} ${r2(mid)}h${r2(2 * dr)}M${r2(cx)} ${r2(mid - dr)}v${r2(2 * dr)}`, "none", {
+        stroke: T["plastic-white-edge"],
+        "stroke-width": T["stroke-fine"]
+      });
+      s += el("ellipse", {
+        cx: cx - dr * 0.35,
+        cy: mid - dr * 0.4,
+        rx: dr * 0.3,
+        ry: dr * 0.16,
+        fill: "#ffffff",
+        "fill-opacity": 0.6,
+        transform: `rotate(-30 ${r2(cx - dr * 0.35)} ${r2(mid - dr * 0.4)})`
+      });
+      const tp = 0.7 * p;
+      if (cx - dr - 1 - 0.35 * p - tp >= 0.6 * p && room >= tp + 0.4 * p)
+        [
+          [0.6 * p, "time"],
+          [w - 0.6 * p - tp, "sens"]
+        ].forEach((t) => {
+          s += tag(
+            "trimmer",
+            rect(
+              t[0],
+              mid - tp / 2,
+              tp,
+              tp,
+              T["band-orange"],
+              Object.assign({ rx: 0.8 }, edge(T, T["resistor-body-edge"], T["stroke-fine"]))
+            ) + circle(
+              t[0] + tp / 2,
+              mid,
+              tp * 0.28,
+              T["plastic-white"],
+              edge(T, T["plastic-white-edge"], T["stroke-fine"])
+            ) + line(
+              t[0] + tp / 2 - tp * 0.22,
+              mid,
+              t[0] + tp / 2 + tp * 0.22,
+              mid,
+              T["plastic-white-edge"],
+              T["stroke-fine"]
+            )
+          );
+        });
+    }
+    s += hdr.svg;
+    return art(
+      w,
+      h,
+      props.description || `${props.label || "Breakout"} module`,
+      s,
+      extra ? hdr.pins.concat(extra.pins) : hdr.pins
+    );
+  }
+  function logicAnalyzer(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const w = 54.7 * mm;
+    const h = 27.4 * mm;
+    let s = "";
+    const names = props.channels || ["D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7"];
+    const lit2 = props.lit || [];
+    const samples = Math.max(0, Math.floor(Number(props.samples) || 0));
+    const state2 = props.state || "idle";
+    const WORD = { idle: "STOP", armed: "ARMED", recording: "REC", paused: "PAUSE", full: "FULL", error: "MEM" };
+    const bi = T["board-inset"];
+    const pins = [];
+    s += tag(
+      "body",
+      rect(
+        bi,
+        bi,
+        w - 2 * bi,
+        h - 2 * bi,
+        T["plastic-black"],
+        Object.assign({ rx: 3 }, edge(T, T["plastic-black-edge"]))
+      )
+    );
+    s += bevel(T, bi, bi, w - 2 * bi, h - 2 * bi, 2.2, 3);
+    s += usbPort(T, { kind: "mini", x: 0.3 * mm, y: h / 2 - 3.85 * mm, w: 3.4 * mm, h: 7.7 * mm, mouth: "left" });
+    const colX = [w - 2 * p, w - p];
+    const rowY = function(r) {
+      return h / 2 + (r - 2) * p;
+    };
+    let hdrS = rect(
+      colX[0] - 0.75 * p,
+      rowY(0) - 0.85 * p,
+      2.5 * p,
+      5.7 * p,
+      T["plastic-black"],
+      Object.assign({ rx: 0.6 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
+    );
+    for (let r = 0; r < 5; r++)
+      for (let c = 0; c < 2; c++)
+        hdrS += rect(colX[c] - 0.28 * p, rowY(r) - 0.28 * p, 0.56 * p, 0.56 * p, T.cavity, { rx: 0.3 }) + rect(colX[c] - 0.12 * p, rowY(r) - 0.12 * p, 0.24 * p, 0.24 * p, T.metal);
+    s += tag("socket", hdrS);
+    for (let i = 0; i < 8; i++) pins.push({ name: names[i], x: colX[i % 2], y: rowY(Math.floor(i / 2)) });
+    pins.push({ name: "GND", x: colX[1], y: rowY(4) });
+    const lx = 4.4 * mm;
+    const ly = 2 * mm;
+    const lw = w - 3.05 * p - lx;
+    const lh = h - 2 * ly;
+    s += rect(lx, ly, lw, lh, T["plastic-white"], { rx: 1.4 });
+    s += text(lx + 0.5 * p, ly + 1.75 * p, "Logic", 10.5, T["plastic-black"], {
+      "text-anchor": "start",
+      "font-weight": 700
+    }) + text(lx + 0.5 * p, ly + 3 * p, "Analyzer", 10.5, T["plastic-black"], {
+      "text-anchor": "start",
+      "font-weight": 700
+    });
+    s += text(lx + 0.5 * p, ly + 4.15 * p, "24MHz 8CH", 5, T["plastic-black"], { "text-anchor": "start" });
+    const lampX = [lx + lw - 5 * p, lx + lw - 2.2 * p];
+    for (let c2 = 0; c2 < 8; c2++) {
+      const tx = lampX[c2 % 2];
+      const ty = rowY(Math.floor(c2 / 2));
+      const on2 = !!lit2[c2];
+      s += tag(
+        "indicator",
+        circle(
+          tx,
+          ty,
+          on2 ? 2.4 : 2,
+          on2 ? T["lens-green"] : T["indicator-off-light"],
+          Object.assign(
+            { "data-channel": c2, "data-lit": on2 ? "true" : "false" },
+            edge(T, on2 ? T["lens-green"] : T["plastic-black-edge"], T["stroke-fine"])
+          )
+        )
+      );
+      s += text(tx + 0.5 * p, ty + 1.4, names[c2], PIN_LABEL, T["plastic-black"], {
+        "text-anchor": "start",
+        "font-weight": 600
+      });
+    }
+    s += text(lampX[0] + 0.5 * p, rowY(4) + 1.4, "CLK", PIN_LABEL, T["plastic-black"], {
+      "text-anchor": "start",
+      "font-weight": 600
+    }) + text(lampX[1] + 0.5 * p, rowY(4) + 1.4, "GND", PIN_LABEL, T["plastic-black"], {
+      "text-anchor": "start",
+      "font-weight": 600
+    });
+    const rx = lx + 0.35 * p;
+    const ry = ly + lh - 1.15 * p;
+    const rw = lw - 0.7 * p;
+    const rh = 0.75 * p;
+    s += rect(rx, ry, rw, rh, T.readout, { rx: 1 });
+    const g = text(rx + 0.3 * p, ry + 0.55 * p, `SAMPLES ${samples}`, PIN_LABEL, T["readout-text"], {
+      "text-anchor": "start",
+      "font-weight": 600
+    }) + text(rx + rw - 0.3 * p, ry + 0.55 * p, WORD[state2] || "STOP", PIN_LABEL, T["readout-text"], {
+      "text-anchor": "end",
+      "font-weight": 600
+    });
+    s += el(
+      "g",
+      {
+        "data-samples": samples,
+        "data-state": state2,
+        "data-running": state2 === "recording" ? "true" : "false",
+        "data-activity": r2(Number(props.activity) || 0)
+      },
+      g
+    );
+    return art(w, h, `Eight-channel logic analyzer, ${(WORD[state2] || "STOP").toLowerCase()}`, s, pins);
+  }
+  function microsdModule(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const w = 16.5 * p;
+    const h = 9.5 * p;
+    let s = "";
+    const names = props.pins || ["CS", "SCK", "DI", "DO", "VCC", "GND", "CD"];
+    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 12.1 * p, y: 3.7 * p, size: 0.8 * p } });
+    [
+      [0.8 * p, 0.8 * p],
+      [w - 0.8 * p, 0.8 * p],
+      [0.8 * p, h - 0.8 * p],
+      [w - 0.8 * p, h - 0.8 * p]
+    ].forEach((c) => {
+      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+    });
+    const hdr = padRow(
+      T,
+      fin,
+      f,
+      { x: w - 1 * p, y: 1.75 * p, axis: "y", labels: names, kind: "pad", side: "left", silk: f.silk, size: PIN_LABEL },
+      -1
+    );
+    const sx = 1.4 * p;
+    const sy = 1.6 * p;
+    const sw = 14.5 * mm;
+    const sh = 15.5 * mm;
+    s += tag(
+      "slot",
+      path(
+        `M${r2(sx)} ${r2(sy)}H${r2(sx + sw - 0.9 * p)}l${r2(0.9 * p)} ${r2(0.9 * p)}V${r2(sy + sh)}H${r2(sx)}Z`,
+        T.metal,
+        edge(T, T["metal-edge"])
+      ) + rect(sx, sy + 0.6 * p, 0.5 * p, sh - 1.2 * p, T["plastic-black"], { rx: 0.3 }) + rect(sx + 0.05 * p, sy + 0.6 * p, 0.2 * p, sh - 1.2 * p, "#ffffff", { "fill-opacity": 0.15 }) + rect(sx + sw - 0.45 * p, sy + 1 * p, 0.3 * p, sh - 2 * p, T["metal-edge"], { rx: 0.2, "fill-opacity": 0.6 })
+    );
+    s += bevel(T, sx, sy, sw, sh, 1.4);
+    for (let k = 0; k < 8; k++)
+      s += rect(sx + sw - 0.4 * p, sy + 1.3 * p + k * 0.55 * p, 0.6 * p, 0.2 * p, T.lead, { rx: 0.1 });
+    [
+      [sx + 0.4 * p, sy + 0.4 * p],
+      [sx + 0.4 * p, sy + sh - 0.4 * p],
+      [sx + sw - 0.4 * p, sy + sh - 0.4 * p]
+    ].forEach((c) => {
+      s += circle(c[0], c[1], 0.8, T["metal-edge"]);
+    });
+    s += soicAcross(T, 8.6 * p, 0.95 * p, 2.9 * p, 1.4 * p, 7, "74LVC125");
+    [
+      [7.5, 0.75],
+      [7.5, 1.55],
+      [11.9, 0.75],
+      [11.9, 1.55]
+    ].forEach((q) => {
+      s += framed(T, f, q[1] < 1 ? "capacitor" : "resistor", q[0] * p, q[1] * p, true);
+    });
+    const rx = 8.7 * p;
+    const ry = 5.6 * p;
+    const rw = 2.6 * p;
+    const rh = 1.4 * p;
+    s += tag(
+      "chip",
+      rect(rx + rw / 2 - 0.6 * p, ry - 0.5 * p, 1.2 * p, 0.5 * p, T.lead, { rx: 0.2 }) + [0.3, 1.3, 2.3].map((k) => {
+        return rect(rx + k * p, ry + rh, 0.35 * p, 0.55 * p, T.lead, { rx: 0.2 });
+      }).join("") + rect(rx, ry, rw, rh, T.chip, Object.assign({ rx: 0.5 }, edge(T, T["chip-edge"], T["stroke-detail"]))) + bevel(T, rx, ry, rw, rh, 1, 0.5) + text(rx + rw / 2, ry + rh / 2 + 1.4, "AMS1117", 4, T["chip-print"])
+    );
+    s += framed(T, f, "capacitor", 7.4 * p, 5.4 * p, true) + framed(T, f, "capacitor", 7.5 * p, 6.7 * p, true) + framed(T, f, "capacitor", 11.7 * p, 7.3 * p, true);
+    s += hdr.svg;
+    return art(w, h, "microSD card module", s, hdr.pins);
+  }
+  function rtcModule(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const w = 15 * p;
+    const h = 8.7 * p;
+    let s = "";
+    const names = props.pins || ["GND", "5V", "SDA", "SCL", "SQW"];
+    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 2.6 * p, y: 7.35 * p, size: 0.8 * p } });
+    [
+      [0.8 * p, 0.8 * p],
+      [w - 0.8 * p, 0.8 * p],
+      [0.8 * p, h - 0.8 * p],
+      [w - 0.8 * p, h - 0.8 * p]
+    ].forEach((c) => {
+      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+    });
+    const hdr = padRow(
+      T,
+      fin,
+      f,
+      { x: w - 1 * p, y: 2.5 * p, axis: "y", labels: names, kind: "pad", side: "left", silk: f.silk, size: PIN_LABEL },
+      -1
+    );
+    s += text(6.9 * p, 1.1 * p, props.label || "RTC", 5, f.silk, { "font-weight": 600 });
+    const ccx = 3.9 * p;
+    const ccy = 4.5 * p;
+    const cr = 6.25 * mm;
+    s += tag(
+      "cell",
+      circle(ccx, ccy, cr + 0.45 * p, T.pad, edge(T, T["metal-edge"], T["stroke-fine"])) + rect(ccx - cr - 0.9 * p, ccy - 0.35 * p, 0.8 * p, 0.7 * p, T.pad, { rx: 0.3 }) + rect(ccx + cr + 0.2 * p, ccy - 0.35 * p, 0.8 * p, 0.7 * p, T.pad, { rx: 0.3 }) + circle(ccx, ccy, cr, T["plastic-black"], edge(T, T["plastic-black-edge"])) + circle(ccx, ccy, cr, sheen("metal"), { "fill-opacity": 0.35 }) + text(ccx, ccy - 0.6, "CR1220", 4.4, T["plastic-grey"], { "font-weight": 600 }) + text(ccx, ccy + 4.6, "3V", 4, T["plastic-grey"])
+    );
+    s += text(ccx + cr + 1.5 * p, ccy + 1.5 * p, "+", 5, f.silk, { "font-weight": 700 });
+    const qx = 8.4 * p;
+    const qy = 2 * p;
+    s += silkFrame(T, f, qx - 0.9 * p, qy - 0.45 * p, 3.4 * p, 0.9 * p);
+    s += circle(qx - 0.6 * p, qy - 0.25 * p, 1.3, T.pad) + circle(qx - 0.6 * p, qy + 0.25 * p, 1.3, T.pad) + line(qx - 0.6 * p, qy - 0.25 * p, qx + 0.1 * p, qy - 0.1 * p, T.lead, 0.9) + line(qx - 0.6 * p, qy + 0.25 * p, qx + 0.1 * p, qy + 0.1 * p, T.lead, 0.9);
+    s += tag(
+      "crystal",
+      rect(
+        qx,
+        qy - 1 * mm,
+        6 * mm,
+        2 * mm,
+        T.metal,
+        Object.assign({ rx: 1 * mm }, edge(T, T["metal-edge"], T["stroke-fine"]))
+      ) + rect(qx, qy - 1 * mm, 6 * mm, 2 * mm, sheen("metal"), { rx: 1 * mm, "fill-opacity": 0.7 })
+    );
+    s += soicAcross(T, 8.3 * p, 3.5 * p, 1.95 * p, 1.55 * p, 4, "DS1307");
+    s += framed(T, f, "resistor", 8.6 * p, 6.1 * p, true) + text(9.75 * p, 6.5 * p, "R1", 4, f.silk, { "text-anchor": "start" });
+    s += hdr.svg;
+    return art(w, h, "DS1307 real-time clock module", s, hdr.pins);
+  }
+  function rfidModule(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const w = 23.5 * p;
+    const h = 16 * p;
+    let s = "";
+    const names = props.pins || ["SDA", "SCK", "MOSI", "MISO", "IRQ", "GND", "RST", "3.3V"];
+    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 10.2 * p, y: 13.4 * p, size: 0.8 * p } });
+    [
+      [6.9 * p, 1.2 * p],
+      [6.9 * p, h - 1.2 * p],
+      [22.5 * p, 2 * p],
+      [22.5 * p, h - 2 * p]
+    ].forEach((c) => {
+      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+    });
+    const hdr = padRow(
+      T,
+      fin,
+      f,
+      { x: 1 * p, y: 4 * p, axis: "y", labels: names, kind: "pad", side: "right", silk: f.silk, size: PIN_LABEL },
+      1
+    );
+    s += rect(0.45 * p, 3.4 * p, 1.1 * p, 8.2 * p, "none", {
+      rx: 0.6,
+      stroke: f.silk,
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.85
+    });
+    s += tag(
+      "crystal",
+      rect(
+        1.4 * p,
+        0.75 * p,
+        4.3 * p,
+        1.6 * p,
+        T.metal,
+        Object.assign({ rx: 0.8 * p }, edge(T, T["metal-edge"], T["stroke-fine"]))
+      ) + rect(1.4 * p, 0.75 * p, 4.3 * p, 1.6 * p, sheen("metal"), { rx: 0.8 * p, "fill-opacity": 0.7 })
+    );
+    s += text(5.95 * p, 1.75 * p, "OSC", 4, f.silk, { "text-anchor": "start" });
+    s += framed(T, f, "capacitor", 1.9 * p, 2.75 * p, true) + framed(T, f, "capacitor", 3.6 * p, 2.75 * p, true);
+    [
+      [3, 4.35],
+      [3.9, 4.35],
+      [4.8, 4.35],
+      [5.7, 4.35]
+    ].forEach((q, i) => {
+      s += framed(T, f, i === 0 || i === 3 ? "capacitor" : "resistor", q[0] * p, q[1] * p, false);
+    });
+    s += qfp(T, 3.4 * p, 6.3 * p, 2.3 * p, 2.3 * p, 8, "RC522");
+    s += text(6.6 * p, 7.45 * p, "HW-126", 4, f.silk, {
+      "dominant-baseline": "middle",
+      transform: `rotate(-90 ${r2(6.6 * p)} ${r2(7.45 * p)})`
+    });
+    [
+      [3, 9.5],
+      [3.9, 9.5],
+      [4.8, 9.5],
+      [5.7, 9.5]
+    ].forEach((q, i) => {
+      s += framed(T, f, i === 1 ? "resistor" : "capacitor", q[0] * p, q[1] * p, false);
+    });
+    s += silkFrame(T, f, 1 * p, 12 * p, 0.6 * p, 0.6 * p) + indicator({
+      x: 1 * p,
+      y: 12 * p,
+      size: 0.6 * p,
+      color: "red",
+      on: !!(props.indicators && props.indicators.power),
+      hook: "power-led",
+      state: "power",
+      finish: fin
+    });
+    [
+      [2.4, 11.9],
+      [3.3, 11.9],
+      [4.2, 11.9]
+    ].forEach((q, i) => {
+      s += framed(T, f, "resistor", q[0] * p, q[1] * p, false);
+    });
+    s += text(1.3 * p, 13.5 * p, "D1", 4, f.silk) + text(2.95 * p, 13.5 * p, "R1", 4, f.silk) + text(3.9 * p, 13.5 * p, "L1", 4, f.silk) + text(4.8 * p, 13.5 * p, "L2", 4, f.silk);
+    const turns = 3;
+    const cx0 = 8.2 * p;
+    const cy0 = 1 * p;
+    const cw = 13.4 * p;
+    const ch = h - 2 * p;
+    const gap = 0.3 * p;
+    let d = "";
+    for (let t = 0; t < turns; t++) {
+      const x = cx0 + t * gap;
+      const y = cy0 + t * gap;
+      const ww = cw - 2 * t * gap;
+      const hh = ch - 2 * t * gap;
+      const rr = 1.6 * p - t * gap;
+      d += `M${r2(x + rr)} ${r2(y)}H${r2(x + ww - rr)}A${r2(rr)} ${r2(rr)} 0 0 1 ${r2(x + ww)} ${r2(y + rr)}V${r2(y + hh - rr)}A${r2(rr)} ${r2(rr)} 0 0 1 ${r2(x + ww - rr)} ${r2(y + hh)}H${r2(x + rr)}A${r2(rr)} ${r2(rr)} 0 0 1 ${r2(x)} ${r2(y + hh - rr)}V${r2(y + rr)}A${r2(rr)} ${r2(rr)} 0 0 1 ${r2(x + rr)} ${r2(y)}Z`;
+    }
+    s += path(d, "none", { "data-hook": "antenna", stroke: T.pad, "stroke-width": 1.1, "stroke-linejoin": "round" });
+    s += rect(
+      cx0 + turns * gap + 0.4 * p,
+      cy0 + turns * gap + 0.4 * p,
+      cw - 2 * turns * gap - 0.8 * p,
+      ch - 2 * turns * gap - 0.8 * p,
+      "none",
+      { "data-hook": "field", rx: 2 }
+    );
+    for (let k = 0; k < 6; k++) s += framed(T, f, "capacitor", 9.6 * p, (5 + k * 1) * p, true);
+    const acx = 15.3 * p;
+    const acy = 8 * p;
+    let arcs = "";
+    for (let a = 1; a <= 4; a++) {
+      const ar = a * 1.1 * p;
+      const sa = -Math.PI * 0.8;
+      const ea = -Math.PI * 0.2;
+      arcs += `M${r2(acx + Math.cos(sa) * ar)} ${r2(acy + Math.sin(sa) * ar)}A${r2(ar)} ${r2(ar)} 0 0 1 ${r2(acx + Math.cos(ea) * ar)} ${r2(acy + Math.sin(ea) * ar)}`;
+      arcs += `M${r2(acx - Math.cos(sa) * ar)} ${r2(acy - Math.sin(sa) * ar)}A${r2(ar)} ${r2(ar)} 0 0 1 ${r2(acx - Math.cos(ea) * ar)} ${r2(acy - Math.sin(ea) * ar)}`;
+    }
+    s += path(arcs, "none", { stroke: f.silk, "stroke-width": 1, "stroke-linecap": "round" }) + circle(acx, acy, 1.6, f.silk);
+    s += text(20.3 * p, acy, props.label || "RFID-RC522", 6, f.silk, {
+      "font-weight": 600,
+      "dominant-baseline": "middle",
+      transform: `rotate(-90 ${r2(20.3 * p)} ${r2(acy)})`
+    });
+    s += hdr.svg;
+    return art(w, h, "MFRC522 RFID reader module", s, hdr.pins);
+  }
+  function relayModule(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "red";
+    const f = finish(T, fin);
+    const w = 19.5 * p;
+    const h = 10 * p;
+    let s = "";
+    const ind = { power: true, status: false, ...props.indicators };
+    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 10.4 * p, y: 0.55 * p, size: 0.7 * p } });
+    [
+      [0.9 * p, 0.9 * p],
+      [w - 0.9 * p, 0.9 * p],
+      [0.9 * p, h - 0.9 * p],
+      [w - 0.9 * p, h - 0.9 * p]
+    ].forEach((c) => {
+      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+    });
+    const hdr = padRow(
+      T,
+      fin,
+      f,
+      {
+        x: 18.75 * p,
+        y: 4 * p,
+        axis: "y",
+        labels: ["VCC", "GND", "IN"],
+        kind: "pad",
+        side: "left",
+        silk: f.silk,
+        size: PIN_LABEL
+      },
+      -1
+    );
+    const tx = 1.75 * p;
+    const tw = 2.6 * p;
+    const ty = 2 * p;
+    const th = 6 * p;
+    const names = ["NO", "COM", "NC"];
+    const pins = hdr.pins.slice();
+    s += tag(
+      "terminal",
+      rect(tx - tw / 2, ty, tw, th, T["plastic-blue"], Object.assign({ rx: 1 }, edge(T, T["plastic-blue-edge"]))) + bevel(T, tx - tw / 2, ty, tw, th, 1.6, 1)
+    );
+    names.forEach((n, i) => {
+      const y = (3 + 2 * i) * p;
+      s += circle(tx, y, 0.5 * p, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + circle(tx, y, 0.5 * p, sheen("metal"), { "fill-opacity": 0.6 }) + line(tx - 0.3 * p, y - 0.3 * p, tx + 0.3 * p, y + 0.3 * p, T["metal-edge"], 0.9) + line(tx + 0.3 * p, y - 0.3 * p, tx - 0.3 * p, y + 0.3 * p, T["metal-edge"], 0.9);
+      s += text(tx + tw / 2 + 0.45 * p, y + 1.4, n, PIN_LABEL, f.silk, { "text-anchor": "start" });
+    });
+    const rw = 19 * mm;
+    const rh = 15.5 * mm;
+    const rx = 4.6 * p;
+    const ry = (h - rh) / 2;
+    s += tag(
+      "body",
+      rect(rx, ry, rw, rh, T["plastic-blue"], Object.assign({ rx: 1.2 }, edge(T, T["plastic-blue-edge"])))
+    );
+    s += bevel(T, rx, ry, rw, rh, 1.8, 1.2);
+    s += text(rx + rw / 2, ry + 1.5 * p, "RELAY", 5, T["chip-print"], { "font-weight": 700 });
+    s += text(rx + rw / 2, ry + 2.5 * p, "10A 250VAC  10A 125VAC", PIN_LABEL, T["chip-print"]) + text(rx + rw / 2, ry + 3.1 * p, "10A 30VDC   10A 28VDC", PIN_LABEL, T["chip-print"]);
+    s += text(rx + rw / 2, ry + 4.3 * p, "SRD-05VDC-SL-C", 5, T["chip-print"], { "font-weight": 600 });
+    s += text(rx + rw / 2, ry + 5.3 * p, lotCode("SRD"), PIN_LABEL, T["chip-print"], { "fill-opacity": 0.8 });
+    s += framed(T, f, "resistor", 13 * p, 0.75 * p, true) + framed(T, f, "resistor", 15 * p, 0.75 * p, true) + framed(T, f, "resistor", 15.3 * p, 3.3 * p, true) + framed(T, f, "resistor", 15.3 * p, 4.3 * p, true);
+    s += sot23(T, 13.4 * p, 2.1 * p, 3) + text(13.3 * p, 4.5 * p, "Q1", PIN_LABEL, f.silk);
+    s += soicAcross(T, 13.1 * p, 5.6 * p, 1.6 * p, 1.4 * p, 2, "817");
+    s += silkFrame(T, f, 17 * p, 0.8 * p, 0.7 * p, 0.7 * p) + indicator({
+      x: 17 * p,
+      y: 0.8 * p,
+      size: 0.7 * p,
+      color: "red",
+      on: !!ind.power,
+      hook: "power-led",
+      state: "power-led",
+      finish: fin
+    }) + text(17.35 * p, 2.3 * p, "PWR", PIN_LABEL, f.silk);
+    s += silkFrame(T, f, 15.9 * p, 5.5 * p, 0.7 * p, 0.7 * p) + indicator({
+      x: 15.9 * p,
+      y: 5.5 * p,
+      size: 0.7 * p,
+      color: "green",
+      on: !!ind.status,
+      hook: "status-led",
+      state: "status-led",
+      finish: fin
+    }) + text(16.25 * p, 7 * p, "ON", PIN_LABEL, f.silk);
+    s += tag(
+      "jumper",
+      rect(
+        13 * p,
+        8.1 * p,
+        2.2 * p,
+        0.8 * p,
+        T["plastic-black"],
+        Object.assign({ rx: 0.3 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
+      ) + rect(13.1 * p, 8.2 * p, 1 * p, 0.6 * p, T["band-yellow"], { rx: 0.2 })
+    );
+    s += text(12.6 * p, 8.75 * p, "L", PIN_LABEL, f.silk) + text(15.6 * p, 8.75 * p, "H", PIN_LABEL, f.silk);
+    names.forEach((n, i) => {
+      pins.push({ name: n, x: tx, y: (3 + 2 * i) * p });
+    });
+    if (props.label !== false)
+      s += text(8.1 * p, 9.25 * p, props.label || "1 RELAY MODULE  HIGH/LOW TRIGGER", PIN_LABEL, f.silk);
+    s += hdr.svg;
+    return art(w, h, "Relay module with an SPDT changeover contact", s, pins);
+  }
+  var init_modules = __esm({
+    "src/modules.js"() {
+      init_core();
+      init_pieces();
     }
   });
 
@@ -6879,484 +7845,12 @@ var PartsKit = (() => {
       })
     );
   }
-  var init_sensors = __esm({
-    "src/sensors.js"() {
-      init_core();
-      init_passives();
-      init_modules();
-    }
-  });
-
-  // src/presets.js
-  function lights(props, user) {
-    const ind = props && props.indicators || {};
-    return user === false ? { power: ind.power === true } : { power: ind.power === true, user: ind.user || false };
-  }
   function lamps(props) {
     const ind = props && props.indicators || {};
     return { power: ind.power === true, out: ind.out === true };
   }
   function finishOf(props, own) {
     return props && props.finish || own;
-  }
-  function packageOf(props, own) {
-    return props && props.package || own;
-  }
-  function unoClassBoard(props) {
-    return devBoardTemplate({
-      layout: "landscape",
-      label: "UNO-CLASS",
-      chipLabel: "ATMEGA328P",
-      labels: { "A5.2": "SCL", "A4.2": "SDA" },
-      top: [
-        ["A5.2", "A4.2", "AREF", "GND", "13", "12", "11", "10", "9", "8"],
-        ["7", "6", "5", "4", "3", "2", "1", "0"]
-      ],
-      bottom: [
-        ["NC", "IOREF", "RESET", "3.3V", "5V", "GND.2", "GND.3", "VIN"],
-        ["A0", "A1", "A2", "A3", "A4", "A5"]
-      ],
-      groupNames: { top: ["DIGITAL (PWM ~)"], bottom: ["POWER", "ANALOG IN"] },
-      pwm: ["3", "5", "6", "9", "10", "11"],
-      indicators: lights(props),
-      description: "Uno-class board"
-    });
-  }
-  function nanoClassBoard(props) {
-    return devBoardTemplate({
-      label: "NANO-CLASS",
-      chipLabel: "ATMEGA328P",
-      pinKind: "pad",
-      widthPitches: 7.2,
-      labels: NANO_LABELS,
-      left: ["13", "3.3V", "AREF", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "5V", "RESET", "GND", "VIN"],
-      right: ["12", "11", "10", "9", "8", "7", "6", "5", "4", "3", "2", "GND.2", "RESET.2", "0", "1"],
-      icsp: ["12.2", "5V.2", "13.2", "11.2", "RESET.3", "GND.3"],
-      indicators: lights(props),
-      description: "Nano-class board"
-    });
-  }
-  function numbered(from, count, step) {
-    const out = [];
-    for (let i = 0; i < count; i++) out.push(String(from + i * step));
-    return out;
-  }
-  function megaClassBoard(props) {
-    return megaBoardTemplate({
-      label: "MEGA-CLASS",
-      chipLabel: "ATMEGA2560",
-      top: [
-        ["SCL", "SDA", "AREF", "GND", "13", "12", "11", "10", "9", "8"],
-        ["7", "6", "5", "4", "3", "2", "1", "0"],
-        numbered(14, 8, 1)
-      ],
-      block: {
-        left: ["5V.2"].concat(numbered(22, 16, 2), ["GND.4"]),
-        right: ["5V.3"].concat(numbered(23, 16, 2), ["GND.5"])
-      },
-      bottom: [
-        ["IOREF", "RESET", "3.3V", "5V", "GND.2", "GND.3", "VIN"],
-        numbered(0, 8, 1).map((n) => {
-          return `A${n}`;
-        }),
-        numbered(8, 8, 1).map((n) => {
-          return `A${n}`;
-        })
-      ],
-      groupNames: { top: ["DIGITAL (PWM ~)", "COMMUNICATION"], bottom: ["POWER", "ANALOG IN"] },
-      pwm: numbered(2, 12, 1),
-      indicators: lights(props),
-      description: "Mega-class board"
-    });
-  }
-  function nanoRp2040Board(props) {
-    return nanoConnectTemplate({
-      label: "NANO RP2040",
-      chipLabel: "RP2040",
-      left: ["TX", "RX", "RESET", "GND", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12"],
-      right: ["VIN", "GND.2", "REC", "5V", "A7", "A6", "A5", "A4", "A3", "A2", "A1", "A0", "AREF", "3.3V", "D13"],
-      indicators: lights(props),
-      description: "Nano RP2040 Connect board"
-    });
-  }
-  function picoClassBoard(props) {
-    return picoBoardTemplate({
-      label: "PICO-CLASS",
-      chipLabel: "RP2040",
-      debugPins: false,
-      indicators: lights(props),
-      description: "Pico-class board",
-      left: [
-        "GP0",
-        "GP1",
-        "GND",
-        "GP2",
-        "GP3",
-        "GP4",
-        "GP5",
-        "GND.2",
-        "GP6",
-        "GP7",
-        "GP8",
-        "GP9",
-        "GND.3",
-        "GP10",
-        "GP11",
-        "GP12",
-        "GP13",
-        "GND.4",
-        "GP14",
-        "GP15"
-      ],
-      right: [
-        "VBUS",
-        "VSYS",
-        "GND.8",
-        "3V3_EN",
-        "3V3",
-        "ADC_VREF",
-        "GP28",
-        "GND.7",
-        "GP27",
-        "GP26",
-        "RUN",
-        "GP22",
-        "GND.6",
-        "GP21",
-        "GP20",
-        "GP19",
-        "GP18",
-        "GND.5",
-        "GP17",
-        "GP16"
-      ]
-    });
-  }
-  function esp32DevKitV1(props) {
-    return espDevKitTemplate({
-      label: "ESP32 DEVKIT V1",
-      chipLabel: "ESP-WROOM-32",
-      indicators: lights(props),
-      description: "ESP32 development board",
-      left: ["EN", "VP", "VN", "D34", "D35", "D32", "D33", "D25", "D26", "D27", "D14", "D12", "D13", "GND.2", "VIN"],
-      right: ["D23", "D22", "TX0", "RX0", "D21", "D19", "D18", "D5", "TX2", "RX2", "D4", "D2", "D15", "GND", "3V3"]
-    });
-  }
-  function esp32DevKitCV4(props) {
-    return espDevKitTemplate({
-      label: "ESP32 DEVKITC V4",
-      chipLabel: "ESP32-WROOM-32D",
-      layout: "devkitc",
-      indicators: lights(props, false),
-      description: "ESP32 development board",
-      left: [
-        "3V3",
-        "EN",
-        "VP",
-        "VN",
-        "34",
-        "35",
-        "32",
-        "33",
-        "25",
-        "26",
-        "27",
-        "14",
-        "12",
-        "GND",
-        "13",
-        "D2",
-        "D3",
-        "CMD",
-        "5V"
-      ],
-      right: [
-        "GND.2",
-        "23",
-        "22",
-        "TX",
-        "RX",
-        "21",
-        "GND.3",
-        "19",
-        "18",
-        "5",
-        "17",
-        "16",
-        "4",
-        "0",
-        "2",
-        "15",
-        "D1",
-        "D0",
-        "CLK"
-      ]
-    });
-  }
-  function moduleDevKit(spec, props) {
-    return espDevKitTemplate({
-      layout: "devkit-1",
-      module: spec.size[0],
-      length: spec.size[1],
-      overhang: spec.size[2],
-      firstPin: spec.size[3],
-      usb: spec.usb,
-      buttons: spec.buttons,
-      bridge: spec.bridge,
-      label: spec.label,
-      chipLabel: spec.module,
-      left: spec.left,
-      right: spec.right,
-      indicators: { power: lights(props).power },
-      description: spec.description
-    });
-  }
-  function esp32C3DevKit(props) {
-    return moduleDevKit(
-      {
-        module: "ESP32-C3-MINI-1",
-        label: "DEVKITM-1",
-        size: ["mini", 38.91, 5.35, 1.68],
-        usb: "micro",
-        buttons: ["BOOT", "RST"],
-        bridge: "CP2102N",
-        description: "ESP32-C3 development board",
-        left: ["GND", "3V3", "3V3.2", "2", "3", "GND.2", "RST", "GND.3", "0", "1", "10", "GND.4", "5V", "5V.2", "GND.5"],
-        right: ["GND.6", "TX", "RX", "GND.7", "9", "8", "GND.8", "7", "6", "5", "4", "GND.9", "18", "19", "GND.10"]
-      },
-      props
-    );
-  }
-  function esp32S2DevKit(props) {
-    return moduleDevKit(
-      {
-        module: "ESP32-S2-MINI-1",
-        label: "DEVKITM-1",
-        size: ["mini-s2", 54, 5.6, 1.6],
-        usb: "micro",
-        buttons: ["BOOT", "RST"],
-        bridge: "CP2102N",
-        description: "ESP32-S2 development board",
-        left: [
-          "3V3",
-          "0",
-          "1",
-          "2",
-          "3",
-          "4",
-          "5",
-          "6",
-          "7",
-          "8",
-          "9",
-          "10",
-          "11",
-          "12",
-          "13",
-          "14",
-          "15",
-          "16",
-          "17",
-          "5V",
-          "GND"
-        ],
-        right: [
-          "GND.2",
-          "RST",
-          "46",
-          "45",
-          "RX",
-          "TX",
-          "42",
-          "41",
-          "40",
-          "39",
-          "38",
-          "37",
-          "36",
-          "35",
-          "34",
-          "33",
-          "26",
-          "21",
-          "20",
-          "19",
-          "18"
-        ]
-      },
-      props
-    );
-  }
-  function esp32S3DevKit(props) {
-    return moduleDevKit(
-      {
-        module: "ESP32-S3-WROOM-1",
-        label: "DEVKITC-1",
-        size: ["wroom", 62.74, 8.25, 1.53],
-        usb: "dual-micro",
-        buttons: ["BOOT", "RESET"],
-        bridge: "CP2102N",
-        description: "ESP32-S3 development board",
-        left: [
-          "3V3",
-          "3V3.2",
-          "RST",
-          "4",
-          "5",
-          "6",
-          "7",
-          "15",
-          "16",
-          "17",
-          "18",
-          "8",
-          "3",
-          "46",
-          "9",
-          "10",
-          "11",
-          "12",
-          "13",
-          "14",
-          "5V",
-          "GND"
-        ],
-        right: [
-          "GND.2",
-          "TX",
-          "RX",
-          "1",
-          "2",
-          "42",
-          "41",
-          "40",
-          "39",
-          "38",
-          "37",
-          "36",
-          "35",
-          "0",
-          "45",
-          "48",
-          "47",
-          "21",
-          "20",
-          "19",
-          "GND.3",
-          "GND.4"
-        ]
-      },
-      props
-    );
-  }
-  function esp32C5DevKit(props) {
-    return moduleDevKit(
-      {
-        module: "ESP32-C5-WROOM-1",
-        label: "DEVKITC-1",
-        size: ["wroom", 53.6, 6.5, 1.575],
-        usb: "dual-c",
-        buttons: ["RESET", "BOOT"],
-        description: "ESP32-C5 development board",
-        left: ["3V3", "RST", "2", "3", "0", "1", "6", "7", "8", "9", "10", "26", "25", "5V", "GND", "NC0"],
-        right: ["GND.2", "TX", "RX", "24", "23", "15", "27", "4", "5", "NC1", "28", "GND.3", "14", "13", "GND.4", "NC2"]
-      },
-      props
-    );
-  }
-  function esp32C6DevKit(props) {
-    return moduleDevKit(
-      {
-        module: "ESP32-C6-WROOM-1",
-        label: "DEVKITC-1",
-        size: ["wroom", 51.8, 6.35, 1.575],
-        usb: "dual-c",
-        buttons: ["BOOT", "RESET"],
-        description: "ESP32-C6 development board",
-        left: ["3V3", "RST", "4", "5", "6", "7", "0", "1", "8", "10", "11", "2", "3", "5V", "GND", null],
-        right: ["GND.2", "TX", "RX", "15", "23", "22", "21", "20", "19", "18", "9", "GND.3", "13", "12", "GND.4", null]
-      },
-      props
-    );
-  }
-  function esp32H2DevKit(props) {
-    return moduleDevKit(
-      {
-        module: "ESP32-H2-MINI-1",
-        label: "DEVKITM-1",
-        size: ["mini", 48.26, 5.4, 1.46],
-        usb: "dual-c",
-        buttons: ["RESET", "BOOT"],
-        description: "ESP32-H2 development board",
-        left: ["3V3", "RST", "0", "1", "2", "3", "13", "14", "4", "5", "NC", "VBAT", "GND", "5V", "GND.2"],
-        right: ["GND.3", "TX", "RX", "10", "11", "25", "12", "8", "22", "GND.4", "9", "GND.5", "27", "26", "GND.6"]
-      },
-      props
-    );
-  }
-  function stm32L031K6Board(props) {
-    return nucleo32BoardTemplate({
-      label: "L031K6 BOARD",
-      chipLabel: "STM32L031K6",
-      indicators: { power: lights(props).power },
-      description: "Nucleo-32 board with an STM32L031K6",
-      left: ["D1", "D0", "RST", "GND", "D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12"],
-      right: ["VIN", "GND.2", "RST.2", "5V", "A7", "A6", "A5", "A4", "A3", "A2", "A1", "A0", "REF", "3V3", "D13"]
-    });
-  }
-  function stm32C031C6Board(props) {
-    return nucleo64BoardTemplate({
-      label: "C031C6 BOARD",
-      chipLabel: "STM32C031C6",
-      indicators: { power: lights(props).power },
-      description: "Nucleo-64 board with an STM32C031C6",
-      left: [
-        ["PD0", "PD1"],
-        ["PD2", "PD2.2"],
-        ["VDD", "E5V"],
-        ["PA14", "GND.4"],
-        [null, null],
-        [null, "IOREF.2"],
-        ["PA13", "NRST.2"],
-        ["PC6", "3V3.2"],
-        [null, "5V.2"],
-        ["GND.5", "GND.6"],
-        [null, "GND.7"],
-        ["PC13", "VIN.2"],
-        ["PC14", null],
-        [null, "PA0"],
-        ["PF0", "PA1"],
-        ["PF1", "PA4"],
-        ["PB11", "PB0.2"],
-        ["PA2", "PA11"],
-        [null, "PA12"]
-      ],
-      right: [
-        ["PD3", "PA3"],
-        ["PB8", "PC15"],
-        ["PB9", "PB12"],
-        ["AVDD.2", "5V.3"],
-        ["GND.8", null],
-        ["PA5", "PF3"],
-        ["PA6", "PA8"],
-        ["PA7", "PB12.2"],
-        ["PB0", null],
-        ["PC7", "GND.9"],
-        ["PA9", "PB2"],
-        ["PA15", "PB1"],
-        ["PB5", "PB15"],
-        ["PB4", "PB14"],
-        ["PB10", "PB13"],
-        ["PB3", "AGND"],
-        ["PA10", null],
-        ["PB6", null],
-        ["PB7", null]
-      ],
-      power: [null, "IOREF", "NRST", "3V3", "5V", "GND", "GND.2", "VIN"],
-      analog: ["A0", "A1", "A2", "A3", "A4", "A5"],
-      digitalHigh: ["D15", "D14", "AVDD", "GND.3", "D13", "D12", "D11", "D10", "D9", "D8"],
-      digitalLow: ["D7", "D6", "D5", "D4", "D3", "D2", "D1", "D0"]
-    });
   }
   function lightSensor(props) {
     return sensorModuleTemplate({
@@ -7430,554 +7924,11 @@ var PartsKit = (() => {
       finish: finishOf(props, "blue")
     });
   }
-  function ne555Timer(props) {
-    return chipTemplate({
-      label: "NE555",
-      package: packageOf(props, "dip"),
-      pins: ["GND", "TRIG", "OUT", "RESET", "CTRL", "THR", "DIS", "VCC"]
-    });
-  }
-  function shiftRegister595(props) {
-    return chipTemplate({
-      label: "74HC595",
-      package: packageOf(props, "dip"),
-      pins: ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "GND", "Q7S", "MR", "SHCP", "STCP", "OE", "DS", "Q0", "VCC"]
-    });
-  }
-  function shiftRegister165(props) {
-    return chipTemplate({
-      label: "74HC165",
-      package: packageOf(props, "dip"),
-      pins: ["PL", "CP", "D4", "D5", "D6", "D7", "Q7_N", "GND", "Q7", "DS", "D0", "D1", "D2", "D3", "CE", "VCC"]
-    });
-  }
-  function ledDriver595(props) {
-    return chipTemplate({
-      label: "NLSF595",
-      package: packageOf(props, "tssop"),
-      pins: ["QB", "QC", "QD", "QE", "QF", "QG", "QH", "GND", "SQH", "SCLR", "SCK", "RCK", "OE", "SI", "QA", "VCC"]
-    });
-  }
-  function attiny85(props) {
-    return chipTemplate({
-      label: "ATtiny85",
-      package: packageOf(props, "dip"),
-      pins: ["PB5", "PB3", "PB4", "GND", "PB0", "PB1", "PB2", "VCC"]
-    });
-  }
-  function screen(props, own) {
-    props = props || {};
-    return Object.assign({ caption: props.caption, pixels: props.pixels }, own);
-  }
-  function ssd1306Module(props) {
-    return oledBreakout(screen(props, { pins: ["GND", "VCC", "SCL", "SDA"] }));
-  }
-  function sh1107Module(props) {
-    return oledSquare(screen(props, { label: "SH1107 128x128", pins: ["GND", "VCC", "SCL", "SDA"] }));
-  }
-  function ili9341TouchDisplay(props) {
-    return tftModule(
-      screen(props, {
-        touch: true,
-        pins: ["VCC", "GND", "CS", "RST", "D/C", "MOSI", "SCK", "LED", "MISO", "SCL", null, "SDA"]
-      })
-    );
-  }
-  var NANO_LABELS;
-  var init_presets = __esm({
-    "src/presets.js"() {
+  var init_sensors = __esm({
+    "src/sensors.js"() {
       init_core();
-      init_boards();
+      init_pieces();
       init_modules();
-      init_sensors();
-      init_displays();
-      NANO_LABELS = { 0: "RX0", 1: "TX1", "3.3V": "3V3", AREF: "REF", RESET: "RST", "RESET.2": "RST" };
-      for (let nanoDigit = 2; nanoDigit <= 13; nanoDigit++) NANO_LABELS[String(nanoDigit)] = `D${nanoDigit}`;
-    }
-  });
-
-  // src/families/boards.js
-  var boards_exports = {};
-  __export(boards_exports, {
-    bluePillBoard: () => bluePillBoard,
-    esp32C3DevKit: () => esp32C3DevKit,
-    esp32C5DevKit: () => esp32C5DevKit,
-    esp32C6DevKit: () => esp32C6DevKit,
-    esp32DevKitCV4: () => esp32DevKitCV4,
-    esp32DevKitV1: () => esp32DevKitV1,
-    esp32H2DevKit: () => esp32H2DevKit,
-    esp32S2DevKit: () => esp32S2DevKit,
-    esp32S3DevKit: () => esp32S3DevKit,
-    franzininho: () => franzininho,
-    megaClassBoard: () => megaClassBoard,
-    nanoClassBoard: () => nanoClassBoard,
-    nanoRp2040Board: () => nanoRp2040Board,
-    picoClassBoard: () => picoClassBoard,
-    stm32C031C6Board: () => stm32C031C6Board,
-    stm32L031K6Board: () => stm32L031K6Board,
-    unoClassBoard: () => unoClassBoard
-  });
-  var init_boards2 = __esm({
-    "src/families/boards.js"() {
-      init_presets();
-      init_boards();
-    }
-  });
-
-  // src/pixels.js
-  function pixelColor(T, c) {
-    if (typeof c === "string" && c) return { fill: c, level: 1 };
-    if (c && typeof c === "object") {
-      const ch = ["r", "g", "b"].map((k) => {
-        const v = Number(c[k]);
-        return isNaN(v) ? 0 : Math.max(0, Math.min(1, v));
-      });
-      const level = Math.max(ch[0], ch[1], ch[2]);
-      if (level > 0.02) {
-        const hx = function(v) {
-          const n = Math.round(v * 255).toString(16);
-          return (n.length < 2 ? "0" : "") + n;
-        };
-        return { fill: `#${hx(ch[0] / level)}${hx(ch[1] / level)}${hx(ch[2] / level)}`, level };
-      }
-    }
-    return { fill: T["indicator-off"], level: 0 };
-  }
-  function pixelPackage(T, x, y, hook, c, size) {
-    const mm = T.pitch / 2.54;
-    const k = (size || 5) / 5;
-    const h = 2.5 * mm * k;
-    const pc = pixelColor(T, c);
-    let s = "";
-    const die = function(dx, fill) {
-      return rect(x + dx * k, y - 0.35 * mm * k, 0.6 * mm * k, 0.7 * mm * k, T[fill], { "fill-opacity": 0.55 });
-    };
-    s += tag("glow", circle(x, y, 3.2 * mm * k, pc.fill, { "fill-opacity": r2(T["opacity-glow"] * pc.level) }));
-    s += tag(
-      "body",
-      rect(
-        x - h,
-        y - h,
-        2 * h,
-        2 * h,
-        T["plastic-white"],
-        Object.assign({ rx: 0.4 * mm * k }, edge(T, T["plastic-white-edge"], T["stroke-fine"]))
-      ) + circle(x, y, 1.6 * mm * k, T["plastic-white-edge"], { "fill-opacity": 0.5 }) + die(-1.05 * mm, "lens-red") + die(-0.3 * mm, "lens-green") + die(0.45 * mm, "lens-blue") + circle(x, y, 1.75 * mm * k, pc.fill, {
-        "data-hook": hook,
-        "data-level": r2(pc.level),
-        "fill-opacity": pc.level > 0 ? r2(0.55 + 0.45 * pc.level) : 0
-      }) + circle(x, y, 1.6 * mm * k, sheen("lens"), { "fill-opacity": 0.6 })
-    );
-    return s;
-  }
-  function pixel5050(T, x, y, hook, c) {
-    return pixelPackage(T, x, y, hook, c, 5);
-  }
-  function neopixel(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const w = 3 * p;
-    const h = 2 * p;
-    let s = "";
-    const pins = [
-      { name: "VDD", x: 0.5 * p, y: 0.5 * p },
-      { name: "DIN", x: 2.5 * p, y: 0.5 * p },
-      { name: "DOUT", x: 0.5 * p, y: 1.5 * p },
-      { name: "VSS", x: 2.5 * p, y: 1.5 * p }
-    ];
-    pins.forEach((pn) => {
-      s += tag("pin", rect(pn.x - 2.4, pn.y - 1.8, 4.8, 3.6, T.pad, { rx: 0.4 }));
-    });
-    s += pixel5050(T, 1.5 * p, 1 * p, "pixel", props.color || props);
-    s += path(`M${r2(0.5 * p - 2.4)} ${r2(0.5 * p - 1.8)}l3 3`, "none", {
-      stroke: T["plastic-black-edge"],
-      "stroke-width": T["stroke-fine"]
-    });
-    return art(w, h, `NeoPixel${pixelColor(T, props.color || props).level ? ", lit" : ""}`, s, pins);
-  }
-  function ledRing(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const f = finish(T, "black");
-    const n = Math.max(1, Math.min(1024, Math.floor(Number(props.pixels)) || 16));
-    const colors = props.colors || [];
-    const OD = { 8: 29.7, 12: 36.8, 16: 44.5, 24: 65.5 }[n] || Math.max(18, n * 2.75 + 0.5);
-    const R = OD / 2 * mm;
-    const Ri = R - 6.4 * mm;
-    const pitchR = R - 3.2 * mm;
-    const w = Math.ceil((2 * R + 1.2 * p) / p) * p;
-    const cx = w / 2;
-    const cy = 0.6 * p + R;
-    const h = cy + R + 2.2 * p;
-    let s = "";
-    const ring = `M${r2(cx - R)} ${r2(cy)}a${r2(R)} ${r2(R)} 0 1 0 ${r2(2 * R)} 0a${r2(R)} ${r2(R)} 0 1 0 ${r2(-2 * R)} 0zM${r2(cx - Ri)} ${r2(cy)}a${r2(Ri)} ${r2(Ri)} 0 1 0 ${r2(2 * Ri)} 0a${r2(Ri)} ${r2(Ri)} 0 1 0 ${r2(-2 * Ri)} 0z`;
-    s += tag(
-      "board",
-      path(ring, f.board, { "fill-rule": "evenodd", stroke: f.edge, "stroke-width": T["stroke-outline"] })
-    );
-    s += tag(
-      "board",
-      rect(
-        cx - 2.4 * p,
-        cy + R - 1.2 * p,
-        4.8 * p,
-        1.2 * p + 1.6 * p,
-        f.board,
-        Object.assign({ rx: 1 }, edge(T, f.edge))
-      )
-    );
-    for (let i = 0; i < n; i++) {
-      const deg = -90 + i * 360 / n;
-      const a = deg * Math.PI / 180;
-      const px = r2(cx + Math.cos(a) * pitchR);
-      const py = r2(cy + Math.sin(a) * pitchR);
-      s += el("g", { transform: `rotate(${r2(deg + 90)} ${px} ${py})` }, pixel5050(T, px, py, `px-${i + 1}`, colors[i]));
-    }
-    const hdr = header({
-      x: cx - 1.5 * p,
-      y: h - 0.6 * p,
-      labels: props.pins || ["GND", "VCC", "DIN", "DOUT"],
-      kind: "pad",
-      side: "above",
-      silk: f.silk,
-      size: PIN_LABEL,
-      rotate: true
-    });
-    s += hdr.svg;
-    return art(w, h, `${n}-pixel LED ring`, s, hdr.pins);
-  }
-  function ledStrip(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const mm = p / 2.54;
-    const n = Math.max(1, Math.min(LED_STRIP_MAX_PIXELS, Math.floor(Number(props.pixels) || 8)));
-    const kind = STRIP_SIZES[props.pixelSize] || STRIP_SIZES["5050"];
-    const step = kind.step * p;
-    const k = kind.size / 5;
-    const round2 = props.pixelShape === "round" || props.pixelShape === "circle";
-    const w = Math.ceil((4.8 * p + n * step) / p) * p;
-    const h = 4 * p;
-    let s = "";
-    const colors = props.colors || [];
-    s += tag(
-      "board",
-      rect(
-        T["board-inset"],
-        T["board-inset"],
-        w - 2 * T["board-inset"],
-        h - 2 * T["board-inset"],
-        T["plastic-black"],
-        Object.assign({ rx: 1.5 }, edge(T, T["plastic-black-edge"]))
-      )
-    );
-    s += bevel(T, T["board-inset"], T["board-inset"], w - 2 * T["board-inset"], h - 2 * T["board-inset"], 1.6);
-    const inNames = ["VDD", "DIN", "VSS"];
-    const outNames = ["VDD", "DOUT", "VSS"];
-    const pins = [];
-    [0, 1, 2].forEach((i) => {
-      const y = (i + 1) * p;
-      s += tag("pad", rect(0, y - 0.3 * p, 0.9 * p, 0.6 * p, T.pad, { rx: 1 })) + text(1.1 * p, y + 1.4, inNames[i], PIN_LABEL, T.silk, { "text-anchor": "start" });
-      s += tag("pad", rect(w - 0.9 * p, y - 0.3 * p, 0.9 * p, 0.6 * p, T.pad, { rx: 1 })) + text(w - 1.1 * p, y + 1.4, outNames[i], PIN_LABEL, T.silk, { "text-anchor": "end" });
-      pins.push({ name: inNames[i], x: 0, y });
-    });
-    for (let i = 0; i < n; i++) {
-      const cx = (w - n * step) / 2 + (i + 0.5) * step;
-      const cy = 2 * p;
-      const c = colors[i] || null;
-      const pc = pixelColor(T, c);
-      let g = "";
-      if (round2) {
-        g += tag("glow", circle(cx, cy, 3.4 * mm * k, pc.fill, { "fill-opacity": r2(T["opacity-glow"] * pc.level) }));
-        g += tag(
-          "body",
-          circle(cx, cy, 2.6 * mm * k, T["plastic-white"], edge(T, T["plastic-white-edge"], T["stroke-fine"])) + circle(cx, cy, 1.75 * mm * k, pc.fill, {
-            "data-hook": `px-${i}`,
-            "data-level": r2(pc.level),
-            "fill-opacity": pc.level > 0 ? r2(0.55 + 0.45 * pc.level) : 0
-          })
-        );
-      } else g += pixelPackage(T, cx, cy, `px-${i}`, c, kind.size);
-      s += el("g", { "data-pixel": i, "data-lit": pc.level > 0 ? "true" : "false" }, g);
-      if (i < n - 1) {
-        const xb = cx + step / 2;
-        if (step >= 3 * p) {
-          s += path(`M${r2(xb)} ${r2(T["board-inset"] + 1)}V${r2(h - T["board-inset"] - 1)}`, "none", {
-            stroke: T.silk,
-            "stroke-width": T["stroke-fine"],
-            "stroke-opacity": 0.5,
-            "stroke-dasharray": "1.2 1.2"
-          });
-          [1, 2, 3].forEach((q) => {
-            s += tag(
-              "pad",
-              rect(xb - 0.5 * p, q * p - 0.25 * p, 0.3 * p, 0.5 * p, T.pad, { rx: 0.6 }) + rect(xb + 0.2 * p, q * p - 0.25 * p, 0.3 * p, 0.5 * p, T.pad, { rx: 0.6 })
-            );
-          });
-        } else
-          s += path(
-            `M${r2(xb - 1.6 * k)} ${r2(cy - 1.4 * k)}l${r2(1.6 * k)} ${r2(1.4 * k)}l${r2(-1.6 * k)} ${r2(1.4 * k)}`,
-            "none",
-            { stroke: T.silk, "stroke-width": 0.6, "stroke-opacity": 0.6 }
-          );
-      }
-    }
-    pins.push({ name: "VDD.2", x: w, y: p }, { name: "DOUT", x: w, y: 2 * p }, { name: "VSS.2", x: w, y: 3 * p });
-    return art(w, h, `${n}-pixel WS2812 strip`, s, pins);
-  }
-  function formatMilliamps(amps) {
-    const ma = (Number(amps) || 0) * 1e3;
-    return `${ma >= 10 ? Math.round(ma) : Math.round(ma * 10) / 10} mA`;
-  }
-  function meterLines(props) {
-    props = props || {};
-    if (!props.status || props.status === "idle") return ["-- FPS", "Connect DIN to a WS2812 data line", ""];
-    return [
-      `${Number(props.fps) || 0} FPS · ${Number(props.pixels) || 0} px`,
-      `${formatMilliamps(props.amps)} · ${(Number(props.watts) || 0).toFixed(2)} W`,
-      `peak ${formatMilliamps(props.peakAmps)} of ${Number(props.limitAmps) || 0} A`
-    ];
-  }
-  function neopixelMeter(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const w = 20 * p;
-    const h = 7 * p;
-    let s = "";
-    const status = { ok: 1, near: 1, over: 1 }[props.status] ? props.status : "idle";
-    const lines = meterLines(props);
-    const tone = status === "idle" ? T["readout-dim"] : T[`status-${status}`];
-    const limit = Number(props.limitAmps) || 0;
-    const share = status === "idle" || !(limit > 0) ? 0 : Math.max(0, Math.min(1, (Number(props.peakAmps) || 0) / limit));
-    s += line(0, 2 * p, 1.4 * p, 2 * p, T["lead-edge"], 2.9) + line(0, 2 * p, 1.4 * p, 2 * p, T.lead, 1.9);
-    s += tag(
-      "body",
-      rect(
-        1.2 * p,
-        0.5 * p,
-        w - 1.7 * p,
-        h - 1 * p,
-        T["plastic-black"],
-        Object.assign({ rx: 3 }, edge(T, T["plastic-black-edge"]))
-      )
-    );
-    s += rect(1.2 * p + 1.5, 0.5 * p + 1.5, w - 1.7 * p - 3, 2.2, "#ffffff", { rx: 1, "fill-opacity": 0.08 });
-    const rx = 2.2 * p;
-    const ry = 1.2 * p;
-    const rw = w - 4.4 * p;
-    const rh = h - 2.4 * p;
-    s += rect(rx, ry, rw, rh, T.readout, { rx: 2 });
-    let g = circle(rx + rw - 0.6 * p, ry + 0.6 * p, 0.25 * p, tone, { "data-lamp": status });
-    g += text(rx + 0.6 * p, ry + 1.05 * p, lines[0], 5.2, T["readout-text"], {
-      "text-anchor": "start",
-      "font-weight": 600
-    });
-    g += text(
-      rx + 0.6 * p,
-      ry + 2.2 * p,
-      lines[1],
-      lines[2] ? 5.2 : PIN_LABEL,
-      status === "idle" ? T["readout-dim"] : T["readout-text"],
-      { "text-anchor": "start" }
-    );
-    if (lines[2]) g += text(rx + 0.6 * p, ry + 3.3 * p, lines[2], PIN_LABEL, tone, { "text-anchor": "start" });
-    s += el(
-      "g",
-      {
-        "data-status": status,
-        "data-fps": Number(props.fps) || 0,
-        "data-pixels": Number(props.pixels) || 0,
-        "data-amps": r2(Number(props.amps) || 0)
-      },
-      g
-    );
-    s += rect(rx + 0.6 * p, ry + rh - 0.55 * p, rw - 1.2 * p, 0.2 * p, T["readout-text"], {
-      rx: 1,
-      "fill-opacity": 0.25
-    });
-    s += rect(rx + 0.6 * p, ry + rh - 0.55 * p, r2((rw - 1.2 * p) * share), 0.2 * p, tone, { rx: 1 });
-    s += text(w - 1.6 * p, h - 0.75 * p, "DIN", PIN_LABEL, T.silk, { "text-anchor": "end", "fill-opacity": 0.8 }) + text(2.2 * p, h - 0.75 * p, "PIXEL METER", PIN_LABEL, T.silk, { "text-anchor": "start", "fill-opacity": 0.8 });
-    return art(w, h, `NeoPixel meter: ${lines.filter(Boolean).join(", ")}`, s, [{ name: "DIN", x: 0, y: 2 * p }]);
-  }
-  function ledBarGraph(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const n = 10;
-    const values = props.levels || [];
-    const colors = props.colors || [];
-    const colorOf = function(k) {
-      return lensColor(T, colors[k] || props.color || "red");
-    };
-    const w = 11 * p;
-    const h = 5 * p;
-    const cy = 2.5 * p;
-    let s = "";
-    const pins = [];
-    for (let i = 0; i < n; i++) pins.push({ name: `A${i + 1}`, x: (i + 1) * p, y: 1 * p });
-    for (let j = 0; j < n; j++) pins.push({ name: `K${j + 1}`, x: (j + 1) * p, y: 4 * p });
-    const bx0 = 0.5 * p;
-    const by0 = 0.8 * p;
-    const bw = 10 * p;
-    const bh = 3.4 * p;
-    for (let q = 0; q < n; q++) {
-      const lx = (q + 1) * p;
-      [
-        [0.45 * p, by0],
-        [by0 + bh, 4.55 * p]
-      ].forEach((seg) => {
-        s += tag(
-          "leg",
-          rect(lx - 1.45, seg[0], 2.9, seg[1] - seg[0], T["lead-edge"], { rx: 0.6 }) + rect(lx - 0.95, seg[0], 1.9, seg[1] - seg[0], T.lead, { rx: 0.5 })
-        );
-      });
-    }
-    s += tag(
-      "body",
-      rect(bx0, by0, bw, bh, T["plastic-white"], Object.assign({ rx: 1 }, edge(T, T["plastic-white-edge"])))
-    );
-    s += bevel(T, bx0, by0, bw, bh, 1.6, 1);
-    const mm = p / 2.54;
-    const bp = 2.2 * mm;
-    const bwid = 1.6 * mm;
-    const bht = 2 * p;
-    s += rect(bx0 + 1.2 * mm, by0 + 0.38 * p, bw - 2.4 * mm, bh - 0.76 * p, T["segment-face"], { rx: 0.8 });
-    for (let k = 0; k < n; k++) {
-      const lv = Math.max(0, Math.min(1, Number(values[k]) || 0));
-      const bx = w / 2 + (k - (n - 1) / 2) * bp;
-      s += rect(bx - bwid / 2, cy - bht / 2, bwid, bht, T["indicator-off-light"], { rx: 1, "fill-opacity": 0.75 });
-      s += rect(bx - bwid / 2, cy - bht / 2, bwid, bht, colorOf(k), {
-        "data-hook": `bar-${k + 1}`,
-        "data-level": r2(lv),
-        rx: 1,
-        "fill-opacity": lv > 0 ? r2(T["opacity-segment-dim"] + (1 - T["opacity-segment-dim"]) * lv) : 0
-      });
-    }
-    s += rect(bx0 + 0.9 * mm, by0 + 0.08 * p, 0.3 * p, 0.3 * p, T["plastic-white-edge"], {
-      rx: 0.4,
-      "fill-opacity": 0.9
-    });
-    if (props.vertical)
-      return art(
-        h,
-        w,
-        "LED bar graph",
-        el("g", { transform: "matrix(0 1 1 0 0 0)" }, s),
-        pins.map((q) => {
-          return { name: q.name, x: q.y, y: q.x };
-        })
-      );
-    return art(w, h, "LED bar graph", s, pins);
-  }
-  function neopixelMatrix(props) {
-    props = props || {};
-    const T = tokens();
-    const p = T.pitch;
-    const f = finish(T, "black");
-    const rows = Math.max(1, Math.min(1024, Math.floor(Number(props.rows)) || 8));
-    const cols = Math.max(1, Math.min(1024, Math.floor(Number(props.cols)) || 8));
-    const colors = props.colors || [];
-    const pitch = 3.5 * p;
-    const w = cols * pitch;
-    const h = rows * pitch;
-    const x0 = pitch / 2;
-    const y0 = pitch / 2;
-    let s = "";
-    const names = props.pins || ["GND", "VCC", "DIN", "DOUT"];
-    s += board({
-      width: w,
-      height: h,
-      finish: "black",
-      holes: false,
-      mark: { x: w / 2 + 1.2 * p, y: y0 + Math.max(0, rows - 2) * pitch + pitch / 2 - 0.35 * p, size: 0.7 * p }
-    });
-    const gapTop = rows > 1 ? y0 + pitch / 2 : h;
-    const gapBottom = rows > 1 ? y0 + (rows - 1.5) * pitch : h;
-    if (rows >= 6 && cols >= 6)
-      [
-        [cols / 2 - 1.5, 0.5],
-        [cols / 2 + 1.5, 0.5],
-        [cols / 2 - 1.5, rows / 2 - 0.5],
-        [cols / 2 + 1.5, rows / 2 - 0.5],
-        [cols / 2 - 1.5, rows - 1.5],
-        [cols / 2 + 1.5, rows - 1.5]
-      ].forEach((c) => {
-        s += tag("hole", circle(x0 + c[0] * pitch, y0 + c[1] * pitch, T["mount-hole-radius"], T.hole, edge(T, T.pad)));
-      });
-    for (let r = 0; r < rows; r++)
-      for (let c = 0; c < cols; c++) {
-        const cx = x0 + c * pitch;
-        const cy = y0 + r * pitch;
-        s += pixel5050(T, cx, cy, `px-${r * cols + c + 1}`, colors[r * cols + c]);
-        s += tag(
-          "smd",
-          rect(cx + 1.2 * p, cy - 0.22 * p, 0.28 * p, 0.44 * p, T["cap-ceramic"], { rx: 0.3 }) + rect(cx + 1.2 * p, cy - 0.22 * p, 0.28 * p, 0.09 * p, T.lead) + rect(cx + 1.2 * p, cy + 0.13 * p, 0.28 * p, 0.09 * p, T.lead)
-        );
-      }
-    const pins = [];
-    [0, 1, 2].forEach((i) => {
-      s += pin({
-        x: (0.5 + i) * p,
-        y: gapTop,
-        kind: "pad",
-        label: names[i],
-        side: "below",
-        silk: f.silk,
-        size: PIN_LABEL
-      });
-      pins.push({ name: names[i], x: (0.5 + i) * p, y: gapTop });
-    });
-    s += barePad(T, w - 2.5 * p, gapBottom) + barePad(T, w - 1.5 * p, gapBottom);
-    s += pin({
-      x: w - 0.5 * p,
-      y: gapBottom,
-      kind: "pad",
-      label: names[3],
-      side: "below",
-      silk: f.silk,
-      size: PIN_LABEL
-    });
-    pins.push({ name: names[3], x: w - 0.5 * p, y: gapBottom });
-    if (cols >= 6) s += text(w / 2, y0 + (rows / 2 - 0.5) * pitch + 1.4, `${rows} x ${cols} RGB`, PIN_LABEL, f.silk);
-    return art(w, h, `${rows} x ${cols} NeoPixel matrix`, s, pins);
-  }
-  var LED_STRIP_MAX_PIXELS, STRIP_SIZES;
-  var init_pixels = __esm({
-    "src/pixels.js"() {
-      init_core();
-      init_displays();
-      LED_STRIP_MAX_PIXELS = 1024;
-      STRIP_SIZES = { 5050: { step: 3, size: 5 }, 3535: { step: 2, size: 3.5 }, 2020: { step: 1.5, size: 2 } };
-    }
-  });
-
-  // src/families/displays.js
-  var displays_exports = {};
-  __export(displays_exports, {
-    characterLcd: () => characterLcd,
-    epaperModule: () => epaperModule,
-    ili9341TouchDisplay: () => ili9341TouchDisplay,
-    ledRing: () => ledRing,
-    max7219Matrix: () => max7219Matrix,
-    neopixelMatrix: () => neopixelMatrix,
-    nokiaModule: () => nokiaModule,
-    oledBreakout: () => oledBreakout,
-    oledSquare: () => oledSquare,
-    sevenSegment: () => sevenSegment,
-    sh1107Module: () => sh1107Module,
-    ssd1306Module: () => ssd1306Module,
-    tftModule: () => tftModule,
-    tm1637Module: () => tm1637Module
-  });
-  var init_displays2 = __esm({
-    "src/families/displays.js"() {
-      init_displays();
-      init_presets();
-      init_pixels();
     }
   });
 
@@ -8003,7 +7954,6 @@ var PartsKit = (() => {
   var init_sensors2 = __esm({
     "src/families/sensors.js"() {
       init_sensors();
-      init_presets();
     }
   });
 
@@ -8819,8 +8769,7 @@ var PartsKit = (() => {
   var init_inputs = __esm({
     "src/inputs.js"() {
       init_core();
-      init_passives();
-      init_modules();
+      init_pieces();
     }
   });
 
@@ -9157,6 +9106,51 @@ var PartsKit = (() => {
     }
   });
 
+  // src/chips.js
+  function packageOf(props, own) {
+    return props && props.package || own;
+  }
+  function ne555Timer(props) {
+    return chipTemplate({
+      label: "NE555",
+      package: packageOf(props, "dip"),
+      pins: ["GND", "TRIG", "OUT", "RESET", "CTRL", "THR", "DIS", "VCC"]
+    });
+  }
+  function shiftRegister595(props) {
+    return chipTemplate({
+      label: "74HC595",
+      package: packageOf(props, "dip"),
+      pins: ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "GND", "Q7S", "MR", "SHCP", "STCP", "OE", "DS", "Q0", "VCC"]
+    });
+  }
+  function shiftRegister165(props) {
+    return chipTemplate({
+      label: "74HC165",
+      package: packageOf(props, "dip"),
+      pins: ["PL", "CP", "D4", "D5", "D6", "D7", "Q7_N", "GND", "Q7", "DS", "D0", "D1", "D2", "D3", "CE", "VCC"]
+    });
+  }
+  function ledDriver595(props) {
+    return chipTemplate({
+      label: "NLSF595",
+      package: packageOf(props, "tssop"),
+      pins: ["QB", "QC", "QD", "QE", "QF", "QG", "QH", "GND", "SQH", "SCLR", "SCK", "RCK", "OE", "SI", "QA", "VCC"]
+    });
+  }
+  function attiny85(props) {
+    return chipTemplate({
+      label: "ATtiny85",
+      package: packageOf(props, "dip"),
+      pins: ["PB5", "PB3", "PB4", "GND", "PB0", "PB1", "PB2", "VCC"]
+    });
+  }
+  var init_chips = __esm({
+    "src/chips.js"() {
+      init_core();
+    }
+  });
+
   // src/families/chips.js
   var chips_exports = {};
   __export(chips_exports, {
@@ -9166,9 +9160,9 @@ var PartsKit = (() => {
     shiftRegister165: () => shiftRegister165,
     shiftRegister595: () => shiftRegister595
   });
-  var init_chips = __esm({
+  var init_chips2 = __esm({
     "src/families/chips.js"() {
-      init_presets();
+      init_chips();
     }
   });
 
@@ -9723,7 +9717,7 @@ var PartsKit = (() => {
   init_inputs2();
   init_outputs();
   init_modules2();
-  init_chips();
+  init_chips2();
   init_passives2();
   init_breadboards();
   init_symbols2();
@@ -10539,7 +10533,7 @@ var PartsKit = (() => {
     input: () => Promise.resolve().then(() => (init_inputs2(), inputs_exports)),
     output: () => Promise.resolve().then(() => (init_outputs(), outputs_exports)),
     module: () => Promise.resolve().then(() => (init_modules2(), modules_exports)),
-    chip: () => Promise.resolve().then(() => (init_chips(), chips_exports)),
+    chip: () => Promise.resolve().then(() => (init_chips2(), chips_exports)),
     passive: () => Promise.resolve().then(() => (init_passives2(), passives_exports)),
     breadboard: () => Promise.resolve().then(() => (init_breadboards(), breadboards_exports)),
     symbol: () => Promise.resolve().then(() => (init_symbols2(), symbols_exports))
@@ -10559,7 +10553,7 @@ var PartsKit = (() => {
   init_inputs2();
   init_outputs();
   init_modules2();
-  init_chips();
+  init_chips2();
   init_passives2();
   init_breadboards();
   init_symbols2();
@@ -10661,9 +10655,8 @@ var PartsKit = (() => {
 
   // src/primitives.js
   init_core();
+  init_pieces();
   init_passives();
-  init_modules();
-  init_boards();
   init_pixels();
   init_breadboardColors();
   init_breadboard();
@@ -12031,7 +12024,7 @@ font:12px/1.4 system-ui,sans-serif;color:#b42318;background:#fff;white-space:nor
   // bundle-entry.js
   init_boards2();
   init_breadboards();
-  init_chips();
+  init_chips2();
   init_displays2();
   init_inputs2();
   init_modules2();

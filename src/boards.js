@@ -27,14 +27,8 @@ import {
   trace,
   via,
 } from './core.js';
-import { barePad } from './displays.js';
-import { dipOnBoard, framed, smd, soic, sot23, usbPort } from './modules.js';
+import { barePad, dipOnBoard, framed, qfp, silkName, smd, soic, sot23, usbC, usbPort } from './pieces.js';
 import { resistorBands } from './passives.js';
-
-/** A pin's name as the silk prints it: the catalog's .N suffix on a repeated name (GND.2) dropped. */
-function silkName(n) {
-  return String(n).replace(/\.\d+$/, '');
-}
 
 /** The silk a board prints for each pin: its `labels` entry (pin name to printed text, such as { 'A5.2': 'SCL' }) where it has one, otherwise the name without its .N suffix. */
 function silkOf(props) {
@@ -787,46 +781,6 @@ function landscapeBoard(props) {
     });
   }
   return art(w, h, props.description || props.label || 'Microcontroller board', s, pins);
-}
-
-/**
- * A quad flat package on a board: gull-wing leads on all four sides, the
- * body, the pin-1 dot and the part number (one line, or split before the
- * digits where it does not fit). nSide is the lead count per side.
- */
-export function qfp(T, x, y, w, h, nSide, label) {
-  let s = '';
-  const lead = 1.5;
-  const lw = Math.min(1.2, ((w - 4) / nSide) * 0.55);
-  for (let i = 0; i < nSide; i++) {
-    const ox = 2 + ((i + 0.5) * (w - 4)) / nSide - lw / 2;
-    const oy = 2 + ((i + 0.5) * (h - 4)) / nSide - lw / 2;
-    s += rect(x - lead, y + oy, lead, lw, T.lead, { rx: 0.2 }) + rect(x + w, y + oy, lead, lw, T.lead, { rx: 0.2 });
-    s += rect(x + ox, y - lead, lw, lead, T.lead, { rx: 0.2 }) + rect(x + ox, y + h, lw, lead, T.lead, { rx: 0.2 });
-  }
-  s += rect(x, y, w, h, T.chip, Object.assign({ rx: T['radius-chip'] }, edge(T, T['chip-edge'])));
-  s += rect(x + 0.6, y + 0.6, w - 1.2, 1.1, '#ffffff', { rx: 0.5, 'fill-opacity': T['opacity-light'] * 0.4 });
-  s += circle(x + 3.2, y + 3.2, 0.9, T['chip-print']);
-  if (label) {
-    const fit = Math.floor((w - 2.4) / (PIN_LABEL * 0.62));
-    const lbl = String(label);
-    const cx = x + w / 2;
-    const cy = y + h / 2;
-    if (lbl.length <= fit && h >= 3 * PIN_LABEL + 2)
-      s +=
-        text(cx, cy - 0.6, lbl, PIN_LABEL, T['chip-print']) +
-        text(cx, cy + PIN_LABEL + 0.4, lotCode(lbl), PIN_LABEL, T['chip-print'], { 'fill-opacity': 0.85 });
-    else if (lbl.length <= fit) s += text(cx, cy + 1.4, lbl, PIN_LABEL, T['chip-print']);
-    else if (fit >= 4 && lbl.length <= 2 * fit) {
-      const dm = /^[A-Za-z]+(?=\d)/.exec(lbl);
-      const cut =
-        dm && dm[0].length <= fit && lbl.length - dm[0].length <= fit ? dm[0].length : Math.ceil(lbl.length / 2);
-      s +=
-        text(cx, cy - 0.8, lbl.slice(0, cut), PIN_LABEL, T['chip-print']) +
-        text(cx, cy + PIN_LABEL - 0.4, lbl.slice(cut), PIN_LABEL, T['chip-print']);
-    }
-  }
-  return tag('chip', s);
 }
 
 /**
@@ -2309,11 +2263,6 @@ export function nucleo64BoardTemplate(props) {
   return art(w, h, props.description || props.label || 'Nucleo-64 board', s, pins);
 }
 
-/** A USB-C receptacle at the bottom edge, pointing down. */
-export function usbC(T, cx, y, w, h, mouth) {
-  return usbPort(T, { kind: 'c', x: cx - w / 2, y, w, h, mouth: mouth || 'down' });
-}
-
 /**
  * The Raspberry Pi Pico as photographed: a green 21 x 51 mm board with
  * twenty castellated pads a side named on the silk, the micro USB at the
@@ -2810,4 +2759,510 @@ export function bluePillBoard(props) {
       return { name: n, x: at[n].x, y: at[n].y };
     });
   return art(w, h, props.description || props.label || 'STM32F103C8 Blue Pill board', s, pins);
+}
+
+// The catalog's boards: each template filled in with a real board's pins, silk and options, so a call with no options
+// draws that board. Each takes the options its catalog entry lists (src/options.js): a board's `indicators`.
+/** A board's indicators, unlit unless the caller lights them. */
+function lights(props, user) {
+  const ind = (props && props.indicators) || {};
+  return user === false ? { power: ind.power === true } : { power: ind.power === true, user: ind.user || false };
+}
+
+// Uno-class, Nano-class and Mega-class boards.
+
+/** The Uno-class board: its header groups as the catalog has them; the silk prints SCL and SDA on the second A5 and A4, as the board does. */
+export function unoClassBoard(props) {
+  return devBoardTemplate({
+    layout: 'landscape',
+    label: 'UNO-CLASS',
+    chipLabel: 'ATMEGA328P',
+    labels: { 'A5.2': 'SCL', 'A4.2': 'SDA' },
+    top: [
+      ['A5.2', 'A4.2', 'AREF', 'GND', '13', '12', '11', '10', '9', '8'],
+      ['7', '6', '5', '4', '3', '2', '1', '0'],
+    ],
+    bottom: [
+      ['NC', 'IOREF', 'RESET', '3.3V', '5V', 'GND.2', 'GND.3', 'VIN'],
+      ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
+    ],
+    groupNames: { top: ['DIGITAL (PWM ~)'], bottom: ['POWER', 'ANALOG IN'] },
+    pwm: ['3', '5', '6', '9', '10', '11'],
+    indicators: lights(props),
+    description: 'Uno-class board',
+  });
+}
+
+const NANO_LABELS = { 0: 'RX0', 1: 'TX1', '3.3V': '3V3', AREF: 'REF', RESET: 'RST', 'RESET.2': 'RST' };
+for (let nanoDigit = 2; nanoDigit <= 13; nanoDigit++) NANO_LABELS[String(nanoDigit)] = `D${nanoDigit}`;
+
+/** The Nano-class board at its real 18.5 mm width, upright with the USB at the top, the ICSP header's six pins at the far end. */
+export function nanoClassBoard(props) {
+  return devBoardTemplate({
+    label: 'NANO-CLASS',
+    chipLabel: 'ATMEGA328P',
+    pinKind: 'pad',
+    widthPitches: 7.2,
+    labels: NANO_LABELS,
+    left: ['13', '3.3V', 'AREF', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', '5V', 'RESET', 'GND', 'VIN'],
+    right: ['12', '11', '10', '9', '8', '7', '6', '5', '4', '3', '2', 'GND.2', 'RESET.2', '0', '1'],
+    icsp: ['12.2', '5V.2', '13.2', '11.2', 'RESET.3', 'GND.3'],
+    indicators: lights(props),
+    description: 'Nano-class board',
+  });
+}
+
+function numbered(from, count, step) {
+  const out = [];
+  for (let i = 0; i < count; i++) out.push(String(from + i * step));
+  return out;
+}
+
+/** The Mega-class board: the digital and communication headers, the 2 x 18 block read row by row, power and both analog groups. */
+export function megaClassBoard(props) {
+  return megaBoardTemplate({
+    label: 'MEGA-CLASS',
+    chipLabel: 'ATMEGA2560',
+    top: [
+      ['SCL', 'SDA', 'AREF', 'GND', '13', '12', '11', '10', '9', '8'],
+      ['7', '6', '5', '4', '3', '2', '1', '0'],
+      numbered(14, 8, 1),
+    ],
+    block: {
+      left: ['5V.2'].concat(numbered(22, 16, 2), ['GND.4']),
+      right: ['5V.3'].concat(numbered(23, 16, 2), ['GND.5']),
+    },
+    bottom: [
+      ['IOREF', 'RESET', '3.3V', '5V', 'GND.2', 'GND.3', 'VIN'],
+      numbered(0, 8, 1).map(n => {
+        return `A${n}`;
+      }),
+      numbered(8, 8, 1).map(n => {
+        return `A${n}`;
+      }),
+    ],
+    groupNames: { top: ['DIGITAL (PWM ~)', 'COMMUNICATION'], bottom: ['POWER', 'ANALOG IN'] },
+    pwm: numbered(2, 12, 1),
+    indicators: lights(props),
+    description: 'Mega-class board',
+  });
+}
+
+/** The Nano RP2040 Connect, upright with the USB at the bottom: D12 and D13 at the USB end, TX at the far end after RX. */
+export function nanoRp2040Board(props) {
+  return nanoConnectTemplate({
+    label: 'NANO RP2040',
+    chipLabel: 'RP2040',
+    left: ['TX', 'RX', 'RESET', 'GND', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12'],
+    right: ['VIN', 'GND.2', 'REC', '5V', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1', 'A0', 'AREF', '3.3V', 'D13'],
+    indicators: lights(props),
+    description: 'Nano RP2040 Connect board',
+  });
+}
+
+/** The Pico-class board: two 20-pin castellated rows read from the USB end; the eight grounds numbered by physical pin. */
+export function picoClassBoard(props) {
+  return picoBoardTemplate({
+    label: 'PICO-CLASS',
+    chipLabel: 'RP2040',
+    debugPins: false,
+    indicators: lights(props),
+    description: 'Pico-class board',
+    left: [
+      'GP0',
+      'GP1',
+      'GND',
+      'GP2',
+      'GP3',
+      'GP4',
+      'GP5',
+      'GND.2',
+      'GP6',
+      'GP7',
+      'GP8',
+      'GP9',
+      'GND.3',
+      'GP10',
+      'GP11',
+      'GP12',
+      'GP13',
+      'GND.4',
+      'GP14',
+      'GP15',
+    ],
+    right: [
+      'VBUS',
+      'VSYS',
+      'GND.8',
+      '3V3_EN',
+      '3V3',
+      'ADC_VREF',
+      'GP28',
+      'GND.7',
+      'GP27',
+      'GP26',
+      'RUN',
+      'GP22',
+      'GND.6',
+      'GP21',
+      'GP20',
+      'GP19',
+      'GP18',
+      'GND.5',
+      'GP17',
+      'GP16',
+    ],
+  });
+}
+
+// ESP32 development boards in Espressif's DevKit formats: two headers 0.9 inch apart, read from the module end.
+
+/** The ESP32 DevKit V1: two 15-pin rows, the blue LED on GPIO2. */
+export function esp32DevKitV1(props) {
+  return espDevKitTemplate({
+    label: 'ESP32 DEVKIT V1',
+    chipLabel: 'ESP-WROOM-32',
+    indicators: lights(props),
+    description: 'ESP32 development board',
+    left: ['EN', 'VP', 'VN', 'D34', 'D35', 'D32', 'D33', 'D25', 'D26', 'D27', 'D14', 'D12', 'D13', 'GND.2', 'VIN'],
+    right: ['D23', 'D22', 'TX0', 'RX0', 'D21', 'D19', 'D18', 'D5', 'TX2', 'RX2', 'D4', 'D2', 'D15', 'GND', '3V3'],
+  });
+}
+
+/** The ESP32-DevKitC V4 (headers J2 and J3): a WROOM-32 module over the rows, no user LED, 19-pin rows (CLK, CMD and D0 to D3 are the module's flash pins). */
+export function esp32DevKitCV4(props) {
+  return espDevKitTemplate({
+    label: 'ESP32 DEVKITC V4',
+    chipLabel: 'ESP32-WROOM-32D',
+    layout: 'devkitc',
+    indicators: lights(props, false),
+    description: 'ESP32 development board',
+    left: [
+      '3V3',
+      'EN',
+      'VP',
+      'VN',
+      '34',
+      '35',
+      '32',
+      '33',
+      '25',
+      '26',
+      '27',
+      '14',
+      '12',
+      'GND',
+      '13',
+      'D2',
+      'D3',
+      'CMD',
+      '5V',
+    ],
+    right: [
+      'GND.2',
+      '23',
+      '22',
+      'TX',
+      'RX',
+      '21',
+      'GND.3',
+      '19',
+      '18',
+      '5',
+      '17',
+      '16',
+      '4',
+      '0',
+      '2',
+      '15',
+      'D1',
+      'D0',
+      'CLK',
+    ],
+  });
+}
+
+/** A DevKitM-1 or DevKitC-1 at its true size (espDevKitTemplate layout 'devkit-1'): spec.size is the module, board length, antenna overhang and first pin's offset from Espressif's dimension drawing. */
+function moduleDevKit(spec, props) {
+  return espDevKitTemplate({
+    layout: 'devkit-1',
+    module: spec.size[0],
+    length: spec.size[1],
+    overhang: spec.size[2],
+    firstPin: spec.size[3],
+    usb: spec.usb,
+    buttons: spec.buttons,
+    bridge: spec.bridge,
+    label: spec.label,
+    chipLabel: spec.module,
+    left: spec.left,
+    right: spec.right,
+    indicators: { power: lights(props).power },
+    description: spec.description,
+  });
+}
+
+/** The ESP32-C3 DevKitM-1: the C3-MINI-1 module, a micro USB. */
+export function esp32C3DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-C3-MINI-1',
+      label: 'DEVKITM-1',
+      size: ['mini', 38.91, 5.35, 1.68],
+      usb: 'micro',
+      buttons: ['BOOT', 'RST'],
+      bridge: 'CP2102N',
+      description: 'ESP32-C3 development board',
+      left: ['GND', '3V3', '3V3.2', '2', '3', 'GND.2', 'RST', 'GND.3', '0', '1', '10', 'GND.4', '5V', '5V.2', 'GND.5'],
+      right: ['GND.6', 'TX', 'RX', 'GND.7', '9', '8', 'GND.8', '7', '6', '5', '4', 'GND.9', '18', '19', 'GND.10'],
+    },
+    props,
+  );
+}
+
+/** The ESP32-S2 DevKitM-1 (headers J1 and J3); TX is GPIO43, RX GPIO44. */
+export function esp32S2DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-S2-MINI-1',
+      label: 'DEVKITM-1',
+      size: ['mini-s2', 54.0, 5.6, 1.6],
+      usb: 'micro',
+      buttons: ['BOOT', 'RST'],
+      bridge: 'CP2102N',
+      description: 'ESP32-S2 development board',
+      left: [
+        '3V3',
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        '10',
+        '11',
+        '12',
+        '13',
+        '14',
+        '15',
+        '16',
+        '17',
+        '5V',
+        'GND',
+      ],
+      right: [
+        'GND.2',
+        'RST',
+        '46',
+        '45',
+        'RX',
+        'TX',
+        '42',
+        '41',
+        '40',
+        '39',
+        '38',
+        '37',
+        '36',
+        '35',
+        '34',
+        '33',
+        '26',
+        '21',
+        '20',
+        '19',
+        '18',
+      ],
+    },
+    props,
+  );
+}
+
+/** The ESP32-S3 DevKitC-1 (headers J1 and J3); TX is GPIO43, RX GPIO44. */
+export function esp32S3DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-S3-WROOM-1',
+      label: 'DEVKITC-1',
+      size: ['wroom', 62.74, 8.25, 1.53],
+      usb: 'dual-micro',
+      buttons: ['BOOT', 'RESET'],
+      bridge: 'CP2102N',
+      description: 'ESP32-S3 development board',
+      left: [
+        '3V3',
+        '3V3.2',
+        'RST',
+        '4',
+        '5',
+        '6',
+        '7',
+        '15',
+        '16',
+        '17',
+        '18',
+        '8',
+        '3',
+        '46',
+        '9',
+        '10',
+        '11',
+        '12',
+        '13',
+        '14',
+        '5V',
+        'GND',
+      ],
+      right: [
+        'GND.2',
+        'TX',
+        'RX',
+        '1',
+        '2',
+        '42',
+        '41',
+        '40',
+        '39',
+        '38',
+        '37',
+        '36',
+        '35',
+        '0',
+        '45',
+        '48',
+        '47',
+        '21',
+        '20',
+        '19',
+        'GND.3',
+        'GND.4',
+      ],
+    },
+    props,
+  );
+}
+
+/** The ESP32-C5 DevKitC-1 (headers J1 and J3); TX is GPIO11, RX GPIO12. */
+export function esp32C5DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-C5-WROOM-1',
+      label: 'DEVKITC-1',
+      size: ['wroom', 53.6, 6.5, 1.575],
+      usb: 'dual-c',
+      buttons: ['RESET', 'BOOT'],
+      description: 'ESP32-C5 development board',
+      left: ['3V3', 'RST', '2', '3', '0', '1', '6', '7', '8', '9', '10', '26', '25', '5V', 'GND', 'NC0'],
+      right: ['GND.2', 'TX', 'RX', '24', '23', '15', '27', '4', '5', 'NC1', '28', 'GND.3', '14', '13', 'GND.4', 'NC2'],
+    },
+    props,
+  );
+}
+
+/** The ESP32-C6 DevKitC-1 (headers J1 and J3); TX is GPIO16, RX GPIO17. */
+export function esp32C6DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-C6-WROOM-1',
+      label: 'DEVKITC-1',
+      size: ['wroom', 51.8, 6.35, 1.575],
+      usb: 'dual-c',
+      buttons: ['BOOT', 'RESET'],
+      description: 'ESP32-C6 development board',
+      left: ['3V3', 'RST', '4', '5', '6', '7', '0', '1', '8', '10', '11', '2', '3', '5V', 'GND', null],
+      right: ['GND.2', 'TX', 'RX', '15', '23', '22', '21', '20', '19', '18', '9', 'GND.3', '13', '12', 'GND.4', null],
+    },
+    props,
+  );
+}
+
+/** The ESP32-H2 DevKitM-1 (headers J1 and J3); TX is GPIO24, RX GPIO23. */
+export function esp32H2DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-H2-MINI-1',
+      label: 'DEVKITM-1',
+      size: ['mini', 48.26, 5.4, 1.46],
+      usb: 'dual-c',
+      buttons: ['RESET', 'BOOT'],
+      description: 'ESP32-H2 development board',
+      left: ['3V3', 'RST', '0', '1', '2', '3', '13', '14', '4', '5', 'NC', 'VBAT', 'GND', '5V', 'GND.2'],
+      right: ['GND.3', 'TX', 'RX', '10', '11', '25', '12', '8', '22', 'GND.4', '9', 'GND.5', '27', '26', 'GND.6'],
+    },
+    props,
+  );
+}
+
+// STM32 Nucleo boards.
+
+/** The Nucleo-32 with the STM32L031K6: CN3 and CN4 in the Arduino Nano layout, the left row's RST and GND numbered 1, the right row's 2. */
+export function stm32L031K6Board(props) {
+  return nucleo32BoardTemplate({
+    label: 'L031K6 BOARD',
+    chipLabel: 'STM32L031K6',
+    indicators: { power: lights(props).power },
+    description: 'Nucleo-32 board with an STM32L031K6',
+    left: ['D1', 'D0', 'RST', 'GND', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12'],
+    right: ['VIN', 'GND.2', 'RST.2', '5V', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1', 'A0', 'REF', '3V3', 'D13'],
+  });
+}
+
+/** The Nucleo-64 with the STM32C031C6: the morpho headers CN7 and CN10 (odd pin outer), and the Arduino headers CN6, CN8, CN5 and CN9 beside the pins they duplicate. */
+export function stm32C031C6Board(props) {
+  return nucleo64BoardTemplate({
+    label: 'C031C6 BOARD',
+    chipLabel: 'STM32C031C6',
+    indicators: { power: lights(props).power },
+    description: 'Nucleo-64 board with an STM32C031C6',
+    left: [
+      ['PD0', 'PD1'],
+      ['PD2', 'PD2.2'],
+      ['VDD', 'E5V'],
+      ['PA14', 'GND.4'],
+      [null, null],
+      [null, 'IOREF.2'],
+      ['PA13', 'NRST.2'],
+      ['PC6', '3V3.2'],
+      [null, '5V.2'],
+      ['GND.5', 'GND.6'],
+      [null, 'GND.7'],
+      ['PC13', 'VIN.2'],
+      ['PC14', null],
+      [null, 'PA0'],
+      ['PF0', 'PA1'],
+      ['PF1', 'PA4'],
+      ['PB11', 'PB0.2'],
+      ['PA2', 'PA11'],
+      [null, 'PA12'],
+    ],
+    right: [
+      ['PD3', 'PA3'],
+      ['PB8', 'PC15'],
+      ['PB9', 'PB12'],
+      ['AVDD.2', '5V.3'],
+      ['GND.8', null],
+      ['PA5', 'PF3'],
+      ['PA6', 'PA8'],
+      ['PA7', 'PB12.2'],
+      ['PB0', null],
+      ['PC7', 'GND.9'],
+      ['PA9', 'PB2'],
+      ['PA15', 'PB1'],
+      ['PB5', 'PB15'],
+      ['PB4', 'PB14'],
+      ['PB10', 'PB13'],
+      ['PB3', 'AGND'],
+      ['PA10', null],
+      ['PB6', null],
+      ['PB7', null],
+    ],
+    power: [null, 'IOREF', 'NRST', '3V3', '5V', 'GND', 'GND.2', 'VIN'],
+    analog: ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
+    digitalHigh: ['D15', 'D14', 'AVDD', 'GND.3', 'D13', 'D12', 'D11', 'D10', 'D9', 'D8'],
+    digitalLow: ['D7', 'D6', 'D5', 'D4', 'D3', 'D2', 'D1', 'D0'],
+  });
 }

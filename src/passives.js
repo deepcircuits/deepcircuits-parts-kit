@@ -7,7 +7,6 @@ import {
   el,
   flow,
   lensColor,
-  line,
   path,
   probe,
   r2,
@@ -17,14 +16,8 @@ import {
   text,
   tokens,
 } from './core.js';
+import { wire } from './pieces.js';
 
-/** A tinned wire leg: a metal-edge line under a lead line, so it reads as round wire. */
-export function wire(x1, y1, x2, y2) {
-  const T = tokens();
-  return (
-    line(x1, y1, x2, y2, T['lead-edge'], T['leg-width'] + 0.6) + line(x1, y1, x2, y2, T.lead, T['leg-width'] - 0.4)
-  );
-}
 function wirePath(d) {
   const T = tokens();
   return (

@@ -18,9 +18,8 @@ export {
   bevel,
   bevelPoly,
 } from './core.js';
-export { wire, formatOhms, resistorBands } from './passives.js';
-export { usbPort } from './modules.js';
-export { usbC } from './boards.js';
+export { wire, usbPort, usbC } from './pieces.js';
+export { formatOhms, resistorBands } from './passives.js';
 export { meterLines, formatMilliamps } from './pixels.js';
 export { breadboardColor } from './breadboardColors.js';
 export { breadboardPaint } from './breadboard.js';

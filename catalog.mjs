@@ -1,6 +1,5 @@
-// The catalog (src/catalog.js): every entry draws at rest with nothing overlapping and its pins on the pitch,
-// ids are unique kebab-case, and every preset generator (src/presets.js) has an entry.
-import { readFileSync } from 'node:fs';
+// The catalog (src/catalog.js): every entry draws at rest with nothing overlapping and its pins on the pitch, and
+// ids are unique kebab-case.
 import { pathToFileURL } from 'node:url';
 
 const K = { ...(await import(pathToFileURL('src/index.js').href)), ...(await import(pathToFileURL('src/check.js').href)) };
@@ -20,8 +19,6 @@ for (const e of K.CATALOG) {
   if (overlaps.length) problems.push(`${e.id}: ${overlaps.length} overlaps`);
   if (art.pins.length && !K.pinsOnPitch(art.pins)) problems.push(`${e.id}: pins off the pitch`);
 }
-const listed = new Set(K.CATALOG.map(e => e.fn));
-for (const [, name] of readFileSync('src/presets.js', 'utf8').matchAll(/^export function (\w+)/gm)) if (!listed.has(name)) problems.push(`${name}: a catalog generator with no entry`);
 try { K.drawPart('no-such-part'); problems.push('drawPart accepts an unknown id'); } catch { /* expected */ }
 
 for (const p of problems) console.log('FAIL', p);

@@ -15,5 +15,6 @@ export {
   esp32S3DevKit,
   stm32L031K6Board,
   stm32C031C6Board,
-} from '../presets.js';
-export { bluePillBoard, franzininho } from '../boards.js';
+  bluePillBoard,
+  franzininho,
+} from '../boards.js';

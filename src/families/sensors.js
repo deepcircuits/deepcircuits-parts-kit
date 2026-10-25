@@ -1,6 +1,11 @@
 /** Sensors: distance, temperature and humidity, pressure, light, flame, sound, tilt, gas, IR, motion, acceleration and pulse. Import a family on its own to load only its parts. */
-export { ultrasonicRanger, dht22Sensor, dht11Module, bmp180Board, pirModule, pulseSensor } from '../sensors.js';
 export {
+  ultrasonicRanger,
+  dht22Sensor,
+  dht11Module,
+  bmp180Board,
+  pirModule,
+  pulseSensor,
   lightSensor,
   flameSensor,
   soundSensor,
@@ -10,4 +15,4 @@ export {
   ntcSensor,
   mpu6050Imu,
   ds18b20Sensor,
-} from '../presets.js';
+} from '../sensors.js';
