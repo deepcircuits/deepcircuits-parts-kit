@@ -22,7 +22,7 @@ The element draws its part in its shadow root. When an attribute or its `options
 
 | Attribute or property | Meaning |
 | --- | --- |
-| `type` | The part's id. Renamed ids work too. |
+| `type` | The part's id. |
 | An option, such as `color` or `angle` | The option as an HTML attribute. `on` or `on=""` is true, and `on="false"` is false. A camelCase name can be written in kebab-case (`pixel-size`), and an object's field after the object's name (`live-flow="reverse"`). Lists and objects are JSON (`lines='["Hello", "World"]'`). |
 | `scale` | Shows the part at that many times its true size (1 by default). CSS can size it too: a smaller width shrinks it to fit. |
 | `static` | Draws the part without its controls, as a still picture of a state. |

@@ -12,10 +12,7 @@ let cache = null;
 let cacheAt = 0;
 let mode = 'values';
 let prefix = '';
-const COLOR = {};
-COLOR_TOKENS.forEach(k => {
-  COLOR[k] = true;
-});
+const COLOR = new Set(COLOR_TOKENS);
 /**
  * How tokens() resolves colours. 'values' (the default) always uses the light values from tokens.json, so a page's own
  * custom properties never recolour a part. 'vars' writes every colour as var(--token, value): artwork drawn once then
@@ -49,43 +46,10 @@ export function tokens() {
     }
   for (const k in FALLBACK) {
     const v = css ? css.getPropertyValue(`--${prefix}${k}`).trim() : '';
-    out[k] = v || (mode === 'vars' && COLOR[k] ? `var(--${prefix}${k}, ${FALLBACK[k]})` : FALLBACK[k]);
+    out[k] = v || (mode === 'vars' && COLOR.has(k) ? `var(--${prefix}${k}, ${FALLBACK[k]})` : FALLBACK[k]);
   }
-  // Metrics as numbers.
-  [
-    'pitch',
-    'pitch-half',
-    'pitch-2',
-    'pitch-3',
-    'pin-margin',
-    'lead-length',
-    'lead-width',
-    'leg-width',
-    'pad-radius',
-    'hole-radius',
-    'mount-hole-radius',
-    'board-inset',
-    'label-rise',
-    'label-drop',
-    'radius-board',
-    'radius-bezel',
-    'radius-chip',
-    'radius-part',
-    'radius-detail',
-    'stroke-outline',
-    'stroke-detail',
-    'stroke-fine',
-    'stroke-symbol',
-    'opacity-lens-off',
-    'opacity-glow',
-    'opacity-segment-dim',
-    'opacity-light',
-    'opacity-shade',
-    'opacity-heat',
-    'opacity-flow',
-  ].forEach(k => {
-    out[k] = num(out[k], num(FALLBACK[k], 0));
-  });
+  // Metrics (every token that is not a colour) as numbers.
+  for (const k in FALLBACK) if (!COLOR.has(k)) out[k] = num(out[k], num(FALLBACK[k], 0));
   cache = out;
   cacheAt = now;
   return out;
@@ -93,18 +57,27 @@ export function tokens() {
 
 /** The smallest print on a part: 4px, which is 3pt at the kit's scale (0.1 in = 9.6px), the floor SparkFun's Fritzing guide sets. */
 export const PIN_LABEL = 4;
+/** The width the kit allows for `chars` characters of print `size` px high: 0.62 of the size each, the sans' mean advance. */
+export function textWidth(chars, size) {
+  return chars * size * 0.62;
+}
 export const r2 = function (n) {
   return Math.round(n * 100) / 100;
 };
+// Most values have nothing to escape, so they skip the replacements: drawing spends most of its time here.
+const ESCAPED = /[&<>"]/;
 const esc = function (s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  s = String(s);
+  return ESCAPED.test(s)
+    ? s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    : s;
 };
 function attrs(props) {
   let s = '';
   for (const k in props) {
     const v = props[k];
     if (v === undefined || v === null || v === false) continue;
-    s += ` ${k}="${esc(typeof v === 'number' ? r2(v) : v)}"`;
+    s += ` ${k}="${typeof v === 'number' ? r2(v) : esc(v)}"`;
   }
   return s;
 }
@@ -153,6 +126,10 @@ export function edge(T, color, w) {
 export function tag(name, inner, more) {
   return el('g', Object.assign({ 'data-part': name }, more || {}), inner);
 }
+/** A plated hole through a board: the hole in its pad ring, `w` the ring's stroke (the outline stroke by default). */
+export function hole(T, x, y, r, w) {
+  return tag('hole', circle(x, y, r, T.hole, edge(T, T.pad, w)));
+}
 /**
  * The bevel a moulded or machined box gets from the bench light: one light
  * path along its top and left edges, one shade path along its bottom and
@@ -198,55 +175,87 @@ export function bevel(T, x, y, w, h, d, rx) {
  * lens fill never loses it.
  */
 let DEFS = {};
+// Each sheen's id and gradient, built once for each kind and glow colour (a strip draws one glow for every pixel).
+const SHEENS = new Map();
 export function sheen(kind, color) {
+  const key = kind === 'glow' ? `glow ${color}` : kind;
+  let found = SHEENS.get(key);
+  if (!found) {
+    // A long run of changing glow colours starts the cache again instead of growing it.
+    if (SHEENS.size >= 512) SHEENS.clear();
+    found = gradient(kind, color);
+    SHEENS.set(key, found);
+  }
+  DEFS[found.id] = found.def;
+  return `url(#${found.id})`;
+}
+// Each gradient: its element, geometry and stops ([offset, colour, opacity]). Any other kind is metal.
+const GRADIENTS = {
+  hot: [
+    'radialGradient',
+    { cx: '50%', cy: '50%', r: '50%' },
+    [
+      ['0', '#ffffff', 0.95],
+      ['0.4', '#ffffff', 0.45],
+      ['1', '#ffffff', 0],
+    ],
+  ],
+  dome: [
+    'radialGradient',
+    { cx: '38%', cy: '30%', r: '70%' },
+    [
+      ['0', '#ffffff', 0.55],
+      ['0.45', '#ffffff', 0.08],
+      ['1', '#000000', 0.22],
+    ],
+  ],
+  lens: [
+    'radialGradient',
+    { cx: '36%', cy: '32%', r: '65%' },
+    [
+      ['0', '#ffffff', 0.5],
+      ['0.5', '#ffffff', 0.06],
+      ['1', '#000000', 0.18],
+    ],
+  ],
+  metal: [
+    'linearGradient',
+    { x1: '0', y1: '0', x2: '1', y2: '1' },
+    [
+      ['0', '#ffffff', 0.42],
+      ['0.5', '#ffffff', 0.04],
+      ['1', '#000000', 0.2],
+    ],
+  ],
+};
+function gradient(kind, color) {
+  let id;
+  let shape;
   if (kind === 'glow') {
-    const gid = `pk-glow-${String(color)
+    id = `pk-glow-${String(color)
       .replace(/[^0-9a-z]/gi, '')
       .toLowerCase()}`;
-    DEFS[gid] = el(
+    shape = [
       'radialGradient',
-      { id: gid, cx: '50%', cy: '50%', r: '50%' },
-      el('stop', { offset: '0', 'stop-color': color, 'stop-opacity': 0.9 }) +
-        el('stop', { offset: '0.55', 'stop-color': color, 'stop-opacity': 0.55 }) +
-        el('stop', { offset: '1', 'stop-color': color, 'stop-opacity': 0 }),
-    );
-    return `url(#${gid})`;
+      { cx: '50%', cy: '50%', r: '50%' },
+      [
+        ['0', color, 0.9],
+        ['0.55', color, 0.55],
+        ['1', color, 0],
+      ],
+    ];
+  } else {
+    const name = kind === 'hot' || kind === 'dome' || kind === 'lens' ? kind : 'metal';
+    id = `pk-${name}`;
+    shape = GRADIENTS[name];
   }
-  if (kind === 'hot') {
-    DEFS['pk-hot'] = el(
-      'radialGradient',
-      { id: 'pk-hot', cx: '50%', cy: '50%', r: '50%' },
-      el('stop', { offset: '0', 'stop-color': '#ffffff', 'stop-opacity': 0.95 }) +
-        el('stop', { offset: '0.4', 'stop-color': '#ffffff', 'stop-opacity': 0.45 }) +
-        el('stop', { offset: '1', 'stop-color': '#ffffff', 'stop-opacity': 0 }),
-    );
-    return 'url(#pk-hot)';
-  }
-  if (kind === 'dome')
-    DEFS['pk-dome'] = el(
-      'radialGradient',
-      { id: 'pk-dome', cx: '38%', cy: '30%', r: '70%' },
-      el('stop', { offset: '0', 'stop-color': '#ffffff', 'stop-opacity': 0.55 }) +
-        el('stop', { offset: '0.45', 'stop-color': '#ffffff', 'stop-opacity': 0.08 }) +
-        el('stop', { offset: '1', 'stop-color': '#000000', 'stop-opacity': 0.22 }),
-    );
-  else if (kind === 'lens')
-    DEFS['pk-lens'] = el(
-      'radialGradient',
-      { id: 'pk-lens', cx: '36%', cy: '32%', r: '65%' },
-      el('stop', { offset: '0', 'stop-color': '#ffffff', 'stop-opacity': 0.5 }) +
-        el('stop', { offset: '0.5', 'stop-color': '#ffffff', 'stop-opacity': 0.06 }) +
-        el('stop', { offset: '1', 'stop-color': '#000000', 'stop-opacity': 0.18 }),
-    );
-  else
-    DEFS['pk-metal'] = el(
-      'linearGradient',
-      { id: 'pk-metal', x1: '0', y1: '0', x2: '1', y2: '1' },
-      el('stop', { offset: '0', 'stop-color': '#ffffff', 'stop-opacity': 0.42 }) +
-        el('stop', { offset: '0.5', 'stop-color': '#ffffff', 'stop-opacity': 0.04 }) +
-        el('stop', { offset: '1', 'stop-color': '#000000', 'stop-opacity': 0.2 }),
-    );
-  return `url(#pk-${kind === 'dome' ? 'dome' : kind === 'lens' ? 'lens' : 'metal'})`;
+  const [element, geometry, stops] = shape;
+  const def = el(
+    element,
+    { id, ...geometry },
+    stops.map(([offset, c, opacity]) => el('stop', { offset, 'stop-color': c, 'stop-opacity': opacity })).join(''),
+  );
+  return { id, def };
 }
 /**
  * The bevel of any outline: the polygon's edges that face up or left take
@@ -417,7 +426,21 @@ export function pin(props) {
   return s;
 }
 
-/** A row of pins one pitch apart along x (axis 'x') or y (axis 'y'). Returns { svg, pins }. */
+/**
+ * How a row of pin names prints at pitch `p`: the longest name's length, whether the names turn to run along the pins
+ * (when the longest is wider than the gap between pins) and how far the print reaches from the pin centres.
+ */
+export function labelRow(T, names, p) {
+  const longest = names.reduce((m, n) => Math.max(m, n.length), 0);
+  const rotate = textWidth(longest, PIN_LABEL) > p - 1.6;
+  const span = rotate ? T['pad-radius'] + 1.0 + textWidth(longest, PIN_LABEL) + 1.2 : T['label-rise'] + 3.6;
+  return { longest, rotate, span };
+}
+
+/**
+ * A row of pins one pitch apart along x (axis 'x') or y (axis 'y'), printed with `labels` and named `names` (the
+ * labels, or the pin numbers, by default). Returns { svg, pins }.
+ */
 export function header(props) {
   const T = tokens();
   const p = T.pitch;
@@ -440,7 +463,7 @@ export function header(props) {
       size: props.size,
       rotate: props.rotate,
     });
-    pins.push({ name, x, y });
+    pins.push({ name: props.names ? props.names[i] : name, x, y });
   }
   return { svg: s, pins };
 }
@@ -474,7 +497,7 @@ export function board(props) {
           [w - m, y0 + h - m],
         ]
     ).forEach(c => {
-      s += tag('hole', circle(c[0], c[1], r, T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], r);
     });
   }
   if (props.title)
@@ -550,7 +573,7 @@ export function chipTemplate(props) {
       return n.length;
     }),
   );
-  const margin = Math.ceil((longest * NAME * 0.62 + 3) * 10) / 10;
+  const margin = Math.ceil((textWidth(longest, NAME) + 3) * 10) / 10;
   const width = 2 * margin + span;
   const xl = margin;
   const xr = margin + span;
@@ -620,8 +643,8 @@ export function chipTemplate(props) {
   // The lot code beside the part number, as every chip carries one: the two make one block, centred on the
   // body, that stays clear of the pin numbers inside a DIP (two digits at PIN_LABEL) by at least 0.5px.
   const code = lotCode(label);
-  const codeRoom = bodyBottom - bodyTop - 8 >= code.length * PIN_LABEL * 0.62 && labelSize >= 4.4;
-  const numbersW = kind === 'dip' ? 0.8 + 2 * PIN_LABEL * 0.62 + 0.5 : 1.2;
+  const codeRoom = bodyBottom - bodyTop - 8 >= textWidth(code.length, PIN_LABEL) && labelSize >= 4.4;
+  const numbersW = kind === 'dip' ? 0.8 + textWidth(2, PIN_LABEL) + 0.5 : 1.2;
   const block = labelSize + 0.8 + PIN_LABEL;
   const withCode = codeRoom && bodyRight - bodyLeft >= block + 2 * numbersW;
   const labelX = withCode ? cx + block / 2 - labelSize / 2 : cx;

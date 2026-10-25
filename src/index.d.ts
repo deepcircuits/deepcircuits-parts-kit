@@ -4,35 +4,18 @@ export type * from '../project/generators/index.d.ts';
 export declare const BREADBOARD_COLORS: PartsKit['BREADBOARD_COLORS'];
 export declare const CATALOG: PartsKit['CATALOG'];
 export declare const FAMILIES: PartsKit['FAMILIES'];
-/** @deprecated Import FINISHES from '@deepcircuits/parts-kit/primitives'. */
-export declare const FINISHES: PartsKit['FINISHES'];
+export declare const FAMILY_TITLES: PartsKit['FAMILY_TITLES'];
 export declare const LED_STRIP_MAX_PIXELS: PartsKit['LED_STRIP_MAX_PIXELS'];
 export declare const PITCH: PartsKit['PITCH'];
 export declare const attiny85: PartsKit['attiny85'];
 export declare const bluePillBoard: PartsKit['bluePillBoard'];
 export declare const bmp180Board: PartsKit['bmp180Board'];
-/** @deprecated Import board from '@deepcircuits/parts-kit/primitives'. */
-export declare const board: PartsKit['board'];
 export declare const breadboard: PartsKit['breadboard'];
-/** @deprecated Import breadboardColor from '@deepcircuits/parts-kit/primitives'. */
-export declare const breadboardColor: PartsKit['breadboardColor'];
-/** @deprecated Import breadboardPaint from '@deepcircuits/parts-kit/primitives'. */
-export declare const breadboardPaint: PartsKit['breadboardPaint'];
 export declare const buzzer: PartsKit['buzzer'];
-/** @deprecated Import capTop from '@deepcircuits/parts-kit/primitives'. */
-export declare const capTop: PartsKit['capTop'];
 export declare const capacitor: PartsKit['capacitor'];
 export declare const characterLcd: PartsKit['characterLcd'];
-/** @deprecated Import check from '@deepcircuits/parts-kit/check'. */
-export declare const check: PartsKit['check'];
 export declare const checkOptions: PartsKit['checkOptions'];
-/** @deprecated Import chipTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const chip: PartsKit['chipTemplate'];
 export declare const clockGenerator: PartsKit['clockGenerator'];
-/** @deprecated Import comparatorBoardTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const comparatorBoard: PartsKit['comparatorBoardTemplate'];
-/** @deprecated Import devBoardTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const devBoard: PartsKit['devBoardTemplate'];
 export declare const dht11Module: PartsKit['dht11Module'];
 export declare const dht22Sensor: PartsKit['dht22Sensor'];
 export declare const dipSwitch: PartsKit['dipSwitch'];
@@ -47,27 +30,13 @@ export declare const esp32DevKitV1: PartsKit['esp32DevKitV1'];
 export declare const esp32H2DevKit: PartsKit['esp32H2DevKit'];
 export declare const esp32S2DevKit: PartsKit['esp32S2DevKit'];
 export declare const esp32S3DevKit: PartsKit['esp32S3DevKit'];
-/** @deprecated Import espDevKitTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const espDevKit: PartsKit['espDevKitTemplate'];
 export declare const flameSensor: PartsKit['flameSensor'];
 export declare const flipArtwork: PartsKit['flipArtwork'];
 export declare const flipFlopSymbol: PartsKit['flipFlopSymbol'];
-/** @deprecated Import flow from '@deepcircuits/parts-kit/primitives'. */
-export declare const flow: PartsKit['flow'];
-/** @deprecated Import formatMilliamps from '@deepcircuits/parts-kit/primitives'. */
-export declare const formatMilliamps: PartsKit['formatMilliamps'];
-/** @deprecated Import formatOhms from '@deepcircuits/parts-kit/primitives'. */
-export declare const formatOhms: PartsKit['formatOhms'];
 export declare const franzininho: PartsKit['franzininho'];
-/** @deprecated Import gasModuleTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const gasModule: PartsKit['gasModuleTemplate'];
 export declare const gasSensor: PartsKit['gasSensor'];
-/** @deprecated Import header from '@deepcircuits/parts-kit/primitives'. */
-export declare const header: PartsKit['header'];
 export declare const hx711Board: PartsKit['hx711Board'];
 export declare const ili9341TouchDisplay: PartsKit['ili9341TouchDisplay'];
-/** @deprecated Import indicator from '@deepcircuits/parts-kit/primitives'. */
-export declare const indicator: PartsKit['indicator'];
 export declare const irReceiver: PartsKit['irReceiver'];
 export declare const irRemote: PartsKit['irRemote'];
 export declare const joystick: PartsKit['joystick'];
@@ -77,34 +46,16 @@ export declare const ledBarGraph: PartsKit['ledBarGraph'];
 export declare const ledDriver595: PartsKit['ledDriver595'];
 export declare const ledRing: PartsKit['ledRing'];
 export declare const ledStrip: PartsKit['ledStrip'];
-/** @deprecated Import lens from '@deepcircuits/parts-kit/primitives'. */
-export declare const lens: PartsKit['lens'];
-/** @deprecated Import lensColor from '@deepcircuits/parts-kit/primitives'. */
-export declare const lensColor: PartsKit['lensColor'];
 export declare const lightSensor: PartsKit['lightSensor'];
 export declare const loadPart: PartsKit['loadPart'];
 export declare const logicAnalyzer: PartsKit['logicAnalyzer'];
 export declare const logicSymbol: PartsKit['logicSymbol'];
-/** @deprecated Import lotCode from '@deepcircuits/parts-kit/primitives'. */
-export declare const lotCode: PartsKit['lotCode'];
 export declare const max7219Matrix: PartsKit['max7219Matrix'];
-/** @deprecated Import megaBoardTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const megaBoard: PartsKit['megaBoardTemplate'];
 export declare const megaClassBoard: PartsKit['megaClassBoard'];
-/** @deprecated Import meterLines from '@deepcircuits/parts-kit/primitives'. */
-export declare const meterLines: PartsKit['meterLines'];
-/** @deprecated Use rfidModule, which draws the same part. */
-export declare const mfrc522Reader: PartsKit['rfidModule'];
 export declare const microsdModule: PartsKit['microsdModule'];
-/** @deprecated Import moduleTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const module: PartsKit['moduleTemplate'];
-/** @deprecated Import mount from '@deepcircuits/parts-kit/mount'. */
-export declare const mount: PartsKit['mount'];
 export declare const mpu6050Imu: PartsKit['mpu6050Imu'];
 export declare const muxSymbol: PartsKit['muxSymbol'];
 export declare const nanoClassBoard: PartsKit['nanoClassBoard'];
-/** @deprecated Import nanoConnectTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const nanoConnect: PartsKit['nanoConnectTemplate'];
 export declare const nanoRp2040Board: PartsKit['nanoRp2040Board'];
 export declare const ne555Timer: PartsKit['ne555Timer'];
 export declare const neopixel: PartsKit['neopixel'];
@@ -113,31 +64,17 @@ export declare const neopixelMeter: PartsKit['neopixelMeter'];
 export declare const nokiaModule: PartsKit['nokiaModule'];
 export declare const noteSymbol: PartsKit['noteSymbol'];
 export declare const ntcSensor: PartsKit['ntcSensor'];
-/** @deprecated Import nucleo32BoardTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const nucleo32Board: PartsKit['nucleo32BoardTemplate'];
-/** @deprecated Import nucleo64BoardTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const nucleo64Board: PartsKit['nucleo64BoardTemplate'];
 export declare const oledBreakout: PartsKit['oledBreakout'];
 export declare const oledSquare: PartsKit['oledSquare'];
 export declare const partPins: PartsKit['partPins'];
-/** @deprecated Import picoBoardTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const picoBoard: PartsKit['picoBoardTemplate'];
 export declare const picoClassBoard: PartsKit['picoClassBoard'];
-/** @deprecated Import pin from '@deepcircuits/parts-kit/primitives'. */
-export declare const pin: PartsKit['pin'];
-/** @deprecated Import pinsOnPitch from '@deepcircuits/parts-kit/check'. */
-export declare const pinsOnPitch: PartsKit['pinsOnPitch'];
 export declare const pirModule: PartsKit['pirModule'];
 export declare const potentiometer: PartsKit['potentiometer'];
-/** @deprecated Import probe from '@deepcircuits/parts-kit/primitives'. */
-export declare const probe: PartsKit['probe'];
 export declare const pulseSensor: PartsKit['pulseSensor'];
 export declare const pushbutton: PartsKit['pushbutton'];
 export declare const relay: PartsKit['relay'];
 export declare const relayModule: PartsKit['relayModule'];
 export declare const resistor: PartsKit['resistor'];
-/** @deprecated Import resistorBands from '@deepcircuits/parts-kit/primitives'. */
-export declare const resistorBands: PartsKit['resistorBands'];
 export declare const rfidModule: PartsKit['rfidModule'];
 export declare const rgbLed: PartsKit['rgbLed'];
 export declare const rotaryDialer: PartsKit['rotaryDialer'];
@@ -146,47 +83,25 @@ export declare const rotateArtwork: PartsKit['rotateArtwork'];
 export declare const rtcModule: PartsKit['rtcModule'];
 export declare const scopeIds: PartsKit['scopeIds'];
 export declare const searchParts: PartsKit['searchParts'];
-/** @deprecated Import sensorModuleTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const sensorModule: PartsKit['sensorModuleTemplate'];
 export declare const servo: PartsKit['servo'];
 export declare const setTokenMode: PartsKit['setTokenMode'];
 export declare const sevenSegment: PartsKit['sevenSegment'];
 export declare const sh1107Module: PartsKit['sh1107Module'];
 export declare const shiftRegister165: PartsKit['shiftRegister165'];
 export declare const shiftRegister595: PartsKit['shiftRegister595'];
-/** @deprecated Import silkMark from '@deepcircuits/parts-kit/primitives'. */
-export declare const silkMark: PartsKit['silkMark'];
 export declare const slidePotentiometer: PartsKit['slidePotentiometer'];
 export declare const slideSwitch: PartsKit['slideSwitch'];
-/** @deprecated Import smallSensorBoardTemplate from '@deepcircuits/parts-kit/templates'. */
-export declare const smallSensorBoard: PartsKit['smallSensorBoardTemplate'];
 export declare const soundSensor: PartsKit['soundSensor'];
 export declare const ssd1306Module: PartsKit['ssd1306Module'];
 export declare const stepper: PartsKit['stepper'];
 export declare const stm32C031C6Board: PartsKit['stm32C031C6Board'];
 export declare const stm32L031K6Board: PartsKit['stm32L031K6Board'];
 export declare const supplySymbol: PartsKit['supplySymbol'];
-/** @deprecated Import svg from '@deepcircuits/parts-kit/primitives'. */
-export declare const svg: PartsKit['svg'];
 export declare const tftModule: PartsKit['tftModule'];
 export declare const tiltSwitch: PartsKit['tiltSwitch'];
 export declare const tm1637Module: PartsKit['tm1637Module'];
-/** @deprecated Import to92Template from '@deepcircuits/parts-kit/templates'. */
-export declare const to92: PartsKit['to92Template'];
 export declare const toDataUrl: PartsKit['toDataUrl'];
 export declare const tokenMode: PartsKit['tokenMode'];
 export declare const tokens: PartsKit['tokens'];
-/** @deprecated Import trace from '@deepcircuits/parts-kit/primitives'. */
-export declare const trace: PartsKit['trace'];
 export declare const ultrasonicRanger: PartsKit['ultrasonicRanger'];
-/** @deprecated Use ultrasonicRanger, which draws the same part. */
-export declare const ultrasonicSensor: PartsKit['ultrasonicRanger'];
 export declare const unoClassBoard: PartsKit['unoClassBoard'];
-/** @deprecated Import usbC from '@deepcircuits/parts-kit/primitives'. */
-export declare const usbC: PartsKit['usbC'];
-/** @deprecated Import usbPort from '@deepcircuits/parts-kit/primitives'. */
-export declare const usbPort: PartsKit['usbPort'];
-/** @deprecated Import via from '@deepcircuits/parts-kit/primitives'. */
-export declare const via: PartsKit['via'];
-/** @deprecated Import wire from '@deepcircuits/parts-kit/primitives'. */
-export declare const wire: PartsKit['wire'];

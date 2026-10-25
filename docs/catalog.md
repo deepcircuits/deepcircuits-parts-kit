@@ -44,13 +44,13 @@ A host can build its controls from them:
 - `type` picks the control: `boolean`, `number`, `level`, `enum`, `color`, `text`, `frame`, `list`, `object` and a few more.
 - `min`, `max`, `step` and `choices` set it up.
 - `when` says which other values an option needs before it has any effect. `optionApplies(spec, values)` checks it.
-- `examples` give values a control can't build from the type alone, such as a picture or a glyph.
+- `examples` give values a control can't build from the type alone, such as a picture or a glyph. An example marked `each` is one item for every item the part has; `exampleValue(entry, spec, example)` gives the value to pass.
 
 `checkOptions(id, options)` lists what is wrong with a call without drawing it. The types in `project/generators/catalog.d.ts` (`PartId`, `PartOptions<'servo'>` and `PartCall`) are generated from the same data.
 
 ## Ids and pin names
 
-A published id always draws the same part. An id is the part's name in lower case, with a hyphen for each run of other characters (`Character LCD, 16×2` is `character-lcd-16x2`). Renamed ids still work, and `RENAMED_IDS` maps them to their new names.
+A published id always draws the same part. An id is the part's name in lower case, with a hyphen for each run of other characters (`Character LCD, 16×2` is `character-lcd-16x2`).
 
 Pin names come from the part's data sheet or the printing on the board (`A` and `K` on an LED, `VSS` to `K` on a character LCD). When a name repeats on a part, the first is bare and the rest get `.2`, `.3` and so on (`GND`, `GND.2`). The printing on the drawing leaves the suffix off, as on the real board.
 

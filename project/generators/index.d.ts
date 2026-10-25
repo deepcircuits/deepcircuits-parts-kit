@@ -6,7 +6,7 @@
  * The kit is plain JavaScript; these types document it. The catalog's ids and
  * options are generated into catalog.d.ts from src/options.js.
  */
-import type { DrawPart, PartId, PartOptions, RenamedPartId, RenamedPartIds } from './catalog.d.ts';
+import type { DrawPart, PartId, PartOptions } from './catalog.d.ts';
 export type * from './catalog.d.ts';
 
 /** A pin position in artwork pixels; every pin of a part is a whole number of pitches from its first pin. */
@@ -26,7 +26,7 @@ export type TokenMode = 'live' | 'values' | 'vars';
 export type LabelSide = 'above' | 'below' | 'left' | 'right';
 
 export interface PinProps { x: number; y: number; kind?: PinKind; label?: string; side?: LabelSide; silk?: string; size?: number; /** Stand a long label on end, reading away from the pin. */ rotate?: boolean }
-export interface HeaderProps { x: number; y: number; labels?: readonly string[]; count?: number; axis?: 'x' | 'y'; kind?: PinKind; side?: LabelSide; silk?: string; size?: number; rotate?: boolean }
+export interface HeaderProps { x: number; y: number; labels?: readonly string[]; /** The pins' names, where they differ from the printed labels. */ names?: readonly string[]; count?: number; axis?: 'x' | 'y'; kind?: PinKind; side?: LabelSide; silk?: string; size?: number; rotate?: boolean }
 export interface BoardProps { width: number; height: number; finish?: Finish; title?: string; titleX?: number; titleY?: number; titleSize?: number; titleAnchor?: 'start' | 'middle' | 'end'; holes?: boolean; /** The maker's mark on the silk: its top-left corner and width. */ mark?: { x: number; y: number; size?: number } }
 export interface ChipProps { pins: readonly string[]; label: string; package?: 'dip' | 'soic' | 'tssop' }
 /** `hook` names the lens for state (data-hook, `lens` by default; its glow is `<hook>-glow`). */
@@ -37,12 +37,12 @@ export type Lit = boolean | number;
 export interface IndicatorProps { x: number; y: number; size?: number; color?: LensColor; on?: Lit; hook?: string; finish?: Finish; label?: string }
 /** What the circuit is doing to a part: current along its legs (true from the first pin to the last, 'reverse' back), heat (0..1, how close to its rating), the probe on a named pin. */
 export interface LiveState { flow?: boolean | 'reverse'; heat?: number; probe?: string }
-export interface ResistorProps { /** The resistance in ohms (1000). */ ohms?: number; /** @deprecated Use ohms. */ value?: number; tolerance?: 5 | 10; /** The leads' spacing in pitches (4; at least 3). */ span?: number; live?: LiveState }
+export interface ResistorProps { /** The resistance in ohms (1000). */ ohms?: number; tolerance?: 5 | 10; /** The leads' spacing in pitches (4; at least 3). */ span?: number; live?: LiveState }
 export interface LedProps { color?: LensColor; on?: boolean; brightness?: number; live?: LiveState }
 export interface PushbuttonProps { pressed?: boolean; cap?: LensColor | 'black'; /** 12 mm (default) or the 6 mm switch. */ size?: 6 | 12 }
 export interface PotentiometerProps { position?: number }
 /** contact: the pin the middle pin joins, 1 (default) or 3. */
-export interface SlideSwitchProps { contact?: 1 | 3; /** @deprecated Use contact: 1 is contact 1, 2 is contact 3. */ position?: 1 | 2 }
+export interface SlideSwitchProps { contact?: 1 | 3 }
 export interface CapacitorProps { kind?: 'electrolytic' | 'ceramic'; code?: string }
 export interface BuzzerProps { live?: LiveState }
 export interface ModuleProps { label?: string; pins?: readonly string[]; finish?: Finish; part?: 'chip' | 'sensor' | 'can' | 'dual-can' | 'dome' | 'microsd' | 'rtc' | 'none'; /** A second row of pads along the top edge (the HX711's load-cell pads). */ extraPads?: readonly string[]; /** A can's diameter in pitches (2.6 by default; 6 for the HC-SR04's 16 mm cans). */ canPitches?: number; /** A dome's diameter in pitches (3 by default; 9 for the PIR's 23 mm lens). */ domePitches?: number; /** A sensor housing's vents: slots (DHT22) or holes (DHT11). */ vent?: 'slots' | 'holes'; /** The sensor housing's plastic: white (default) or the DHT11's blue. */ housing?: 'white' | 'blue'; /** A chip module's package: a SOIC with leads (default), a metal-lid LGA with its vent hole, or a QFN with pads on four sides. */ ic?: 'soic' | 'lga' | 'qfn'; widthPitches?: number; heightPitches?: number; /** The board's true width in mm, overriding widthPitches (the GY-521 is 21). */ width?: number; /** The board's true height in mm, overriding heightPitches (the GY-521 is 16). */ height?: number; holes?: boolean; description?: string; /** false hides the maker's mark. */ mark?: boolean }
@@ -220,8 +220,6 @@ export interface OptionSpec {
   readonly examples?: readonly OptionExample[];
   /** A value that shows the option off in a preview. */
   readonly example?: unknown;
-  /** The option that replaces this one; drawPart still takes it. */
-  readonly deprecated?: string;
 }
 /** One part in the catalog. */
 export interface CatalogEntry {
@@ -313,22 +311,24 @@ export interface PartsKit {
   readonly CATALOG: readonly CatalogEntry[];
   /** The families, in the order a picker shows them. */
   readonly FAMILIES: readonly CatalogFamily[];
-  /** Ids the catalog has renamed, each with the id it draws now. A stored old id keeps drawing its part. */
-  readonly RENAMED_IDS: Readonly<RenamedPartIds>;
+  /** Each family's title, as a picker shows it. */
+  readonly FAMILY_TITLES: Readonly<Record<CatalogFamily, string>>;
   /** Draws catalog part `id` with `options`, the ones its entry lists. Throws for an unknown id, an unknown option (naming the nearest) or a value of the wrong type. */
   drawPart: DrawPart;
   /** A catalog part's size and pins without its SVG: drawn once for each set of options and kept. */
-  partPins<Id extends PartId | RenamedPartId>(id: Id, options?: PartOptions<Id>): PartLayout;
+  partPins<Id extends PartId>(id: Id, options?: PartOptions<Id>): PartLayout;
   /** What is wrong with drawing part `id` with `options`: an unknown id or option (with the nearest name), or a value of the wrong type. Empty when the call is good. */
   checkOptions(id: string, options?: unknown): string[];
-  /** The catalog entry for an id (or an id it was renamed from), or undefined. */
+  /** The catalog entry for an id, or undefined. */
   findPart(id: string): CatalogEntry | undefined;
   /** The parts that match a search, best first, by id, name or alias, ignoring case, spaces and punctuation. Every part for an empty query. */
   searchParts(query: string): CatalogEntry[];
   /** Loads only the part's family, then resolves to a function that draws the part, checked as drawPart checks. */
-  loadPart<Id extends PartId | RenamedPartId>(id: Id): Promise<(options?: PartOptions<Id>) => Artwork>;
+  loadPart<Id extends PartId>(id: Id): Promise<(options?: PartOptions<Id>) => Artwork>;
   /** Whether an option applies beside the other values of a call (its `when`), for showing a control only when it does something. */
   optionApplies(spec: OptionSpec, values: Readonly<Record<string, unknown>>): boolean;
+  /** The value an option's example gives a part: its value, or with `each`, that value for every item the part has (its chain, or the list's length). */
+  exampleValue(entry: CatalogEntry, spec: OptionSpec, example: OptionExample): unknown;
   /** The entry and the props the generator gets for a call: the part's preset under the options, checked first. Throws with every problem. */
   callOf(id: string, options?: unknown): { entry: CatalogEntry; props: Record<string, unknown> };
   /** The drawing turned by quarter turns, its pins with it: 1 a quarter clockwise, -1 or 3 anticlockwise, 2 a half. */
@@ -529,23 +529,6 @@ export interface PartsKit {
   usbC(tokens: Record<string, string | number>, cx: number, y: number, w: number, h: number, mouth?: 'down' | 'up' | 'left' | 'right'): string;
   /** Preview helper: draws an Artwork at `scale` over a pitch grid aligned to its first pin. */
   mount(target: HTMLElement, artwork: Artwork, options?: MountOptions): HTMLElement;
-  // Deprecated: the templates' old names, and the parts the catalog draws under another name. The root still exports them.
-  /** @deprecated Import devBoardTemplate from '@deepcircuits/parts-kit/templates'. */ devBoard: PartsKit['devBoardTemplate'];
-  /** @deprecated Import megaBoardTemplate from '@deepcircuits/parts-kit/templates'. */ megaBoard: PartsKit['megaBoardTemplate'];
-  /** @deprecated Import nanoConnectTemplate from '@deepcircuits/parts-kit/templates'. */ nanoConnect: PartsKit['nanoConnectTemplate'];
-  /** @deprecated Import picoBoardTemplate from '@deepcircuits/parts-kit/templates'. */ picoBoard: PartsKit['picoBoardTemplate'];
-  /** @deprecated Import espDevKitTemplate from '@deepcircuits/parts-kit/templates'. */ espDevKit: PartsKit['espDevKitTemplate'];
-  /** @deprecated Import nucleo32BoardTemplate from '@deepcircuits/parts-kit/templates'. */ nucleo32Board: PartsKit['nucleo32BoardTemplate'];
-  /** @deprecated Import nucleo64BoardTemplate from '@deepcircuits/parts-kit/templates'. */ nucleo64Board: PartsKit['nucleo64BoardTemplate'];
-  /** @deprecated Import moduleTemplate from '@deepcircuits/parts-kit/templates'. */ module: PartsKit['moduleTemplate'];
-  /** @deprecated Import sensorModuleTemplate from '@deepcircuits/parts-kit/templates'. */ sensorModule: PartsKit['sensorModuleTemplate'];
-  /** @deprecated Import comparatorBoardTemplate from '@deepcircuits/parts-kit/templates'. */ comparatorBoard: PartsKit['comparatorBoardTemplate'];
-  /** @deprecated Import smallSensorBoardTemplate from '@deepcircuits/parts-kit/templates'. */ smallSensorBoard: PartsKit['smallSensorBoardTemplate'];
-  /** @deprecated Import gasModuleTemplate from '@deepcircuits/parts-kit/templates'. */ gasModule: PartsKit['gasModuleTemplate'];
-  /** @deprecated Import chipTemplate from '@deepcircuits/parts-kit/templates'. */ chip: PartsKit['chipTemplate'];
-  /** @deprecated Import to92Template from '@deepcircuits/parts-kit/templates'. */ to92: PartsKit['to92Template'];
-  /** @deprecated Use ultrasonicRanger, which draws the same part. */ ultrasonicSensor: PartsKit['ultrasonicRanger'];
-  /** @deprecated Use rfidModule, which draws the same part. */ mfrc522Reader: PartsKit['rfidModule'];
 }
 
 declare global { interface Window { PartsKit: PartsKit } }

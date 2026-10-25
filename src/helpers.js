@@ -1,7 +1,6 @@
 /** Helpers that take an Artwork and return a new one: turned, mirrored, with unique ids, or as an image source. */
+import { r2 } from './core.js';
 import { FALLBACK } from './tokens.js';
-
-const round = v => Math.round(v * 100) / 100;
 
 function parts(art) {
   const open = /^<svg\b[^>]*>/.exec(art.svg);
@@ -33,10 +32,10 @@ export function rotateArtwork(art, quarterTurns) {
         : `translate(0 ${w}) rotate(-90)`;
   const turn = p =>
     t === 1
-      ? { ...p, x: round(h - p.y), y: round(p.x) }
+      ? { ...p, x: r2(h - p.y), y: r2(p.x) }
       : t === 2
-        ? { ...p, x: round(w - p.x), y: round(h - p.y) }
-        : { ...p, x: round(p.y), y: round(w - p.x) };
+        ? { ...p, x: r2(w - p.x), y: r2(h - p.y) }
+        : { ...p, x: r2(p.y), y: r2(w - p.x) };
   return {
     width: W,
     height: H,
@@ -56,7 +55,7 @@ export function flipArtwork(art, axis) {
     width: w,
     height: h,
     svg: `${open}<g transform="${transform}">${inner}</g></svg>`,
-    pins: art.pins.map(p => (across ? { ...p, x: round(w - p.x) } : { ...p, y: round(h - p.y) })),
+    pins: art.pins.map(p => (across ? { ...p, x: r2(w - p.x) } : { ...p, y: r2(h - p.y) })),
   };
 }
 

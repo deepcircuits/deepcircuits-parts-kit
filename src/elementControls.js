@@ -10,16 +10,16 @@
  * detent and dial geometry they work by is public, in controls.js.
  */
 import { detentsTurned, dialDigitAt, dialGeometry, dialTravel, knobPosition } from './controls.js';
+import { PITCH, r2 } from './core.js';
 
 /** The drag, in drawing pixels, that pushes the joystick to the end of its travel: 9 mm. */
-const JOYSTICK_FULL_DRAG = (9 * 9.6) / 2.54;
+const JOYSTICK_FULL_DRAG = (9 * PITCH) / 2.54;
 /** The dialer's wheel as a finger winds it, and as its spring runs it back: ten pulses a second, a digit's 28° each. */
 const WIND_DEGREES_PER_SECOND = 720;
 const RUN_DEGREES_PER_SECOND = 280;
 const STOP_MS = 120;
 
 const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
-const hundredths = value => Math.round(value * 100) / 100;
 const degreesOf = (dx, dy) => (Math.atan2(dy, dx) * 180) / Math.PI;
 const data = (element, name) => Number(element?.getAttribute(name) ?? NaN);
 const activates = event => event.key === ' ' || event.key === 'Enter';
@@ -50,7 +50,7 @@ const SLIDER_KEYS = {
 function sliderKey(c, event) {
   const step = SLIDER_KEYS[event.key];
   if (!step) return false;
-  c.step({ position: hundredths(clamp(step(Number(c.state().position) || 0), 0, 1)) });
+  c.step({ position: r2(clamp(step(Number(c.state().position) || 0), 0, 1)) });
   return true;
 }
 
@@ -105,7 +105,7 @@ function dial(c, digit) {
       return;
     }
     const angle = t < wind ? (travel * t) / wind : travel * (1 - Math.max(0, t - wind - STOP_MS) / run);
-    c.show({ angle: hundredths(angle) });
+    c.show({ angle: r2(angle) });
     globalThis.requestAnimationFrame(frame);
   };
   globalThis.requestAnimationFrame(frame);
@@ -178,7 +178,7 @@ export const CONTROLS = {
       const cx = data(knob, 'data-cx');
       const cy = data(knob, 'data-cy');
       if (!Number.isFinite(cx) || !Number.isFinite(cy)) return;
-      c.set({ position: hundredths(knobPosition(point.x - cx, point.y - cy, Number(c.state().position))) });
+      c.set({ position: r2(knobPosition(point.x - cx, point.y - cy, Number(c.state().position))) });
     },
     key: sliderKey,
   },
@@ -190,7 +190,7 @@ export const CONTROLS = {
     down: (c, event, point, drag) => ((drag.position = Number(c.state().position) || 0), true),
     move: (c, event, point, drag) => {
       const travel = data(c.hook('lever'), 'data-travel');
-      if (travel > 0) c.set({ position: hundredths(clamp(drag.position + (point.x - drag.x) / travel, 0, 1)) });
+      if (travel > 0) c.set({ position: r2(clamp(drag.position + (point.x - drag.x) / travel, 0, 1)) });
     },
     key: sliderKey,
   },
@@ -251,7 +251,7 @@ export const CONTROLS = {
     // Each finger and key pushes the stick; letting go of all of them centres it.
     held: tokens => {
       const sum = axis =>
-        hundredths(
+        r2(
           clamp(
             tokens.reduce((total, token) => total + (token[axis] ?? 0), 0),
             -1,

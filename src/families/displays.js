@@ -9,6 +9,8 @@ export {
   sevenSegment,
   tm1637Module,
   max7219Matrix,
+  ssd1306Module,
+  sh1107Module,
+  ili9341TouchDisplay,
 } from '../displays.js';
-export { ssd1306Module, sh1107Module, ili9341TouchDisplay } from '../presets.js';
 export { neopixelMatrix, ledRing } from '../pixels.js';

@@ -252,7 +252,6 @@ export interface PartOptionsById {
   /** Slide switch: slideSwitch. */
   "slide-switch": {
     /** Middle pin joins. Default 1. */ contact?: 1 | 3;
-    /** @deprecated Use contact. */ position?: 1 | 2;
   };
   /** Rotary encoder: rotaryEncoder. */
   "rotary-encoder": {
@@ -401,7 +400,6 @@ export interface PartOptionsById {
     /** Tolerance. Default 5. */ tolerance?: 5 | 10;
     /** Lead spacing. 3 to 12 pitches. Default 4. */ span?: number;
     /** Live layer. */ live?: { /** Current. Default false. */ flow?: false | true | "reverse"; /** Heat. 0 to 1. Default 0. */ heat?: number; /** Probe on pin. Default "". */ probe?: "" | "1" | "2" };
-    /** @deprecated Use ohms. */ value?: number;
   };
   /** Electrolytic capacitor: capacitor {"kind":"electrolytic"}. */
   "electrolytic-capacitor": Record<string, never>;
@@ -470,53 +468,11 @@ export interface PartOptionsById {
 }
 /** A catalog part id. */
 export type PartId = keyof PartOptionsById;
-/** The ids the catalog has renamed, each with the id it draws now. */
-export interface RenamedPartIds {
-  "esp32-dev-board": "esp32-dev-board-30-pin";
-  "esp32-devkitc-v4": "esp32-dev-board-38-pin";
-  "blue-pill": "stm32-blue-pill";
-  "16x2-character-lcd": "character-lcd-16x2";
-  "20x4-character-lcd": "character-lcd-20x4";
-  "0-96in-oled": "oled-0-96in-i2c";
-  "oled-breakout": "oled-0-96in-spi";
-  "1-5in-oled": "oled-1-5in";
-  "2-4in-tft": "tft-display-2-4in";
-  "2-4in-touch-tft": "tft-display-2-8in-touch";
-  "84x48-lcd": "graphic-lcd-84x48";
-  "2-9in-e-paper": "e-paper-display-2-9in";
-  "1-digit-7-segment": "seven-segment-display-1-digit";
-  "4-digit-7-segment": "seven-segment-display-4-digits";
-  "8x8-led-matrix": "led-matrix-8x8";
-  "4x-led-matrix-chain": "led-matrix-chain-of-4";
-  "8x8-rgb-matrix": "rgb-led-matrix-8x8";
-  "16-led-ring": "led-ring-16-leds";
-  "temp-and-humidity": "temperature-and-humidity-sensor";
-  "temp-and-humidity-module": "temperature-and-humidity-module";
-  "pressure-sensor": "pressure-sensor-4-pin";
-  "motion-sensor": "pir-motion-sensor";
-  "accelerometer-gyro": "accelerometer-and-gyro";
-  "ds18b20-temperature": "ds18b20-temperature-sensor";
-  "6-mm-pushbutton": "pushbutton-6-mm";
-  "4x4-keypad": "keypad-4x4";
-  "8-way-dip-switch": "dip-switch-8-way";
-  "led": "led-5-mm";
-  "74hc595-shift-register": "shift-register-74hc595";
-  "74hc165-shift-register": "shift-register-74hc165";
-  "d-flip-flop-set-reset": "d-flip-flop-with-set-and-reset";
-}
-/** An id the catalog has renamed; it still draws its part. */
-export type RenamedPartId = keyof RenamedPartIds;
-/** The options of part `Id`, by its id or an id it was renamed from. */
-export type PartOptions<Id extends PartId | RenamedPartId> = Id extends PartId
-  ? PartOptionsById[Id]
-  : Id extends RenamedPartId
-    ? PartOptionsById[RenamedPartIds[Id]]
-    : never;
+/** The options of part `Id`. */
+export type PartOptions<Id extends PartId> = PartOptionsById[Id];
 /** A catalog part drawn: its id and its options together, for a list of parts to draw. */
 export type PartCall = { [Id in PartId]: { id: Id; options?: PartOptionsById[Id] } }[PartId];
 export interface DrawPart {
-  /** @deprecated A renamed id: use the id it maps to in RENAMED_IDS. */
-  <Id extends RenamedPartId>(id: Id, options?: PartOptionsById[RenamedPartIds[Id]]): Artwork;
   /** Draws catalog part `id` with `options`, the ones its entry lists. Throws for an unknown id, an unknown option (naming the nearest) or a value of the wrong type. */
   <Id extends PartId>(id: Id, options?: PartOptionsById[Id]): Artwork;
 }

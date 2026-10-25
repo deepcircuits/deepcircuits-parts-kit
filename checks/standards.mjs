@@ -10,22 +10,14 @@
 //   3. Print never below 3pt: at 0.1 in = 9.6px, 3pt is 4px; the standard size, 5pt, is 6.67px.
 //   4. Text stays text (no outlined glyphs) and every stroked element names its stroke-width.
 //   5. Flat colour, with gradient sheens only (the kit's pk-dome, pk-lens, pk-metal, pk-glow and pk-hot defs): no filters, patterns, images or raster data.
-const fs = require('fs'), vm = require('vm');
-require('./project/generators/bundle.js'); const K = globalThis.PartsKit;
+import { readdirSync, readFileSync } from 'node:fs';
+import { drawPreviews, loadBundle, suite } from './drawings.mjs';
+
+const K = loadBundle();
 const P = K.PITCH, IN = P * 10, PT = IN / 72;
-const arts = [];
-const suite = fs.readFileSync('suite.cjs', 'utf8').match(/const S = \{[\s\S]*?\n\};/)[0];
-const S = new Function('K', suite.replace('const S =', 'return'))(K);
-for (const [name, art] of Object.entries(S)) arts.push({ name: 'suite · ' + name, art });
-const drawn = [];
-K.mount = (target, art, o) => { drawn.push({ name: target.card + ' · ' + ((o && o.caption) || ''), art }); return null; };
-for (const d of fs.readdirSync('project/generators', { withFileTypes: true })) {
-  if (!d.isDirectory() || d.name === 'lib') continue;
-  const m = /<script>\s*([\s\S]*?)\s*<\/script>/.exec(fs.readFileSync(`project/generators/${d.name}/preview.html`, 'utf8')); if (!m) continue;
-  vm.runInNewContext(m[1], { window: globalThis, document: { getElementById: () => ({ card: d.name }) }, console });
-}
-arts.push(...drawn);
-for (const f of fs.readdirSync('images')) if (f.endsWith('.svg')) arts.push({ name: 'image · ' + f, svg: fs.readFileSync('images/' + f, 'utf8') });
+const arts = Object.entries(suite(K)).map(([name, art]) => ({ name: 'suite · ' + name, art }));
+arts.push(...drawPreviews(K));
+for (const f of readdirSync('images')) if (f.endsWith('.svg')) arts.push({ name: 'image · ' + f, svg: readFileSync('images/' + f, 'utf8') });
 
 const fail = [];
 let pinsChecked = 0, textsChecked = 0, strokes = 0, minText = Infinity;
@@ -66,7 +58,7 @@ const legDrawn = T['leg-width'] + 0.6, lead = T['lead-width'];
 if (legDrawn < 0.03 * IN - 1e-9) fail.push(`leg drawn ${legDrawn}px < 0.03 in (${0.03 * IN}px)`);
 if (lead < 0.03 * IN - 1e-9) fail.push(`chip lead ${lead}px < 0.03 in (${0.03 * IN}px)`);
 // the standing parts' legs are at least 0.03 in long: the LED, the capacitors and the resistor reach a whole pitch
-for (const [name, art] of [['led', K.led()], ['resistor', K.resistor({ value: 220 })], ['cap', K.capacitor()]]) {
+for (const [name, art] of [['led', K.led()], ['resistor', K.resistor({ ohms: 220 })], ['cap', K.capacitor()]]) {
   const span = Math.max(...art.pins.map(p => p.x)) - Math.min(...art.pins.map(p => p.x)); if (span < 0.03 * IN) fail.push(`${name}: legs span ${span}px`);
 }
 console.log(`KLC: smallest print ${(minText / MM).toFixed(2)} mm (F5.1 text 1.00 mm), finest stroke ${(minStroke / MM).toFixed(3)} mm (F5.1 lines 0.10-0.15 mm), pins on the 100 mil grid (S4.1)`);

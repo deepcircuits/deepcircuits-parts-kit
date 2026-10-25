@@ -1,8 +1,10 @@
 // The brand book's contrast claims (Theme, forced colours and contrast), by WCAG 2 relative luminance.
-import { readFileSync } from 'node:fs';
-await import('./project/generators/bundle.js'); const { BREADBOARD_COLORS, breadboardPaint } = globalThis.PartsKit;
-const t = JSON.parse(readFileSync('project/tokens.json', 'utf8'));
-const v = n => { const k = t.color.tokens.find(x => x.name === n); return typeof k.value === 'string' ? k.value : k.value.light; };
+import { BREADBOARD_COLORS } from '../src/index.js';
+import { breadboardPaint } from '../src/primitives.js';
+import { FALLBACK } from '../src/tokens.js';
+
+// Each colour token's light value.
+const v = n => FALLBACK[n];
 /** WCAG contrast between two #rrggbb colours. */
 function contrastRatio(a, b) {
   const luminance = hex => {

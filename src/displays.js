@@ -9,6 +9,8 @@ import {
   el,
   finish,
   header,
+  hole,
+  labelRow,
   lensColor,
   pin,
   r2,
@@ -19,8 +21,7 @@ import {
   trace,
   via,
 } from './core.js';
-import { wire } from './passives.js';
-import { dipOnBoard, smd } from './modules.js';
+import { barePad, dipOnBoard, silkName, smd, wire } from './pieces.js';
 
 /**
  * A character LCD module at the size of the real 80 × 36 mm 16×2 (or the
@@ -270,10 +271,6 @@ const SEG_OF = {
   r: 'eg',
   U: 'bcdef',
 };
-/** A pin's name as the silk prints it: the .N suffix on a repeated name (COM.2) dropped. */
-function silkName(n) {
-  return String(n).replace(/\.\d+$/, '');
-}
 
 /**
  * A seven-segment display: digits in a black face, pins along the top and
@@ -314,10 +311,7 @@ export function sevenSegment(props) {
   };
   // Labels of four characters stand on end, and the rows then sit lower so the labels stay inside the box; the rows stay six pitches apart.
   const allNames = names ? names.top.concat(names.bottom).filter(named).map(silkName) : [];
-  const maxLen = allNames.reduce((m, n) => {
-    return Math.max(m, n.length);
-  }, 0);
-  const rot = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+  const { rotate: rot } = labelRow(T, allNames, p);
   const pinTop = rot ? 1.6 * p : 1.0 * p;
   const dy = pinTop - 1.0 * p;
   h = rot ? 9.2 * p : 9 * p;
@@ -446,14 +440,6 @@ export function sevenSegment(props) {
   );
 }
 
-/** A bare plated pad (no handle): the places a header has that the catalog does not name. */
-export function barePad(T, x, y) {
-  return tag(
-    'pad',
-    circle(x, y, T['pad-radius'], T.pad) + circle(x, y, T['hole-radius'], T.hole, edge(T, T['metal-edge'], 0.5)),
-  );
-}
-
 /**
  * A screen's picture over its window (x, y, w, h): `pixels` is a frame
  * { width, height, data } with data row by row from the top left. A falsy
@@ -522,10 +508,7 @@ export function oledBreakout(props) {
   const fin = props.finish || 'blue';
   const f = finish(T, fin);
   const names = props.pins || ['DATA', 'CLK', 'DC', 'RST', 'CS', '3V3', 'VIN', 'GND'];
-  const maxLen = names.reduce((m, n) => {
-    return Math.max(m, n.length);
-  }, 0);
-  const rotate = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+  const { rotate } = labelRow(T, names, p);
   const w = 10.6 * p;
   const h = rotate ? 11 * p : 10.6 * p;
   const gy = rotate ? 2.3 * p : 1.6 * p;
@@ -607,7 +590,7 @@ export function oledSquare(props) {
     [2.5, 43.0],
     [31.8, 43.0],
   ].forEach(c => {
-    s += tag('hole', circle(c[0] * mm, c[1] * mm, 1.3 * mm, T.hole, edge(T, T.pad, 1.0)));
+    s += hole(T, c[0] * mm, c[1] * mm, 1.3 * mm, 1.0);
   });
   const hdr = header({
     x: r2((w - (names.length - 1) * p) / 2),
@@ -718,7 +701,7 @@ export function tftModule(props) {
     mark: props.mark === false ? undefined : { x: 10.0 * mm, y: 3.0 * mm, size: 0.7 * p },
   });
   G.holes.forEach(c => {
-    s += tag('hole', circle(c[0] * mm, c[1] * mm, 1.5 * mm, T.hole, edge(T, T.pad, 1.0)));
+    s += hole(T, c[0] * mm, c[1] * mm, 1.5 * mm, 1.0);
   });
   // J4, the 2.4 inch board's four SD pads; the 2.8 inch board carries its SD select on J2.
   const jx = G.jx * mm;
@@ -901,7 +884,7 @@ export function epaperModule(props) {
     [M(87.5), M(2.5)],
     [M(87.5), M(35.5)],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], M(1.5), T.hole, edge(T, T.pad, 1.0)));
+    s += hole(T, c[0], c[1], M(1.5), 1.0);
   });
   // The flex round the board's edge, then the panel: the glass, the driver's strip at the flex end, the paper and the active area.
   const pw = M(79);
@@ -1108,7 +1091,7 @@ export function tm1637Module(props) {
     [2.5 * mm, 2.5 * mm],
     [2.5 * mm, h - 2.5 * mm],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   const names = props.pins || ['CLK', 'DIO', 'VCC', 'GND'];
   const pins = [];
@@ -1199,4 +1182,31 @@ export function tm1637Module(props) {
     via(T, 1.6 * p, h / 2 + 1.1 * p);
   s += text(fx + fw / 2, h - 0.5 * p, props.label || '4-DIGIT DISPLAY', PIN_LABEL, f.silk);
   return art(w, h, `TM1637 4-digit display${value ? ` showing ${value}` : ''}`, s, pins);
+}
+
+// The catalog's display modules whose header differs from the template's.
+// Display and radio modules whose catalog header differs from the template's.
+
+/** A screen module's options: its picture (`caption`, `pixels`) over the catalog's own. */
+function screen(props, own) {
+  props = props || {};
+  return Object.assign({ caption: props.caption, pixels: props.pixels }, own);
+}
+
+/** The SSD1306 OLED module with the four-pin I2C header. */
+export function ssd1306Module(props) {
+  return oledBreakout(screen(props, { pins: ['GND', 'VCC', 'SCL', 'SDA'] }));
+}
+/** The SH1107 128 x 128 OLED module. */
+export function sh1107Module(props) {
+  return oledSquare(screen(props, { label: 'SH1107 128x128', pins: ['GND', 'VCC', 'SCL', 'SDA'] }));
+}
+/** The ILI9341 display with the FT6206 capacitive touch: eleven pins. */
+export function ili9341TouchDisplay(props) {
+  return tftModule(
+    screen(props, {
+      touch: true,
+      pins: ['VCC', 'GND', 'CS', 'RST', 'D/C', 'MOSI', 'SCK', 'LED', 'MISO', 'SCL', null, 'SDA'],
+    }),
+  );
 }

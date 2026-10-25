@@ -13,7 +13,7 @@
  * `when` names the other options (or the preset) an option needs to show: { status: ['ok', 'near', 'over'] }; null
  * stands for unset. `examples` are values worth offering ({ label, value, code? }, `each` when the value is one item of
  * a list, for every item), for options a control cannot build from the type alone; `example` is a value that shows
- * the option off in a preview. `deprecated` names the option that replaces this one.
+ * the option off in a preview.
  */
 import { FALLBACK } from './tokens.js';
 import { BREADBOARD_COLORS, BREADBOARD_PAINT } from './breadboardColors.js';
@@ -233,7 +233,6 @@ export const OPTIONS = {
       choices: [choice(1, 'Pin 1'), choice(3, 'Pin 3')],
       default: 1,
     }),
-    position: { type: 'enum', choices: [choice(1, 'Pin 1'), choice(2, 'Pin 3')], deprecated: 'contact' },
   },
   rotaryEncoder: {
     detent: state({ type: 'integer', label: 'Detent', min: 0, max: 19, step: 1, default: 0 }),
@@ -437,7 +436,6 @@ export const OPTIONS = {
       label: 'Live layer',
       fields: { flow, heat: unit('Heat'), probe: probe(['1', '2']) },
     }),
-    value: { type: 'number', deprecated: 'ohms' },
   },
   capacitor: {
     code: {

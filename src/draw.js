@@ -24,7 +24,7 @@ const DRAW = {
   ...symbols,
 };
 
-/** Draws catalog part `id` (or an id it has been renamed from) with `options`, the ones its entry lists. Throws for an unknown id, an unknown option (naming the nearest) or a value of the wrong type. */
+/** Draws catalog part `id` with `options`, the ones its entry lists. Throws for an unknown id, an unknown option (naming the nearest) or a value of the wrong type. */
 export function drawPart(id, options) {
   const { entry, props } = callOf(id, options);
   return DRAW[entry.fn](props);

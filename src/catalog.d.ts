@@ -2,9 +2,10 @@
 import type { PartsKit } from '../project/generators/index.d.ts';
 export declare const CATALOG: PartsKit['CATALOG'];
 export declare const FAMILIES: PartsKit['FAMILIES'];
-export declare const RENAMED_IDS: PartsKit['RENAMED_IDS'];
+export declare const FAMILY_TITLES: PartsKit['FAMILY_TITLES'];
 export declare const callOf: PartsKit['callOf'];
 export declare const checkOptions: PartsKit['checkOptions'];
+export declare const exampleValue: PartsKit['exampleValue'];
 export declare const findPart: PartsKit['findPart'];
 export declare const loadPart: PartsKit['loadPart'];
 export declare const optionApplies: PartsKit['optionApplies'];

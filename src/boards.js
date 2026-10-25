@@ -10,6 +10,7 @@ import {
   el,
   finish,
   header,
+  hole,
   indicator,
   lensColor,
   line,
@@ -23,18 +24,13 @@ import {
   silkMark,
   tag,
   text,
+  textWidth,
   tokens,
   trace,
   via,
 } from './core.js';
-import { barePad } from './displays.js';
-import { dipOnBoard, framed, smd, soic, sot23, usbPort } from './modules.js';
+import { barePad, dipOnBoard, framed, qfp, silkName, smd, soic, sot23, usbC, usbPort } from './pieces.js';
 import { resistorBands } from './passives.js';
-
-/** A pin's name as the silk prints it: the catalog's .N suffix on a repeated name (GND.2) dropped. */
-function silkName(n) {
-  return String(n).replace(/\.\d+$/, '');
-}
 
 /** The silk a board prints for each pin: its `labels` entry (pin name to printed text, such as { 'A5.2': 'SCL' }) where it has one, otherwise the name without its .N suffix. */
 function silkOf(props) {
@@ -105,8 +101,8 @@ export function devBoardTemplate(props) {
       return Math.max(m, silk(n).length);
     }, 0);
   };
-  const labelL = leftX + 0.7 * p + longest(left) * PIN_LABEL * 0.62;
-  const labelR = rightX - 0.7 * p - longest(right) * PIN_LABEL * 0.62;
+  const labelL = leftX + 0.7 * p + textWidth(longest(left), PIN_LABEL);
+  const labelR = rightX - 0.7 * p - textWidth(longest(right), PIN_LABEL);
   const fin = props.finish || 'teal';
   const cw0 = Math.max(1.2 * p, Math.min(moduleTop ? 1.8 * p : 2.6 * p, labelR - labelL - 0.6 * p));
   const cxx0 = (labelL + labelR) / 2 - cw0 / 2;
@@ -202,17 +198,8 @@ export function devBoardTemplate(props) {
     const ax0 = 1.6 * p;
     const ax1 = w - 1.6 * p;
     const ay = wroom ? 0.7 * p : 0.9 * p;
-    let d = '';
-    const step = 0.5 * p;
-    for (let ax = ax0; ax + step <= ax1; ax += step)
-      d += `${(ax === ax0 ? 'M' : 'L') + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-    s += tag('antenna', path(d, 'none', { stroke: T.pad, 'stroke-width': 0.9, 'stroke-linejoin': 'round' }));
-    s += tag(
-      'module',
-      rect(1.2 * p, canY, w - 2.4 * p, canH, T.metal, Object.assign({ rx: 1.2 }, edge(T, T['metal-edge']))),
-    );
-    s += rect(1.2 * p, canY, w - 2.4 * p, 1.0 * p, '#ffffff', { rx: 1.2, 'fill-opacity': 0.22 });
-    s += rect(1.2 * p, canY + canH - 0.7 * p, w - 2.4 * p, 0.7 * p, '#000000', { rx: 1, 'fill-opacity': 0.12 });
+    s += meander(T, ax0, ax1, ay, antH);
+    s += shieldCan(T, 1.2 * p, canY, w - 2.4 * p, canH);
     if (props.chipLabel)
       s += text(
         w / 2,
@@ -306,22 +293,12 @@ export function devBoardTemplate(props) {
     resetBelow = rx < 5.8 * p - 0.01;
     if (rx - 6.0 * p >= 1.9 * p)
       s +=
-        tag(
-          'regulator',
-          rect(6.1 * p, 0.3 * p, 0.8 * p, 0.45 * p, T.metal, { rx: 0.2 }) +
-            rect(
-              6.0 * p,
-              0.7 * p,
-              1.0 * p,
-              0.8 * p,
-              T['plastic-black'],
-              Object.assign({ rx: 0.3 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
-            ),
-        ) + smd(T, 'capacitor', 7.25 * p, 0.4 * p, false);
+        sot223(T, [6.1 * p, 0.3 * p, 0.8 * p, 0.45 * p], [6.0 * p, 0.7 * p, 1.0 * p, 0.8 * p], [0.2, 0.3]) +
+        smd(T, 'capacitor', 7.25 * p, 0.4 * p, false);
     if (!resetBelow) s += resetButton(rx, ry);
     // The reset label: under the button when the rows are pads, left of it when sockets leave no room below, and not at all on a narrow socket board.
     const hasReg = rx - 6.0 * p >= 1.9 * p;
-    const rstLeft = rx - 1.4 - 3 * PIN_LABEL * 0.62;
+    const rstLeft = rx - 1.4 - textWidth(3, PIN_LABEL);
     if (resetBelow) {
       /* drawn under the controller */
     } else if (kind !== 'socket')
@@ -363,7 +340,7 @@ export function devBoardTemplate(props) {
     );
     // The part number at the floor size, on one line where it fits and two where it does not; left off a body too small for two.
     if (props.chipLabel && !moduleTop) {
-      const fit = Math.floor((cw - 2.4) / (PIN_LABEL * 0.62));
+      const fit = Math.floor((cw - 2.4) / textWidth(1, PIN_LABEL));
       const lbl = String(props.chipLabel);
       if (lbl.length <= fit) s += text(cxx + cw / 2, cyy + ch / 2 + 1.4, lbl, PIN_LABEL, T['chip-print']);
       else if (fit >= 4 && lbl.length <= 2 * fit) {
@@ -406,6 +383,7 @@ export function devBoardTemplate(props) {
     side: 'right',
     silk: f.silk,
     size: PIN_LABEL,
+    names: left,
   });
   const rh = header({
     x: rightX,
@@ -416,12 +394,7 @@ export function devBoardTemplate(props) {
     side: 'left',
     silk: f.silk,
     size: PIN_LABEL,
-  });
-  lh.pins.forEach((pn, i) => {
-    pn.name = left[i];
-  });
-  rh.pins.forEach((pn, i) => {
-    pn.name = right[i];
+    names: right,
   });
   s += lh.svg + rh.svg;
   // The ICSP header as pins (icsp: six names in the header's order, MISO, VCC, SCK, MOSI, RESET, GND): a 2 x 3 block at the far end, centred between the rows,
@@ -504,13 +477,7 @@ function unoUsbEnd(T, f, fin, X, Y, L, ind, noReset) {
   );
   // The reset button in the corner above the USB, and the bridge chip's own ICSP block beside it.
   if (!noReset) s += resetButton(T, f, X, Y, L, 4.0, 1.5);
-  let icsp2 = '';
-  [11.6, 14.14, 16.68].forEach(cx => {
-    [5.67, 8.21].forEach(cy => {
-      icsp2 += circle(X(cx), Y(cy), L(0.9), T.pad) + circle(X(cx), Y(cy), L(0.4), T.hole);
-    });
-  });
-  s += tag('icsp', icsp2);
+  s += tag('icsp', holeGrid(T, [11.6, 14.14, 16.68].map(X), [5.67, 8.21].map(Y), L(0.9), L(0.4)));
   // The USB bridge chip with its crystal and capacitors, right of the USB.
   s += tag(
     'chip',
@@ -583,18 +550,7 @@ function resetButton(T, f, X, Y, L, x, y) {
 /** The power end they share: the regulator, the two electrolytics, the barrel jack over the edge and the PWR print; withCrystal adds the HC-49 crystal and its capacitors where the Uno has them. */
 function unoPowerEnd(T, f, X, Y, L, withCrystal) {
   let s = '';
-  s += tag(
-    'regulator',
-    rect(X(15.0), Y(24.2), L(4.8), L(1.6), T.metal, { rx: 0.3 }) +
-      rect(
-        X(14.5),
-        Y(25.6),
-        L(5.8),
-        L(5.0),
-        T['plastic-black'],
-        Object.assign({ rx: 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
-      ),
-  );
+  s += sot223(T, [X(15.0), Y(24.2), L(4.8), L(1.6)], [X(14.5), Y(25.6), L(5.8), L(5.0)]);
   if (withCrystal)
     s += tag(
       'crystal',
@@ -680,7 +636,7 @@ function landscapeBoard(props) {
     [66.04, 45.66],
     [13.97, 50.74],
   ].forEach(c => {
-    s += tag('hole', circle(X(c[0]), Y(c[1]), L(1.6), T.hole, edge(T, T.pad, 1.0)));
+    s += hole(T, X(c[0]), Y(c[1]), L(1.6), 1.0);
   });
   // Header rows at the real positions: the top row's first pin 18.46 mm from the left edge, the bottom row's four pitches further on.
   const topY = Y(2.54);
@@ -742,13 +698,7 @@ function landscapeBoard(props) {
   if (props.label) s += text(X(46.0), Y(27.6), props.label, 11, f.silk, { 'font-weight': 700 });
   if (props.mark !== false) s += silkMark(X(60.3), Y(11.0), 0.8 * p, f.silk);
   // The ICSP block at the right edge, the controller, its crystal and capacitors, the regulator and the two electrolytics by the jack.
-  let icsp = '';
-  [64.27, 66.81].forEach(cx => {
-    [21.37, 23.91, 26.45].forEach(cy => {
-      icsp += circle(X(cx), Y(cy), L(0.9), T.pad) + circle(X(cx), Y(cy), L(0.4), T.hole);
-    });
-  });
-  s += tag('icsp', icsp);
+  s += tag('icsp', holeGrid(T, [64.27, 66.81].map(X), [21.37, 23.91, 26.45].map(Y), L(0.9), L(0.4)));
   s += text(X(65.54), Y(30.4), 'ICSP', PIN_LABEL, f.silk);
   s += dipOnBoard(T, X(28.5), Y(36.0), 14, props.chipLabel);
   s += unoPowerEnd(T, f, X, Y, L, true);
@@ -756,9 +706,16 @@ function landscapeBoard(props) {
   const silk = silkOf(props);
   const row = function (groups, x, y, side) {
     groups.forEach(g => {
-      const hdr = header({ x, y, labels: g.map(silk), kind, side, silk: f.silk, size: PIN_LABEL, rotate: true });
-      hdr.pins.forEach((pn, i) => {
-        pn.name = g[i];
+      const hdr = header({
+        x,
+        y,
+        labels: g.map(silk),
+        kind,
+        side,
+        silk: f.silk,
+        size: PIN_LABEL,
+        rotate: true,
+        names: g,
       });
       s += hdr.svg;
       pins = pins.concat(hdr.pins);
@@ -775,7 +732,7 @@ function landscapeBoard(props) {
       g.forEach((name, i) => {
         if (props.pwm.indexOf(name) >= 0) {
           const x = px0 + i * p;
-          const ty = topY + gapR + silkOf(props)(name).length * PIN_LABEL * 0.62 + 1.6;
+          const ty = topY + gapR + textWidth(silkOf(props)(name).length, PIN_LABEL) + 1.6;
           s += text(x, ty, '~', PIN_LABEL, f.silk, {
             'text-anchor': 'end',
             'dominant-baseline': 'middle',
@@ -787,46 +744,6 @@ function landscapeBoard(props) {
     });
   }
   return art(w, h, props.description || props.label || 'Microcontroller board', s, pins);
-}
-
-/**
- * A quad flat package on a board: gull-wing leads on all four sides, the
- * body, the pin-1 dot and the part number (one line, or split before the
- * digits where it does not fit). nSide is the lead count per side.
- */
-export function qfp(T, x, y, w, h, nSide, label) {
-  let s = '';
-  const lead = 1.5;
-  const lw = Math.min(1.2, ((w - 4) / nSide) * 0.55);
-  for (let i = 0; i < nSide; i++) {
-    const ox = 2 + ((i + 0.5) * (w - 4)) / nSide - lw / 2;
-    const oy = 2 + ((i + 0.5) * (h - 4)) / nSide - lw / 2;
-    s += rect(x - lead, y + oy, lead, lw, T.lead, { rx: 0.2 }) + rect(x + w, y + oy, lead, lw, T.lead, { rx: 0.2 });
-    s += rect(x + ox, y - lead, lw, lead, T.lead, { rx: 0.2 }) + rect(x + ox, y + h, lw, lead, T.lead, { rx: 0.2 });
-  }
-  s += rect(x, y, w, h, T.chip, Object.assign({ rx: T['radius-chip'] }, edge(T, T['chip-edge'])));
-  s += rect(x + 0.6, y + 0.6, w - 1.2, 1.1, '#ffffff', { rx: 0.5, 'fill-opacity': T['opacity-light'] * 0.4 });
-  s += circle(x + 3.2, y + 3.2, 0.9, T['chip-print']);
-  if (label) {
-    const fit = Math.floor((w - 2.4) / (PIN_LABEL * 0.62));
-    const lbl = String(label);
-    const cx = x + w / 2;
-    const cy = y + h / 2;
-    if (lbl.length <= fit && h >= 3 * PIN_LABEL + 2)
-      s +=
-        text(cx, cy - 0.6, lbl, PIN_LABEL, T['chip-print']) +
-        text(cx, cy + PIN_LABEL + 0.4, lotCode(lbl), PIN_LABEL, T['chip-print'], { 'fill-opacity': 0.85 });
-    else if (lbl.length <= fit) s += text(cx, cy + 1.4, lbl, PIN_LABEL, T['chip-print']);
-    else if (fit >= 4 && lbl.length <= 2 * fit) {
-      const dm = /^[A-Za-z]+(?=\d)/.exec(lbl);
-      const cut =
-        dm && dm[0].length <= fit && lbl.length - dm[0].length <= fit ? dm[0].length : Math.ceil(lbl.length / 2);
-      s +=
-        text(cx, cy - 0.8, lbl.slice(0, cut), PIN_LABEL, T['chip-print']) +
-        text(cx, cy + PIN_LABEL - 0.4, lbl.slice(cut), PIN_LABEL, T['chip-print']);
-    }
-  }
-  return tag('chip', s);
 }
 
 /**
@@ -883,6 +800,41 @@ function axialOnBoard(T, x0, y0, x1, y1, props) {
   return tag('smd', s);
 }
 
+/** Bare plated holes at every x of xs and y of ys, as a header's footprint with nothing fitted: pad and hole radii. */
+function holeGrid(T, xs, ys, pad, hole) {
+  let s = '';
+  for (const x of xs) for (const y of ys) s += circle(x, y, pad, T.pad) + circle(x, y, hole, T.hole);
+  return s;
+}
+/** A meander antenna from x0 to x1: square waves half a pitch long and h deep, hanging from y. */
+function meander(T, x0, x1, y, h) {
+  const step = 0.5 * T.pitch;
+  let d = '';
+  for (let x = x0; x + step <= x1; x += step)
+    d += `${(x === x0 ? 'M' : 'L') + r2(x)} ${r2(y)}L${r2(x)} ${r2(y + h)}L${r2(x + step / 2)} ${r2(y + h)}L${r2(x + step / 2)} ${r2(y)}L${r2(x + step)} ${r2(y)}`;
+  return tag('antenna', path(d, 'none', { stroke: T.pad, 'stroke-width': 0.9, 'stroke-linejoin': 'round' }));
+}
+/** A radio module's shield can, lit along its top and shaded along its bottom. */
+function shieldCan(T, x, y, w, h) {
+  const p = T.pitch;
+  return (
+    tag('module', rect(x, y, w, h, T.metal, Object.assign({ rx: 1.2 }, edge(T, T['metal-edge'])))) +
+    rect(x, y, w, 1.0 * p, '#ffffff', { rx: 1.2, 'fill-opacity': 0.22 }) +
+    rect(x, y + h - 0.7 * p, w, 0.7 * p, '#000000', { rx: 1, 'fill-opacity': 0.12 })
+  );
+}
+/** A SOT-223 regulator from above: its metal tab and its black body, each [x, y, w, h], with their corner radii. */
+function sot223(T, tab, body, radii = [0.3, 0.4]) {
+  return tag(
+    'regulator',
+    rect(...tab, T.metal, { rx: radii[0] }) +
+      rect(
+        ...body,
+        T['plastic-black'],
+        Object.assign({ rx: radii[1] }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
+      ),
+  );
+}
 /** The micro USB receptacle, pointing down unless mouth says otherwise. */
 function microUsb(T, cx, y, w, h, mouth) {
   return usbPort(T, { kind: 'micro', x: cx - w / 2, y, w, h, mouth: mouth || 'down' });
@@ -984,7 +936,7 @@ export function megaBoardTemplate(props) {
     [89.9, 2.54, 1.5],
     [96.52, 50.8],
   ].forEach(c => {
-    s += tag('hole', circle(X(c[0]), Y(c[1]), L(c[2] || 1.6), T.hole, edge(T, T.pad, 1.0)));
+    s += hole(T, X(c[0]), Y(c[1]), L(c[2] || 1.6), 1.0);
   });
   const topY = Y(2.54);
   const botY = Y(50.8);
@@ -1079,13 +1031,7 @@ export function megaBoardTemplate(props) {
     ),
   );
   s += smd(T, 'capacitor', X(36.5), Y(23.5), true) + smd(T, 'capacitor', X(39.5), Y(35.0), true);
-  let icsp = '';
-  [63.63, 66.17].forEach(cx => {
-    [22.86, 25.4, 27.94].forEach(cy => {
-      icsp += circle(X(cx), Y(cy), L(0.9), T.pad) + circle(X(cx), Y(cy), L(0.4), T.hole);
-    });
-  });
-  s += tag('icsp', icsp);
+  s += tag('icsp', holeGrid(T, [63.63, 66.17].map(X), [22.86, 25.4, 27.94].map(Y), L(0.9), L(0.4)));
   s += text(X(64.9), Y(31.4), 'ICSP', PIN_LABEL, f.silk);
   s += smd(T, 'resistor', X(79.6), Y(18.6), false) + smd(T, 'capacitor', X(67.0), Y(38.5), true);
   s += unoPowerEnd(T, f, X, Y, L, false);
@@ -1093,9 +1039,16 @@ export function megaBoardTemplate(props) {
   const silk = silkOf(props);
   const row = function (groups, x, y, side, gaps) {
     groups.forEach((g, k) => {
-      const hdr = header({ x, y, labels: g.map(silk), kind, side, silk: f.silk, size: PIN_LABEL, rotate: true });
-      hdr.pins.forEach((pn, i) => {
-        pn.name = g[i];
+      const hdr = header({
+        x,
+        y,
+        labels: g.map(silk),
+        kind,
+        side,
+        silk: f.silk,
+        size: PIN_LABEL,
+        rotate: true,
+        names: g,
       });
       s += hdr.svg;
       pins = pins.concat(hdr.pins);
@@ -1121,7 +1074,7 @@ export function megaBoardTemplate(props) {
       g.forEach((name, i) => {
         if (props.pwm.indexOf(name) >= 0) {
           const x = px0 + i * p;
-          const ty = topY + gapR + silkOf(props)(name).length * PIN_LABEL * 0.62 + 1.6;
+          const ty = topY + gapR + textWidth(silkOf(props)(name).length, PIN_LABEL) + 1.6;
           s += text(x, ty, '~', PIN_LABEL, f.silk, {
             'text-anchor': 'end',
             'dominant-baseline': 'middle',
@@ -1194,7 +1147,7 @@ export function franzininho(props) {
     [9.6, 27.45],
     [48.6, 27.45],
   ].forEach(c => {
-    s += tag('hole', circle(X(c[0]), Y(c[1]), L(1.5), T.hole, edge(T, T.pad)));
+    s += hole(T, X(c[0]), Y(c[1]), L(1.5));
   });
   // The USB-A plug: the 12 mm shell from its mouth to its rear on the board, the two latch windows near the mouth, then its four pins behind it, D+ and D- on to R1 and R2.
   const py = 15.03;
@@ -1207,9 +1160,7 @@ export function franzininho(props) {
     rect(X(-13.6), Y(py + 2.5), L(2.4), L(1.8), T.cavity, { rx: 0.4 });
   usb += line(X(-1.2), Y(py - 6) + 1, X(-1.2), Y(py + 6) - 1, T['metal-edge'], T['stroke-fine']);
   s += tag('usb', usb);
-  [11.53, 13.9, 16.16, 18.53].forEach(y => {
-    s += circle(X(5.39), Y(y), L(0.9), T.pad) + circle(X(5.39), Y(y), L(0.4), T.hole);
-  });
+  s += holeGrid(T, [X(5.39)], [11.53, 13.9, 16.16, 18.53].map(Y), L(0.9), L(0.4));
   s +=
     trace(T, fin, [
       [X(5.39), Y(13.9)],
@@ -1341,6 +1292,7 @@ export function franzininho(props) {
     side: 'right',
     silk: f.silk,
     size: PIN_LABEL,
+    names: side,
   });
   const rw = header({
     x: rowX,
@@ -1351,12 +1303,7 @@ export function franzininho(props) {
     side: 'below',
     silk: f.silk,
     size: PIN_LABEL,
-  });
-  col.pins.forEach((pn, k) => {
-    pn.name = side[k];
-  });
-  rw.pins.forEach((pn, k) => {
-    pn.name = power[k];
+    names: power,
   });
   s += col.svg + rw.svg;
   return art(w, h, props.description || props.label || 'ATtiny85 board', s, col.pins.concat(rw.pins));
@@ -1438,16 +1385,9 @@ export function espDevKitTemplate(props) {
   const ax0 = mx + 0.4 * p;
   const ax1 = mx + mw - 0.4 * p;
   const ay = 0.7 * p;
-  let d = '';
-  const step = 0.5 * p;
   s += rect(mx, 0.4 * p, mw, 2.6 * p, T['pcb-black'], { rx: 1, 'fill-opacity': 0.5 });
-  for (let ax = ax0; ax + step <= ax1; ax += step)
-    d += `${(ax === ax0 ? 'M' : 'L') + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + 1.2 * p)}L${r2(ax + step / 2)} ${r2(ay + 1.2 * p)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-  s += tag('antenna', path(d, 'none', { stroke: T.pad, 'stroke-width': 0.9, 'stroke-linejoin': 'round' }));
-  s += tag('module', rect(mx, 2.9 * p, mw, 7.5 * p, T.metal, Object.assign({ rx: 1.2 }, edge(T, T['metal-edge']))));
-  s +=
-    rect(mx, 2.9 * p, mw, 1.0 * p, '#ffffff', { rx: 1.2, 'fill-opacity': 0.22 }) +
-    rect(mx, 9.7 * p, mw, 0.7 * p, '#000000', { rx: 1, 'fill-opacity': 0.12 });
+  s += meander(T, ax0, ax1, ay, 1.2 * p);
+  s += shieldCan(T, mx, 2.9 * p, mw, 7.5 * p);
   if (props.chipLabel)
     s += text(
       w / 2,
@@ -1460,18 +1400,7 @@ export function espDevKitTemplate(props) {
   s += text(w / 2, 7.6 * p, lotCode(props.chipLabel || 'ESP32'), PIN_LABEL, T['chip-edge'], { 'fill-opacity': 0.8 });
   // Below the module: the USB bridge (QFN-28) on the left, the regulator (SOT-223) on the right, the LEDs, passives.
   s += qfp(T, 3.2 * p, 11.3 * p, 1.9 * p, 1.9 * p, 7, 'CP2102');
-  s += tag(
-    'regulator',
-    rect(6.9 * p, 11.2 * p, 1.6 * p, 0.6 * p, T.metal, { rx: 0.3 }) +
-      rect(
-        6.7 * p,
-        11.75 * p,
-        2.0 * p,
-        1.5 * p,
-        T['plastic-black'],
-        Object.assign({ rx: 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
-      ),
-  );
+  s += sot223(T, [6.9 * p, 11.2 * p, 1.6 * p, 0.6 * p], [6.7 * p, 11.75 * p, 2.0 * p, 1.5 * p]);
   s += indicator({
     x: 2.4 * p,
     y: 14.2 * p,
@@ -1516,6 +1445,7 @@ export function espDevKitTemplate(props) {
     side: 'right',
     silk: f.silk,
     size: PIN_LABEL,
+    names: left,
   });
   const rh = header({
     x: rightX,
@@ -1526,12 +1456,7 @@ export function espDevKitTemplate(props) {
     side: 'left',
     silk: f.silk,
     size: PIN_LABEL,
-  });
-  lh.pins.forEach((pn, i) => {
-    pn.name = left[i];
-  });
-  rh.pins.forEach((pn, i) => {
-    pn.name = right[i];
+    names: right,
   });
   s += lh.svg + rh.svg;
   return art(w, h, props.description || props.label || 'ESP32 development board', s, lh.pins.concat(rh.pins));
@@ -1593,19 +1518,9 @@ function devKitC(props) {
   const ax0 = mx + 0.4 * p;
   const ax1 = mx + mw - 0.4 * p;
   const ay = 0.5 * p;
-  let d = '';
-  const step = 0.5 * p;
   s += rect(mx, 0, mw, 10.0 * p, T['pcb-black'], Object.assign({ rx: 1 }, edge(T, f.edge, T['stroke-fine'])));
-  for (let ax = ax0; ax + step <= ax1; ax += step)
-    d += `${(ax === ax0 ? 'M' : 'L') + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + 1.2 * p)}L${r2(ax + step / 2)} ${r2(ay + 1.2 * p)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-  s += tag('antenna', path(d, 'none', { stroke: T.pad, 'stroke-width': 0.9, 'stroke-linejoin': 'round' }));
-  s += tag(
-    'module',
-    rect(mx + 0.3 * p, 2.65 * p, mw - 0.6 * p, 6.85 * p, T.metal, Object.assign({ rx: 1.2 }, edge(T, T['metal-edge']))),
-  );
-  s +=
-    rect(mx + 0.3 * p, 2.65 * p, mw - 0.6 * p, 1.0 * p, '#ffffff', { rx: 1.2, 'fill-opacity': 0.22 }) +
-    rect(mx + 0.3 * p, 8.8 * p, mw - 0.6 * p, 0.7 * p, '#000000', { rx: 1, 'fill-opacity': 0.12 });
+  s += meander(T, ax0, ax1, ay, 1.2 * p);
+  s += shieldCan(T, mx + 0.3 * p, 2.65 * p, mw - 0.6 * p, 6.85 * p);
   if (props.chipLabel)
     s += text(
       w / 2,
@@ -1619,18 +1534,7 @@ function devKitC(props) {
   if (props.label) s += text(w / 2, h - 10.6 * p, props.label, 4.4, f.silk);
   // Below the module: the regulator (SOT-223), the USB bridge (QFN-28), the power LED, passives.
   const b = h - 21.5 * p;
-  s += tag(
-    'regulator',
-    rect(3.7 * p, b + 12.3 * p, 1.6 * p, 0.6 * p, T.metal, { rx: 0.3 }) +
-      rect(
-        3.5 * p,
-        b + 12.85 * p,
-        2.0 * p,
-        1.5 * p,
-        T['plastic-black'],
-        Object.assign({ rx: 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
-      ),
-  );
+  s += sot223(T, [3.7 * p, b + 12.3 * p, 1.6 * p, 0.6 * p], [3.5 * p, b + 12.85 * p, 2.0 * p, 1.5 * p]);
   s += qfp(T, 5.0 * p, b + 16.3 * p, 1.9 * p, 1.9 * p, 7, 'CP2102');
   s += indicator({
     x: 2.3 * p,
@@ -1663,6 +1567,7 @@ function devKitC(props) {
     side: 'right',
     silk: f.silk,
     size: PIN_LABEL,
+    names: left,
   });
   const rh = header({
     x: rightX,
@@ -1673,12 +1578,7 @@ function devKitC(props) {
     side: 'left',
     silk: f.silk,
     size: PIN_LABEL,
-  });
-  lh.pins.forEach((pn, i) => {
-    pn.name = left[i];
-  });
-  rh.pins.forEach((pn, i) => {
-    pn.name = right[i];
+    names: right,
   });
   s += lh.svg + rh.svg;
   return art(w, h, props.description || props.label || 'ESP32 development board', s, lh.pins.concat(rh.pins));
@@ -1766,19 +1666,9 @@ function devKit1(props) {
   const ax1 = mx + mw - M(1.0);
   const ay = M(0.9);
   const antH = M(Math.min(2.6, ov - 2.0));
-  let d = '';
-  const step = 0.5 * p;
   s += rect(mx, 0, mw, mh, T['pcb-black'], Object.assign({ rx: 1 }, edge(T, f.edge, T['stroke-fine'])));
-  for (let ax = ax0; ax + step <= ax1; ax += step)
-    d += `${(ax === ax0 ? 'M' : 'L') + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-  s += tag('antenna', path(d, 'none', { stroke: T.pad, 'stroke-width': 0.9, 'stroke-linejoin': 'round' }));
-  s += tag(
-    'module',
-    rect(mx + inset, shY, mw - 2 * inset, shH, T.metal, Object.assign({ rx: 1.2 }, edge(T, T['metal-edge']))),
-  );
-  s +=
-    rect(mx + inset, shY, mw - 2 * inset, 1.0 * p, '#ffffff', { rx: 1.2, 'fill-opacity': 0.22 }) +
-    rect(mx + inset, shY + shH - 0.7 * p, mw - 2 * inset, 0.7 * p, '#000000', { rx: 1, 'fill-opacity': 0.12 });
+  s += meander(T, ax0, ax1, ay, antH);
+  s += shieldCan(T, mx + inset, shY, mw - 2 * inset, shH);
   // The module's name on one line, or on two split at a hyphen when one line would print under the kit's smallest size.
   if (props.chipLabel) {
     const room = mw - 2 * inset - 1.0 * p;
@@ -1841,18 +1731,7 @@ function devKit1(props) {
   const y1 = low - M(1.2);
   const cx = (x0 + x1) / 2;
   const ym = (y0 + y1) / 2;
-  s += tag(
-    'regulator',
-    rect(x0 + M(1.6), y0, M(3.0), M(1.2), T.metal, { rx: 0.3 }) +
-      rect(
-        x0,
-        y0 + M(1.0),
-        M(6.2),
-        M(3.4),
-        T['plastic-black'],
-        Object.assign({ rx: 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
-      ),
-  );
+  s += sot223(T, [x0 + M(1.6), y0, M(3.0), M(1.2)], [x0, y0 + M(1.0), M(6.2), M(3.4)]);
   s += indicator({
     x: x1 - M(1.4),
     y: y0 + M(1.6),
@@ -1936,28 +1815,18 @@ export function nanoConnectTemplate(props) {
     [leftX, M(41.91)],
     [rightX, M(41.91)],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], M(0.82), T.hole, edge(T, T.pad, 1.0)));
+    s += hole(T, c[0], c[1], M(0.82), 1.0);
   });
   // The radio module from the board's end: its own board with the meander antenna, then the shield can.
   const ax0 = mx + M(0.8);
   const ax1 = mx + mw - M(0.8);
   const ay = M(0.8);
   const antH = M(2.0);
-  let d = '';
-  const step = 0.5 * p;
   const shY = M(3.9);
   const shH = M(9.7);
   s += rect(mx, my, mw, mh, T['pcb-black'], Object.assign({ rx: 1 }, edge(T, f.edge, T['stroke-fine'])));
-  for (let ax = ax0; ax + step <= ax1; ax += step)
-    d += `${(ax === ax0 ? 'M' : 'L') + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-  s += tag('antenna', path(d, 'none', { stroke: T.pad, 'stroke-width': 0.9, 'stroke-linejoin': 'round' }));
-  s += tag(
-    'module',
-    rect(mx + M(0.35), shY, mw - M(0.7), shH, T.metal, Object.assign({ rx: 1.2 }, edge(T, T['metal-edge']))),
-  );
-  s +=
-    rect(mx + M(0.35), shY, mw - M(0.7), 1.0 * p, '#ffffff', { rx: 1.2, 'fill-opacity': 0.22 }) +
-    rect(mx + M(0.35), shY + shH - 0.7 * p, mw - M(0.7), 0.7 * p, '#000000', { rx: 1, 'fill-opacity': 0.12 });
+  s += meander(T, ax0, ax1, ay, antH);
+  s += shieldCan(T, mx + M(0.35), shY, mw - M(0.7), shH);
   s +=
     text(w / 2, shY + shH * 0.45, props.moduleLabel || 'NINA-W102', 4.4, T['chip-edge'], { 'font-weight': 600 }) +
     text(w / 2, shY + shH * 0.45 + 1.4 * p, lotCode(props.moduleLabel || 'NINA'), PIN_LABEL, T['chip-edge'], {
@@ -2132,7 +2001,7 @@ export function nucleo64BoardTemplate(props) {
     [X0 + M(55.6), top - M(4.1)],
     [X0 + M(40.0), top + M(47.6)],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], M(1.6), T.hole, edge(T, T.pad, 1.0)));
+    s += hole(T, c[0], c[1], M(1.6), 1.0);
   });
   // Traces from every pad in toward the controller.
   for (let r = 0; r < 19; r++) {
@@ -2181,10 +2050,8 @@ export function nucleo64BoardTemplate(props) {
     jp += circle(c[0], c[1], 0.3 * p, T.pad) + circle(c[0], c[1], 0.14 * p, T.hole);
   });
   s += tag('icsp', jp) + text(M(21.9), M(9.6), 'CN2', PIN_LABEL, f.silk);
-  let swd = '';
-  for (let k = 0; k < 6; k++)
-    swd += circle(M(8.0), M(9.8) + k * p, 0.3 * p, T.pad) + circle(M(8.0), M(9.8) + k * p, 0.14 * p, T.hole);
-  s += tag('icsp', swd) + text(M(11.6), M(16.4), 'SWD', PIN_LABEL, f.silk);
+  const swd = Array.from({ length: 6 }, (_, k) => M(9.8) + k * p);
+  s += tag('icsp', holeGrid(T, [M(8.0)], swd, 0.3 * p, 0.14 * p)) + text(M(11.6), M(16.4), 'SWD', PIN_LABEL, f.silk);
   s += text(M(34.5), M(22.6), 'DEBUGGER', PIN_LABEL, f.silk, { 'fill-opacity': 0.8 });
   s += line(1.5 * p, M(25.9), w - 1.5 * p, M(25.9), f.silk, T['stroke-fine'], {
     'stroke-dasharray': '3 2.4',
@@ -2232,18 +2099,7 @@ export function nucleo64BoardTemplate(props) {
     finish: fin,
     label: 'LD4',
   });
-  s += tag(
-    'regulator',
-    rect(M(20.0), M(37.6), M(3.0), M(1.4), T.metal, { rx: 0.3 }) +
-      rect(
-        M(18.3),
-        M(38.8),
-        M(6.5),
-        M(3.5),
-        T['plastic-black'],
-        Object.assign({ rx: 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
-      ),
-  );
+  s += sot223(T, [M(20.0), M(37.6), M(3.0), M(1.4)], [M(18.3), M(38.8), M(6.5), M(3.5)]);
   s += qfp(T, M(31.0), M(52.2), M(7.6), M(7.6), 12, props.chipLabel || 'STM32C031C6');
   s +=
     smd(T, 'crystal', M(22.0), M(53.0), false) +
@@ -2309,11 +2165,6 @@ export function nucleo64BoardTemplate(props) {
   return art(w, h, props.description || props.label || 'Nucleo-64 board', s, pins);
 }
 
-/** A USB-C receptacle at the bottom edge, pointing down. */
-export function usbC(T, cx, y, w, h, mouth) {
-  return usbPort(T, { kind: 'c', x: cx - w / 2, y, w, h, mouth: mouth || 'down' });
-}
-
 /**
  * The Raspberry Pi Pico as photographed: a green 21 x 51 mm board with
  * twenty castellated pads a side named on the silk, the micro USB at the
@@ -2347,7 +2198,7 @@ export function picoBoardTemplate(props) {
     [2.6 * p, 18.0 * p],
     [5.7 * p, 18.0 * p],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   left.forEach((_, k) => {
     const y = top + k * p;
@@ -2409,6 +2260,7 @@ export function picoBoardTemplate(props) {
     side: 'right',
     silk: f.silk,
     size: PIN_LABEL,
+    names: left,
   });
   const rh = header({
     x: rightX,
@@ -2419,12 +2271,7 @@ export function picoBoardTemplate(props) {
     side: 'left',
     silk: f.silk,
     size: PIN_LABEL,
-  });
-  lh.pins.forEach((pn, i) => {
-    pn.name = left[i];
-  });
-  rh.pins.forEach((pn, i) => {
-    pn.name = right[i];
+    names: right,
   });
   s += lh.svg + rh.svg + dbg.svg.replace(/<text[^>]*>[^<]*<\/text>/g, '');
   return art(
@@ -2544,6 +2391,7 @@ export function nucleo32BoardTemplate(props) {
     side: 'right',
     silk: f.silk,
     size: PIN_LABEL,
+    names: left,
   });
   const rh = header({
     x: rightX,
@@ -2554,12 +2402,7 @@ export function nucleo32BoardTemplate(props) {
     side: 'left',
     silk: f.silk,
     size: PIN_LABEL,
-  });
-  lh.pins.forEach((pn, i) => {
-    pn.name = left[i];
-  });
-  rh.pins.forEach((pn, i) => {
-    pn.name = right[i];
+    names: right,
   });
   s += lh.svg + rh.svg;
   return art(w, h, props.description || props.label || 'Nucleo-32 board', s, lh.pins.concat(rh.pins, extra));
@@ -2810,4 +2653,510 @@ export function bluePillBoard(props) {
       return { name: n, x: at[n].x, y: at[n].y };
     });
   return art(w, h, props.description || props.label || 'STM32F103C8 Blue Pill board', s, pins);
+}
+
+// The catalog's boards: each template filled in with a real board's pins, silk and options, so a call with no options
+// draws that board. Each takes the options its catalog entry lists (src/options.js): a board's `indicators`.
+/** A board's indicators, unlit unless the caller lights them. */
+function lights(props, user) {
+  const ind = (props && props.indicators) || {};
+  return user === false ? { power: ind.power === true } : { power: ind.power === true, user: ind.user || false };
+}
+
+// Uno-class, Nano-class and Mega-class boards.
+
+/** The Uno-class board: its header groups as the catalog has them; the silk prints SCL and SDA on the second A5 and A4, as the board does. */
+export function unoClassBoard(props) {
+  return devBoardTemplate({
+    layout: 'landscape',
+    label: 'UNO-CLASS',
+    chipLabel: 'ATMEGA328P',
+    labels: { 'A5.2': 'SCL', 'A4.2': 'SDA' },
+    top: [
+      ['A5.2', 'A4.2', 'AREF', 'GND', '13', '12', '11', '10', '9', '8'],
+      ['7', '6', '5', '4', '3', '2', '1', '0'],
+    ],
+    bottom: [
+      ['NC', 'IOREF', 'RESET', '3.3V', '5V', 'GND.2', 'GND.3', 'VIN'],
+      ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
+    ],
+    groupNames: { top: ['DIGITAL (PWM ~)'], bottom: ['POWER', 'ANALOG IN'] },
+    pwm: ['3', '5', '6', '9', '10', '11'],
+    indicators: lights(props),
+    description: 'Uno-class board',
+  });
+}
+
+const NANO_LABELS = { 0: 'RX0', 1: 'TX1', '3.3V': '3V3', AREF: 'REF', RESET: 'RST', 'RESET.2': 'RST' };
+for (let nanoDigit = 2; nanoDigit <= 13; nanoDigit++) NANO_LABELS[String(nanoDigit)] = `D${nanoDigit}`;
+
+/** The Nano-class board at its real 18.5 mm width, upright with the USB at the top, the ICSP header's six pins at the far end. */
+export function nanoClassBoard(props) {
+  return devBoardTemplate({
+    label: 'NANO-CLASS',
+    chipLabel: 'ATMEGA328P',
+    pinKind: 'pad',
+    widthPitches: 7.2,
+    labels: NANO_LABELS,
+    left: ['13', '3.3V', 'AREF', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', '5V', 'RESET', 'GND', 'VIN'],
+    right: ['12', '11', '10', '9', '8', '7', '6', '5', '4', '3', '2', 'GND.2', 'RESET.2', '0', '1'],
+    icsp: ['12.2', '5V.2', '13.2', '11.2', 'RESET.3', 'GND.3'],
+    indicators: lights(props),
+    description: 'Nano-class board',
+  });
+}
+
+function numbered(from, count, step) {
+  const out = [];
+  for (let i = 0; i < count; i++) out.push(String(from + i * step));
+  return out;
+}
+
+/** The Mega-class board: the digital and communication headers, the 2 x 18 block read row by row, power and both analog groups. */
+export function megaClassBoard(props) {
+  return megaBoardTemplate({
+    label: 'MEGA-CLASS',
+    chipLabel: 'ATMEGA2560',
+    top: [
+      ['SCL', 'SDA', 'AREF', 'GND', '13', '12', '11', '10', '9', '8'],
+      ['7', '6', '5', '4', '3', '2', '1', '0'],
+      numbered(14, 8, 1),
+    ],
+    block: {
+      left: ['5V.2'].concat(numbered(22, 16, 2), ['GND.4']),
+      right: ['5V.3'].concat(numbered(23, 16, 2), ['GND.5']),
+    },
+    bottom: [
+      ['IOREF', 'RESET', '3.3V', '5V', 'GND.2', 'GND.3', 'VIN'],
+      numbered(0, 8, 1).map(n => {
+        return `A${n}`;
+      }),
+      numbered(8, 8, 1).map(n => {
+        return `A${n}`;
+      }),
+    ],
+    groupNames: { top: ['DIGITAL (PWM ~)', 'COMMUNICATION'], bottom: ['POWER', 'ANALOG IN'] },
+    pwm: numbered(2, 12, 1),
+    indicators: lights(props),
+    description: 'Mega-class board',
+  });
+}
+
+/** The Nano RP2040 Connect, upright with the USB at the bottom: D12 and D13 at the USB end, TX at the far end after RX. */
+export function nanoRp2040Board(props) {
+  return nanoConnectTemplate({
+    label: 'NANO RP2040',
+    chipLabel: 'RP2040',
+    left: ['TX', 'RX', 'RESET', 'GND', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12'],
+    right: ['VIN', 'GND.2', 'REC', '5V', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1', 'A0', 'AREF', '3.3V', 'D13'],
+    indicators: lights(props),
+    description: 'Nano RP2040 Connect board',
+  });
+}
+
+/** The Pico-class board: two 20-pin castellated rows read from the USB end; the eight grounds numbered by physical pin. */
+export function picoClassBoard(props) {
+  return picoBoardTemplate({
+    label: 'PICO-CLASS',
+    chipLabel: 'RP2040',
+    debugPins: false,
+    indicators: lights(props),
+    description: 'Pico-class board',
+    left: [
+      'GP0',
+      'GP1',
+      'GND',
+      'GP2',
+      'GP3',
+      'GP4',
+      'GP5',
+      'GND.2',
+      'GP6',
+      'GP7',
+      'GP8',
+      'GP9',
+      'GND.3',
+      'GP10',
+      'GP11',
+      'GP12',
+      'GP13',
+      'GND.4',
+      'GP14',
+      'GP15',
+    ],
+    right: [
+      'VBUS',
+      'VSYS',
+      'GND.8',
+      '3V3_EN',
+      '3V3',
+      'ADC_VREF',
+      'GP28',
+      'GND.7',
+      'GP27',
+      'GP26',
+      'RUN',
+      'GP22',
+      'GND.6',
+      'GP21',
+      'GP20',
+      'GP19',
+      'GP18',
+      'GND.5',
+      'GP17',
+      'GP16',
+    ],
+  });
+}
+
+// ESP32 development boards in Espressif's DevKit formats: two headers 0.9 inch apart, read from the module end.
+
+/** The ESP32 DevKit V1: two 15-pin rows, the blue LED on GPIO2. */
+export function esp32DevKitV1(props) {
+  return espDevKitTemplate({
+    label: 'ESP32 DEVKIT V1',
+    chipLabel: 'ESP-WROOM-32',
+    indicators: lights(props),
+    description: 'ESP32 development board',
+    left: ['EN', 'VP', 'VN', 'D34', 'D35', 'D32', 'D33', 'D25', 'D26', 'D27', 'D14', 'D12', 'D13', 'GND.2', 'VIN'],
+    right: ['D23', 'D22', 'TX0', 'RX0', 'D21', 'D19', 'D18', 'D5', 'TX2', 'RX2', 'D4', 'D2', 'D15', 'GND', '3V3'],
+  });
+}
+
+/** The ESP32-DevKitC V4 (headers J2 and J3): a WROOM-32 module over the rows, no user LED, 19-pin rows (CLK, CMD and D0 to D3 are the module's flash pins). */
+export function esp32DevKitCV4(props) {
+  return espDevKitTemplate({
+    label: 'ESP32 DEVKITC V4',
+    chipLabel: 'ESP32-WROOM-32D',
+    layout: 'devkitc',
+    indicators: lights(props, false),
+    description: 'ESP32 development board',
+    left: [
+      '3V3',
+      'EN',
+      'VP',
+      'VN',
+      '34',
+      '35',
+      '32',
+      '33',
+      '25',
+      '26',
+      '27',
+      '14',
+      '12',
+      'GND',
+      '13',
+      'D2',
+      'D3',
+      'CMD',
+      '5V',
+    ],
+    right: [
+      'GND.2',
+      '23',
+      '22',
+      'TX',
+      'RX',
+      '21',
+      'GND.3',
+      '19',
+      '18',
+      '5',
+      '17',
+      '16',
+      '4',
+      '0',
+      '2',
+      '15',
+      'D1',
+      'D0',
+      'CLK',
+    ],
+  });
+}
+
+/** A DevKitM-1 or DevKitC-1 at its true size (espDevKitTemplate layout 'devkit-1'): spec.size is the module, board length, antenna overhang and first pin's offset from Espressif's dimension drawing. */
+function moduleDevKit(spec, props) {
+  return espDevKitTemplate({
+    layout: 'devkit-1',
+    module: spec.size[0],
+    length: spec.size[1],
+    overhang: spec.size[2],
+    firstPin: spec.size[3],
+    usb: spec.usb,
+    buttons: spec.buttons,
+    bridge: spec.bridge,
+    label: spec.label,
+    chipLabel: spec.module,
+    left: spec.left,
+    right: spec.right,
+    indicators: { power: lights(props).power },
+    description: spec.description,
+  });
+}
+
+/** The ESP32-C3 DevKitM-1: the C3-MINI-1 module, a micro USB. */
+export function esp32C3DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-C3-MINI-1',
+      label: 'DEVKITM-1',
+      size: ['mini', 38.91, 5.35, 1.68],
+      usb: 'micro',
+      buttons: ['BOOT', 'RST'],
+      bridge: 'CP2102N',
+      description: 'ESP32-C3 development board',
+      left: ['GND', '3V3', '3V3.2', '2', '3', 'GND.2', 'RST', 'GND.3', '0', '1', '10', 'GND.4', '5V', '5V.2', 'GND.5'],
+      right: ['GND.6', 'TX', 'RX', 'GND.7', '9', '8', 'GND.8', '7', '6', '5', '4', 'GND.9', '18', '19', 'GND.10'],
+    },
+    props,
+  );
+}
+
+/** The ESP32-S2 DevKitM-1 (headers J1 and J3); TX is GPIO43, RX GPIO44. */
+export function esp32S2DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-S2-MINI-1',
+      label: 'DEVKITM-1',
+      size: ['mini-s2', 54.0, 5.6, 1.6],
+      usb: 'micro',
+      buttons: ['BOOT', 'RST'],
+      bridge: 'CP2102N',
+      description: 'ESP32-S2 development board',
+      left: [
+        '3V3',
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        '10',
+        '11',
+        '12',
+        '13',
+        '14',
+        '15',
+        '16',
+        '17',
+        '5V',
+        'GND',
+      ],
+      right: [
+        'GND.2',
+        'RST',
+        '46',
+        '45',
+        'RX',
+        'TX',
+        '42',
+        '41',
+        '40',
+        '39',
+        '38',
+        '37',
+        '36',
+        '35',
+        '34',
+        '33',
+        '26',
+        '21',
+        '20',
+        '19',
+        '18',
+      ],
+    },
+    props,
+  );
+}
+
+/** The ESP32-S3 DevKitC-1 (headers J1 and J3); TX is GPIO43, RX GPIO44. */
+export function esp32S3DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-S3-WROOM-1',
+      label: 'DEVKITC-1',
+      size: ['wroom', 62.74, 8.25, 1.53],
+      usb: 'dual-micro',
+      buttons: ['BOOT', 'RESET'],
+      bridge: 'CP2102N',
+      description: 'ESP32-S3 development board',
+      left: [
+        '3V3',
+        '3V3.2',
+        'RST',
+        '4',
+        '5',
+        '6',
+        '7',
+        '15',
+        '16',
+        '17',
+        '18',
+        '8',
+        '3',
+        '46',
+        '9',
+        '10',
+        '11',
+        '12',
+        '13',
+        '14',
+        '5V',
+        'GND',
+      ],
+      right: [
+        'GND.2',
+        'TX',
+        'RX',
+        '1',
+        '2',
+        '42',
+        '41',
+        '40',
+        '39',
+        '38',
+        '37',
+        '36',
+        '35',
+        '0',
+        '45',
+        '48',
+        '47',
+        '21',
+        '20',
+        '19',
+        'GND.3',
+        'GND.4',
+      ],
+    },
+    props,
+  );
+}
+
+/** The ESP32-C5 DevKitC-1 (headers J1 and J3); TX is GPIO11, RX GPIO12. */
+export function esp32C5DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-C5-WROOM-1',
+      label: 'DEVKITC-1',
+      size: ['wroom', 53.6, 6.5, 1.575],
+      usb: 'dual-c',
+      buttons: ['RESET', 'BOOT'],
+      description: 'ESP32-C5 development board',
+      left: ['3V3', 'RST', '2', '3', '0', '1', '6', '7', '8', '9', '10', '26', '25', '5V', 'GND', 'NC0'],
+      right: ['GND.2', 'TX', 'RX', '24', '23', '15', '27', '4', '5', 'NC1', '28', 'GND.3', '14', '13', 'GND.4', 'NC2'],
+    },
+    props,
+  );
+}
+
+/** The ESP32-C6 DevKitC-1 (headers J1 and J3); TX is GPIO16, RX GPIO17. */
+export function esp32C6DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-C6-WROOM-1',
+      label: 'DEVKITC-1',
+      size: ['wroom', 51.8, 6.35, 1.575],
+      usb: 'dual-c',
+      buttons: ['BOOT', 'RESET'],
+      description: 'ESP32-C6 development board',
+      left: ['3V3', 'RST', '4', '5', '6', '7', '0', '1', '8', '10', '11', '2', '3', '5V', 'GND', null],
+      right: ['GND.2', 'TX', 'RX', '15', '23', '22', '21', '20', '19', '18', '9', 'GND.3', '13', '12', 'GND.4', null],
+    },
+    props,
+  );
+}
+
+/** The ESP32-H2 DevKitM-1 (headers J1 and J3); TX is GPIO24, RX GPIO23. */
+export function esp32H2DevKit(props) {
+  return moduleDevKit(
+    {
+      module: 'ESP32-H2-MINI-1',
+      label: 'DEVKITM-1',
+      size: ['mini', 48.26, 5.4, 1.46],
+      usb: 'dual-c',
+      buttons: ['RESET', 'BOOT'],
+      description: 'ESP32-H2 development board',
+      left: ['3V3', 'RST', '0', '1', '2', '3', '13', '14', '4', '5', 'NC', 'VBAT', 'GND', '5V', 'GND.2'],
+      right: ['GND.3', 'TX', 'RX', '10', '11', '25', '12', '8', '22', 'GND.4', '9', 'GND.5', '27', '26', 'GND.6'],
+    },
+    props,
+  );
+}
+
+// STM32 Nucleo boards.
+
+/** The Nucleo-32 with the STM32L031K6: CN3 and CN4 in the Arduino Nano layout, the left row's RST and GND numbered 1, the right row's 2. */
+export function stm32L031K6Board(props) {
+  return nucleo32BoardTemplate({
+    label: 'L031K6 BOARD',
+    chipLabel: 'STM32L031K6',
+    indicators: { power: lights(props).power },
+    description: 'Nucleo-32 board with an STM32L031K6',
+    left: ['D1', 'D0', 'RST', 'GND', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7', 'D8', 'D9', 'D10', 'D11', 'D12'],
+    right: ['VIN', 'GND.2', 'RST.2', '5V', 'A7', 'A6', 'A5', 'A4', 'A3', 'A2', 'A1', 'A0', 'REF', '3V3', 'D13'],
+  });
+}
+
+/** The Nucleo-64 with the STM32C031C6: the morpho headers CN7 and CN10 (odd pin outer), and the Arduino headers CN6, CN8, CN5 and CN9 beside the pins they duplicate. */
+export function stm32C031C6Board(props) {
+  return nucleo64BoardTemplate({
+    label: 'C031C6 BOARD',
+    chipLabel: 'STM32C031C6',
+    indicators: { power: lights(props).power },
+    description: 'Nucleo-64 board with an STM32C031C6',
+    left: [
+      ['PD0', 'PD1'],
+      ['PD2', 'PD2.2'],
+      ['VDD', 'E5V'],
+      ['PA14', 'GND.4'],
+      [null, null],
+      [null, 'IOREF.2'],
+      ['PA13', 'NRST.2'],
+      ['PC6', '3V3.2'],
+      [null, '5V.2'],
+      ['GND.5', 'GND.6'],
+      [null, 'GND.7'],
+      ['PC13', 'VIN.2'],
+      ['PC14', null],
+      [null, 'PA0'],
+      ['PF0', 'PA1'],
+      ['PF1', 'PA4'],
+      ['PB11', 'PB0.2'],
+      ['PA2', 'PA11'],
+      [null, 'PA12'],
+    ],
+    right: [
+      ['PD3', 'PA3'],
+      ['PB8', 'PC15'],
+      ['PB9', 'PB12'],
+      ['AVDD.2', '5V.3'],
+      ['GND.8', null],
+      ['PA5', 'PF3'],
+      ['PA6', 'PA8'],
+      ['PA7', 'PB12.2'],
+      ['PB0', null],
+      ['PC7', 'GND.9'],
+      ['PA9', 'PB2'],
+      ['PA15', 'PB1'],
+      ['PB5', 'PB15'],
+      ['PB4', 'PB14'],
+      ['PB10', 'PB13'],
+      ['PB3', 'AGND'],
+      ['PA10', null],
+      ['PB6', null],
+      ['PB7', null],
+    ],
+    power: [null, 'IOREF', 'NRST', '3V3', '5V', 'GND', 'GND.2', 'VIN'],
+    analog: ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'],
+    digitalHigh: ['D15', 'D14', 'AVDD', 'GND.3', 'D13', 'D12', 'D11', 'D10', 'D9', 'D8'],
+    digitalLow: ['D7', 'D6', 'D5', 'D4', 'D3', 'D2', 'D1', 'D0'],
+  });
 }

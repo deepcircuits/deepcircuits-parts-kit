@@ -8,11 +8,11 @@
 //   the encoder turns it a detent each 18°, and each digit's hole on the dialer is found and winds round to the stop
 //   within the dial's range (src/controls.js).
 import { isDeepStrictEqual } from 'node:util';
-import { CATALOG, checkOptions } from './src/catalog.js';
-import { angleBetween, detentsTurned, dialDigitAt, dialGeometry, dialTravel, knobPosition } from './src/controls.js';
-import { CONTROLS } from './src/elementControls.js';
-import { drawPart } from './src/draw.js';
-import { optionsFromAttributes } from './src/element.js';
+import { CATALOG, checkOptions, exampleValue } from '../src/catalog.js';
+import { angleBetween, detentsTurned, dialDigitAt, dialGeometry, dialTravel, knobPosition } from '../src/controls.js';
+import { CONTROLS } from '../src/elementControls.js';
+import { drawPart } from '../src/draw.js';
+import { optionsFromAttributes } from '../src/element.js';
 
 const problems = [];
 const fail = (id, msg) => problems.push(`${id}: ${msg}`);
@@ -31,9 +31,7 @@ function valuesOf(spec, entry) {
   if (spec.default !== undefined) values.push(spec.default);
   if (spec.example !== undefined) values.push(spec.example);
   for (const ex of spec.examples ?? [])
-    values.push(
-      ex.each ? Array.from({ length: Number(entry.preset.chain ?? spec.length ?? 1) }, () => ex.value) : ex.value,
-    );
+    values.push(exampleValue(entry, spec, ex));
   for (const choice of spec.choices ?? []) values.push(choice.value);
   if (spec.min !== undefined) values.push(spec.min);
   if (spec.max !== undefined) values.push(spec.max);

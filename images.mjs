@@ -6,25 +6,12 @@
 // Run by npm run build and npm run check. The folder is committed, so a page can link to the files; it is not in the
 // npm package.
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { CATALOG, FAMILIES, optionApplies } from './src/catalog.js';
+import { CATALOG, FAMILIES, FAMILY_TITLES, exampleValue, optionApplies } from './src/catalog.js';
 import { drawPart } from './src/draw.js';
 import { PITCH } from './src/index.js';
 
 const OUT = 'images';
 const INK = '#020817';
-const FAMILY_TITLES = {
-  board: 'Boards',
-  display: 'Displays',
-  sensor: 'Sensors',
-  input: 'Inputs',
-  output: 'Outputs',
-  module: 'Modules',
-  chip: 'Chips',
-  passive: 'Passives',
-  breadboard: 'Breadboards',
-  symbol: 'Logic symbols',
-};
-
 const kebab = key => key.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`);
 const slug = text =>
   String(text)
@@ -67,9 +54,7 @@ function picturesOf(entry) {
   if (Object.keys(example).length) pictures.push({ suffix: 'example', label: 'Example', options: example });
   for (const [key, spec] of specs)
     for (const ex of spec.examples ?? []) {
-      const value = ex.each
-        ? Array.from({ length: Number(entry.preset.chain ?? spec.length ?? 1) }, () => ex.value)
-        : ex.value;
+      const value = exampleValue(entry, spec, ex);
       const name = typeof ex.value === 'number' ? ex.value : slug(ex.label);
       pictures.push({ suffix: `${kebab(key)}-${name}`, label: `${spec.label ?? key}: ${ex.label}`, options: { [key]: value } });
     }
@@ -174,7 +159,7 @@ const readme = [
 for (const family of FAMILIES) {
   const inFamily = parts.filter(p => p.family === family);
   if (!inFamily.length) continue;
-  readme.push(`## ${FAMILY_TITLES[family] ?? family}`, '', '| Part | Pictures |', '| --- | --- |');
+  readme.push(`## ${FAMILY_TITLES[family]}`, '', '| Part | Pictures |', '| --- | --- |');
   for (const part of inFamily) readme.push(`| ${part.name}<br>\`${part.id}\` | ${part.images.map(thumb).join(' ')} |`);
   readme.push('');
 }
