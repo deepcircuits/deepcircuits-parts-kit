@@ -1,0 +1,17 @@
+<!-- @dsCard group="Templates" height=300 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>SevenSegment — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.sevenSegment({ value: "7" }), { pins: true, caption: "1 digit, red, 0.56 in" });
+K.mount(root, K.sevenSegment({ value: "8", color: "yellow" }), { caption: "all on, yellow" });
+K.mount(root, K.sevenSegment({ digits: 4, value: "1234", color: "green", dp: [0, 1, 0, 0] }), { scale: 2, caption: "4 digits, green" });
+K.mount(root, K.sevenSegment({ digits: 2, value: "HE" }), { scale: 2, caption: "letters" });
+K.mount(root, K.sevenSegment({ digits: 4, levels: [1, 1, 1, 0, 0, 0, 0, 0, 0.6, 0.6, 0.6, 0.6, 0.6, 0.6, 0, 0, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0.25, 0, 0.1, 0.1, 0, 0, 0, 0, 0, 0], colon: 0.5 }), { scale: 2, caption: "levels: 1, 0.6, 0.25, 0.1" });
+</script>
+</body>
+</html>

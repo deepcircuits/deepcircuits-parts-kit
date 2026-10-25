@@ -1,0 +1,5 @@
+# LogicAnalyzer
+
+The eight-channel logic analyzer as photographed, at its true 54.7 × 27.4 mm: the `plastic-black` case with its white label (the name, 24MHz 8CH and the channel table), the mini-USB at the left end and the 2 × 5 header at the right. The header points out of the case's end, so it is drawn folded flat the way the label maps it: `D0`, `D2`, `D4`, `D6` and the clock in the inner column, `D1`, `D3`, `D5`, `D7` and `GND` at the end. Its sockets are the pins, `D0` to `D7` and then `GND`; the clock (labelled GND on some units, and not a ground) has none. Each channel's row in the table carries its activity lamp, and the readout strip at the foot of the label carries the sample count and the capture state. `channels` renames the inputs, `lit` lights lamps, `samples`, `state` (idle, armed, recording, paused, full, error) and `activity` fill the readout.
+
+- Each lamp carries `data-channel` and `data-lit`; the readout group carries `data-samples`, `data-state`, `data-running` and `data-activity`.

@@ -1,0 +1,7 @@
+# MegaBoard
+
+The Mega-class board from the real board: 101.6 × 53.34 mm with the Uno's USB and power ends (the USB-B and barrel jack over the left edge, the fuse, the bridge chip with its ICSP, the L, TX and RX column, the regulator and the two electrolytics), the controller's ICSP and the reset button right of it with the ON LED above, where the board's drawing and photograph put them, the digital headers along the top (`SCL` to `8`, `7` to `0`, then the COMMUNICATION group `14` to `21`), the 2 × 18 header at the right end read row by row as the board numbers it (`5V 5V`, `22 23` … `52 53`, `GND GND`), the power and two analog groups along the bottom, the TQFP-100 controller in the middle with its crystal to its left and its ICSP, the board name printed at the bottom right, and six mounting holes. The passives are the few the photograph shows, not a maze.
+
+- `top`, `block` and `bottom` name the pins; `groupNames`, `pwm` (the `~` marks) and `chipLabel` print the silk. `bottomGaps` are the pitches between the bottom groups (default `[3, 2]`: the real 0.3 inch between POWER and A0, the 0.16 inch between the analog groups snapped to two pitches).
+- Hooks as the Uno: `#power-led` (`data-lit-state="power"`), `#user-led`, `#tx-led`, `#rx-led`, `#reset-button`.
+- The top-right hole and the bottom-right hole are drawn at 3 mm, a little under the real 3.2 mm, so they clear pin 21 and A15 on the grid.

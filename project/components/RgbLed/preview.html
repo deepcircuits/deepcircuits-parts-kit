@@ -1,0 +1,20 @@
+<!-- @dsCard group="Parts" height=230 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>RgbLed — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.rgbLed(), { pins: true, caption: "off" });
+K.mount(root, K.rgbLed({ r: 1 }), { caption: "red" });
+K.mount(root, K.rgbLed({ g: 1 }), { caption: "green" });
+K.mount(root, K.rgbLed({ b: 1 }), { caption: "blue" });
+K.mount(root, K.rgbLed({ r: 1, b: 1 }), { caption: "magenta" });
+K.mount(root, K.rgbLed({ r: 1, g: 0.6 }), { caption: "orange" });
+K.mount(root, K.rgbLed({ r: 1, g: 1, b: 1 }), { caption: "white" });
+K.mount(root, K.rgbLed({ r: 0.3, g: 0.3, b: 0.3 }), { caption: "white, 30%" });
+</script>
+</body>
+</html>

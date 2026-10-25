@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=430 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>TftModule — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.tftModule(), { pins: true, scale: 1.25, caption: "off" });
+K.mount(root, K.tftModule({ touch: true, caption: "Build it here first.", pins: ["VCC", "GND", "CS", "RST", "D/C", "MOSI", "SCK", "LED", "MISO", "SCL", "SDA"] }), { scale: 1.25, caption: "capacitive touch, painted" });
+</script>
+</body>
+</html>

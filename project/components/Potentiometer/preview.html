@@ -1,0 +1,13 @@
+<!-- @dsCard group="Parts" height=210 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Potentiometer — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+[0, 0.25, 0.5, 0.75, 1].forEach(function (v) { K.mount(root, K.potentiometer({ position: v }), { pins: v === 0, caption: Math.round(v * 100) + "%" }); });
+</script>
+</body>
+</html>

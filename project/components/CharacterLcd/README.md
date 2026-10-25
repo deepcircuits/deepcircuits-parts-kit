@@ -1,0 +1,10 @@
+# CharacterLcd
+
+A character LCD module at the real size: 80 × 36 mm for the 16×2, 98 × 60 mm for the 20×4, with the four 2.5 mm mount holes 2.5 mm in from the edges (75 × 31 mm apart on the 16×2, as the module data sheets give them), the 16-pin header along the top edge in line with the top holes and pin 1 8 mm from the left edge (10 mm on the 20×4), a black bezel (96.8 × 39.3 mm from 10.35 mm down on the 20×4, nearly edge to edge), the chip-on-board strip and the backlit glass. Provide `cols`, `rows`, `lines` (preview text per row) or `glyphs` (each cell's dots), `color` (`green` or `blue`), `backpack` and, if the module differs, `pins`.
+
+- The glass and its dot matrix follow the modules' data sheets: 5 × 8 dots 0.55 mm wide at a 0.60 mm pitch, 0.65 mm tall at 0.70 mm on the 16×2 (0.55 at 0.60 on the 20×4), characters 3.55 mm apart and rows 5.95 mm apart (5.35 mm), the active area centred in a 64.5 × 16.4 mm viewing area (77.0 × 25.2 mm, centred on the board).
+- The glass is `lcd-green` with `lcd-ink` dots, or `lcd-blue` with `lcd-ink-light`; it carries `data-hook="glass"` so an editor can dim it when the backlight is off.
+- Each character's box shows a faint `lcd-ink` tint at 6%, so an empty display still shows its grid, as the real part does.
+- `glyphs` draws each cell's dots: rows × cols entries in reading order, eight row bitmasks a cell with bit 4 the leftmost dot, as an HD44780's CGRAM holds them. The kit carries no character ROM; `lines` is preview text in a font.
+- The matrix is `data-hook="matrix"` with its lattice as data attributes, so an editor can paint the dots itself (on a canvas over the glass, say): `data-cols`, `data-rows`, `data-x` and `data-y` (the first cell's top-left dot), `data-cell-dx` and `data-cell-dy` (cell to cell), `data-dot-dx` and `data-dot-dy` (dot to dot), `data-dot-w` and `data-dot-h`.
+- `backpack` draws the I2C backpack (a PCF8574 board soldered behind the sixteen pins): its four pins come out of the left edge on the pitch, GND at the top, then VCC, SDA and SCL, and the sixteen pads show their solder with the silk names kept. The artwork's pins are then the backpack's four.

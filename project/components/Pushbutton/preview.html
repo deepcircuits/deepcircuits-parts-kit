@@ -1,0 +1,17 @@
+<!-- @dsCard group="Parts" height=220 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Pushbutton — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.pushbutton(), { pins: true, caption: "up" });
+K.mount(root, K.pushbutton({ pressed: true }), { caption: "pressed" });
+K.mount(root, K.pushbutton({ size: 6 }), { caption: "6 mm" });
+K.mount(root, K.pushbutton({ size: 6, pressed: true }), { caption: "6 mm, pressed" });
+["red", "green", "blue", "yellow", "white"].forEach(function (c) { K.mount(root, K.pushbutton({ cap: c }), { caption: c + " cap" }); });
+</script>
+</body>
+</html>

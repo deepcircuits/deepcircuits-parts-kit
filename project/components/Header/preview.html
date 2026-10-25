@@ -1,0 +1,17 @@
+<!-- @dsCard group="Primitives" height=240 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Header — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+var T = K.tokens(), p = T.pitch;
+function frag(w, h, finish, inner) { return { width: w, height: h, svg: K.svg(w, h, "header", K.board({ width: w, height: h, finish: finish, holes: false }) + inner.svg), pins: inner.pins }; }
+K.mount(root, frag(6 * p, 3 * p, "blue", K.header({ x: p, y: 3 * p - 0.6 * p, labels: ["GND", "VCC", "SCL", "SDA", "RST"], side: "above" })), { pins: true, caption: "along x, labels above" });
+K.mount(root, frag(6 * p, 3 * p, "green", K.header({ x: p, y: 0.8 * p, labels: ["VSS", "VDD", "V0", "RS", "E"], side: "below" })), { pins: true, caption: "along x, labels below" });
+K.mount(root, frag(4.6 * p, 7.6 * p, "teal", K.header({ x: 1.2 * p, y: 1.3 * p, axis: "y", labels: ["D13", "D12", "D11", "D10", "D9", "D8"], kind: "socket", side: "right" })), { pins: true, caption: "along y, sockets" });
+</script>
+</body>
+</html>

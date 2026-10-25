@@ -1,0 +1,13 @@
+<!-- @dsCard group="Templates" height=560 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Nucleo64Board — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.nucleo64BoardTemplate({label: 'C031C6 BOARD', chipLabel: 'STM32C031C6', left: [['PD0', 'PD1'], ['PD2', 'PD2'], ['VDD', 'E5V'], ['PA14', 'GND'], [null, null], [null, 'IOREF'], ['PA13', 'NRST'], ['PC6', '3V3'], [null, '5V'], ['GND', 'GND'], [null, 'GND'], ['PC13', 'VIN'], ['PC14', null], [null, 'PA0'], ['PF0', 'PA1'], ['PF1', 'PA4'], ['PB11', 'PB0'], ['PA2', 'PA11'], [null, 'PA12']], right: [['PD3', 'PA3'], ['PB8', 'PC15'], ['PB9', 'PB12'], ['AVDD', '5V'], ['GND', null], ['PA5', 'PF3'], ['PA6', 'PA8'], ['PA7', 'PB12'], ['PB0', null], ['PC7', 'GND'], ['PA9', 'PB2'], ['PA15', 'PB1'], ['PB5', 'PB15'], ['PB4', 'PB14'], ['PB10', 'PB13'], ['PB3', 'AGND'], ['PA10', null], ['PB6', null], ['PB7', null]], power: ['IOREF', 'NRST', '3V3', '5V', 'GND', 'GND', 'VIN'], analog: ['A0', 'A1', 'A2', 'A3', 'A4', 'A5'], digitalHigh: ['D15', 'D14', 'AVDD', 'GND', 'D13', 'D12', 'D11', 'D10', 'D9', 'D8'], digitalLow: ['D7', 'D6', 'D5', 'D4', 'D3', 'D2', 'D1', 'D0'], indicators: {power: true, user: true}}), { pins: true, scale: 1.5, caption: "sockets inside the morpho pads" });
+</script>
+</body>
+</html>

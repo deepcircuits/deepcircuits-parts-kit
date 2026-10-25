@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=200 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Tm1637Module — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.tm1637Module({ value: "1234", colon: true }), { pins: true, scale: 1.3, caption: "colon" });
+K.mount(root, K.tm1637Module({ type: "dp", value: "88.8", dp: [0, 1, 0, 0] }), { scale: 1.3, caption: "points" });
+</script>
+</body>
+</html>

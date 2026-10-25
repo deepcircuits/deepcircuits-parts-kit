@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=230 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>PulseSensor — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.pulseSensor(), { pins: true, caption: "off" });
+K.mount(root, K.pulseSensor({ on: true }), { caption: "powered" });
+</script>
+</body>
+</html>

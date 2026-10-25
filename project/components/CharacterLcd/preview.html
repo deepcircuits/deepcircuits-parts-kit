@@ -1,0 +1,19 @@
+<!-- @dsCard group="Templates" height=340 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>CharacterLcd — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.characterLcd({ lines: ["Hello, world!", "220 R   13.6 mA"] }), { scale: 2, pins: true, caption: "16×2, green backlight, 80 × 36 mm" });
+K.mount(root, K.characterLcd({ cols: 20, rows: 4, color: "blue", lines: ["Build it here first.", "", "Temp  23.5 C", "Hum   41 %"] }), { scale: 2, caption: "20×4, blue backlight" });
+K.mount(root, K.characterLcd({ lines: [] }), { scale: 2, caption: "16×2, nothing written" });
+// A glyph is eight rows, bit 4 the leftmost dot: an H, an i and a block cursor.
+var H = [17, 17, 17, 31, 17, 17, 17, 0], I = [4, 0, 12, 4, 4, 4, 14, 0], BLOCK = [31, 31, 31, 31, 31, 31, 31, 31];
+K.mount(root, K.characterLcd({ glyphs: [H, I, null, BLOCK] }), { scale: 2, caption: "16×2, dots from glyphs" });
+K.mount(root, K.characterLcd({ backpack: true, color: "blue", glyphs: [H, I] }), { scale: 2, pins: true, caption: "16×2 with the I2C backpack: GND, VCC, SDA, SCL" });
+</script>
+</body>
+</html>

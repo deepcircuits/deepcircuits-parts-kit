@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=430 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>NanoConnect — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.nanoConnectTemplate({label: 'NANO RP2040', chipLabel: 'RP2040', left: ['D12', 'D11', 'D10', 'D9', 'D8', 'D7', 'D6', 'D5', 'D4', 'D3', 'D2', 'GND', 'RESET', 'RX', 'TX'], right: ['D13', '3.3V', 'AREF', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', '5V', 'REC', 'GND', 'VIN'], indicators: {power: true}}), { pins: true, scale: 1.6, caption: "powered" });
+K.mount(root, K.nanoConnectTemplate({ label: "NANO RP2040", chipLabel: "RP2040", left: ["D12", "D11", "D10", "D9", "D8", "D7", "D6", "D5", "D4", "D3", "D2", "GND", "RESET", "RX", "TX"], right: ["D13", "3.3V", "AREF", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "5V", "REC", "GND", "VIN"], indicators: { power: false } }), { scale: 1.6, caption: "off" });
+</script>
+</body>
+</html>

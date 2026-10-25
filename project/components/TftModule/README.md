@@ -1,0 +1,8 @@
+# TftModule
+
+The 2.4 inch ILI9341 SPI module from its size drawing: a `pcb-red` board 42.72 × 77.18 mm, the 42.72 × 60.26 mm glass from 6.51 mm down with its 36.72 × 48.96 mm window 3 mm in and 9.26 mm down, the flex folding off the glass's foot, four holes (3 mm in from the sides, 3 mm from the top and 6.92 mm from the bottom), the fourteen places of J2 along the bottom edge from 4.85 mm in and the four SD pads of J4 along the top. The catalog's nine pins (`VCC`, `GND`, `CS`, `RST`, `D/C`, `MOSI`, `SCK`, `LED`, `MISO`) are J2's first nine places, left to right as the module numbers them; the touch and SD places stay bare pads. Provide `pins` to rename and `caption` for sample text.
+
+- The window is `data-hook="display"` with `data-width="240"` and `data-height="320"`; the controller paints it. The glass is `data-hook="glass"`.
+- `touch: true` is the capacitive-touch module, the 2.8 inch MSP2834 from its size drawing: 50 × 86 mm, the 50 × 69.2 mm glass from 6.4 mm down with its 43.2 × 57.6 mm window 3.4 mm in and 9.3 mm down, holes 44 × 76.08 mm apart from 3 mm in, no J4, and J2 centred from 8.49 mm in. Its touch pins follow the module: `SCL` in the tenth place and `SDA` in the twelfth, with the touch reset, interrupt and SD select places bare. A `null` in `pins` leaves a place bare.
+
+- `pixels: { width, height, data }` draws a frame over the window, data row by row from the top left: a falsy entry is dark, `true` or `1` lit. A string is a CSS colour, so the panel shows a colour picture; `true` is white. Each colour's runs are one path in `#picture`. `caption` still prints a line of text over it.

@@ -1,0 +1,16 @@
+<!-- @dsCard group="Primitives" height=140 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Lens — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+var p = K.tokens().pitch;
+function one(color, on, brightness, caption) { var w = 3 * p, h = 3 * p; K.mount(root, { width: w, height: h, svg: K.svg(w, h, caption, K.lens({ cx: 1.5 * p, cy: 1.5 * p, r: 0.95 * p, color: color, on: on, brightness: brightness })), pins: [] }, { grid: false, caption: caption }); }
+["red", "green", "yellow", "blue", "white", "orange"].forEach(function (c) { one(c, false, 0, c + " off"); one(c, true, 1, c + " on"); });
+one("red", true, 0.25, "25%"); one("red", true, 0.5, "50%"); one("#ff00aa", true, 1, "any CSS colour");
+</script>
+</body>
+</html>

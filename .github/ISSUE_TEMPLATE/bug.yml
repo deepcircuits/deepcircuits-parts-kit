@@ -1,0 +1,31 @@
+name: Bug report
+description: A generator throws, draws something broken, or behaves differently from its documentation.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: call
+    attributes:
+      label: The call
+      description: The smallest call that shows the problem.
+      render: js
+      placeholder: "drawPart('servo', { angle: 400 })"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected, and what happened
+      description: Include any error message. A screenshot helps for a drawing problem.
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Package version
+      placeholder: "npm ls @deepcircuits/parts-kit"
+  - type: input
+    id: environment
+    attributes:
+      label: Where it runs
+      placeholder: "Chrome, Node, a bundler (which one)"

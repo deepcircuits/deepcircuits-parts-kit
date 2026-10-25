@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=200 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>BluePill — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.bluePillBoard({ indicators: { power: true, user: true } }), { pins: true, scale: 1.6, caption: "powered, PC13 lit" });
+K.mount(root, K.bluePillBoard(), { scale: 1.6, caption: "off" });
+</script>
+</body>
+</html>

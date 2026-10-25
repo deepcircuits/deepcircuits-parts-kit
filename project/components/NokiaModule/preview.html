@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=310 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>NokiaModule — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.nokiaModule(), { pins: true, scale: 1.4, caption: "off" });
+K.mount(root, K.nokiaModule({ caption: "Hello" }), { scale: 1.4, caption: "painted" });
+</script>
+</body>
+</html>

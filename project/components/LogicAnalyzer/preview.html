@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=230 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>LogicAnalyzer — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.logicAnalyzer(), { pins: true, scale: 1.7, caption: "stopped" });
+K.mount(root, K.logicAnalyzer({ samples: 12345, state: "recording", lit: [1, 0, 1, 1, 0, 0, 0, 1] }), { scale: 1.7, caption: "recording" });
+</script>
+</body>
+</html>

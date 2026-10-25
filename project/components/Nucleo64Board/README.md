@@ -1,0 +1,6 @@
+# Nucleo64Board
+
+The Nucleo-64 board at its true 70 × 82.5 mm, measured from ST's photograph: the debugger section across the top (its mini USB right of centre, chip and crystal, COM LED, jumpers, the SWD header down the left and the break line 25.9 mm down), the USER and RESET buttons below the break line with the power and user LEDs beside them, the regulator, the LQFP-48 controller with its crystal and passives, three mounting holes, and the Arduino headers inside the morpho headers. The morpho headers run down both edges as 2 × 19 pads: `left` and `right` give each row's pair in the catalog's order (left: outer then inner; right: inner then outer; `null` for an unconnected place). The Arduino sockets sit inside them: `power` (CN6, ending beside morpho row 12: 7 names from IOREF, or 8 with a leading `null` for the unconnected pin 1) and `analog` (6) on the left, `digitalHigh` (10) and `digitalLow` (8) on the right. Pins come out in that order.
+
+- Hooks: `#user-led`, the power LED's `data-lit-state="powered"`, `#reset-button`, `#user-button`.
+- The morpho rows' outer columns are 2.5 inch apart and the Arduino sockets 1.9 inch apart, two pitches inside them, so an Uno shield fits as on the board. Like the board, the morpho pads carry no printed names, only CN7 and CN10 over them; every pin keeps its name for the host.

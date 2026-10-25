@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=260 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>LedStrip — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.ledStrip({ colors: ["#ff0000", "#00ff00", "#0000ff"] }), { pins: true, scale: 1.6, caption: "8 × 5050, three lit" });
+K.mount(root, K.ledStrip({ pixels: 4, pixelShape: "round", pixelSize: "3535" }), { scale: 1.6, caption: "4 round, 3535 pitch" });
+</script>
+</body>
+</html>

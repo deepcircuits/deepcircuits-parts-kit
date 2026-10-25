@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=310 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>OledSquare — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.oledSquare(), { pins: true, scale: 1.3, caption: "off" });
+K.mount(root, K.oledSquare({ caption: "128x128" }), { scale: 1.3, caption: "painted" });
+</script>
+</body>
+</html>

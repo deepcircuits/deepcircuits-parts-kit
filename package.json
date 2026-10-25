@@ -1,0 +1,153 @@
+{
+  "name": "@deepcircuits/parts-kit",
+  "version": "0.0.0",
+  "description": "Original electronic part artwork as SVG generators: every part at true size on the 0.1-inch grid, with its pins, materials and state hooks.",
+  "keywords": [
+    "electronics",
+    "circuit",
+    "breadboard",
+    "svg",
+    "artwork",
+    "parts",
+    "arduino",
+    "esp32",
+    "simulator"
+  ],
+  "homepage": "https://github.com/deepcircuits/deepcircuits-parts-kit#readme",
+  "bugs": {
+    "url": "https://github.com/deepcircuits/deepcircuits-parts-kit/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepcircuits/deepcircuits-parts-kit.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./templates": {
+      "types": "./src/templates.d.ts",
+      "default": "./src/templates.js"
+    },
+    "./primitives": {
+      "types": "./src/primitives.d.ts",
+      "default": "./src/primitives.js"
+    },
+    "./check": {
+      "types": "./src/check.d.ts",
+      "default": "./src/check.js"
+    },
+    "./mount": {
+      "types": "./src/mount.d.ts",
+      "default": "./src/mount.js"
+    },
+    "./dom": {
+      "types": "./src/dom.d.ts",
+      "default": "./src/dom.js"
+    },
+    "./element": {
+      "types": "./src/element.d.ts",
+      "default": "./src/element.js"
+    },
+    "./controls": {
+      "types": "./src/controls.d.ts",
+      "default": "./src/controls.js"
+    },
+    "./catalog": {
+      "types": "./src/catalog.d.ts",
+      "default": "./src/catalog.js"
+    },
+    "./boards": {
+      "types": "./src/families/boards.d.ts",
+      "default": "./src/families/boards.js"
+    },
+    "./breadboards": {
+      "types": "./src/families/breadboards.d.ts",
+      "default": "./src/families/breadboards.js"
+    },
+    "./chips": {
+      "types": "./src/families/chips.d.ts",
+      "default": "./src/families/chips.js"
+    },
+    "./displays": {
+      "types": "./src/families/displays.d.ts",
+      "default": "./src/families/displays.js"
+    },
+    "./inputs": {
+      "types": "./src/families/inputs.d.ts",
+      "default": "./src/families/inputs.js"
+    },
+    "./modules": {
+      "types": "./src/families/modules.d.ts",
+      "default": "./src/families/modules.js"
+    },
+    "./outputs": {
+      "types": "./src/families/outputs.d.ts",
+      "default": "./src/families/outputs.js"
+    },
+    "./passives": {
+      "types": "./src/families/passives.d.ts",
+      "default": "./src/families/passives.js"
+    },
+    "./sensors": {
+      "types": "./src/families/sensors.d.ts",
+      "default": "./src/families/sensors.js"
+    },
+    "./symbols": {
+      "types": "./src/families/symbols.d.ts",
+      "default": "./src/families/symbols.js"
+    },
+    "./tokens.css": "./tokens.css",
+    "./tokens.json": "./project/tokens.json",
+    "./tokens-css": {
+      "types": "./tokens-css.d.mts",
+      "default": "./tokens-css.mjs"
+    },
+    "./bundle.js": "./project/components/bundle.js",
+    "./bundle.css": "./project/components/bundle.css",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "parts-kit-tokens": "./bin/parts-kit-tokens.mjs"
+  },
+  "sideEffects": [
+    "*.css",
+    "./project/components/bundle.js",
+    "./src/element.js"
+  ],
+  "files": [
+    "src",
+    "bin",
+    "tokens.css",
+    "tokens-css.mjs",
+    "tokens-css.d.mts",
+    "project/tokens.json",
+    "project/components/bundle.js",
+    "project/components/bundle.css",
+    "project/components/index.d.ts",
+    "project/components/catalog.d.ts"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node build.mjs && node gallery.mjs && node images.mjs",
+    "test": "npm run lint && npm run check",
+    "lint": "eslint . && prettier --check src build.mjs",
+    "format": "prettier --write src build.mjs",
+    "check": "node build.mjs && node gallery.mjs && node images.mjs && node modules.mjs && node catalog.mjs && node options.mjs && node element.mjs && node suite.cjs && node suite-previews.cjs && node fuzz.cjs && node inventory.cjs && node standards.cjs && node contrast.mjs",
+    "assets": "node export-assets.cjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "esbuild": "0.25.12",
+    "eslint": "9.39.5",
+    "playwright": "^1.61.1",
+    "prettier": "3.9.10"
+  }
+}

@@ -1,0 +1,19 @@
+<!-- @dsCard group="Templates" height=560 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>SensorModule — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.sensorModuleTemplate({ element: "ldr", comparator: true, pins: ["VCC", "GND", "DO", "AO"], indicators: { power: true } }), { pins: true, caption: "light, 15.5 × 36 mm, the photocell past the end" });
+K.mount(root, K.sensorModuleTemplate({ element: "flame", comparator: true, pins: ["VCC", "GND", "DOUT", "AOUT"], indicators: { power: true } }), { caption: "flame, 15.5 × 36 mm, the LED past the end" });
+K.mount(root, K.sensorModuleTemplate({ element: "mic", comparator: true, pins: ["AOUT", "GND", "VCC", "DOUT"], indicators: { power: true } }), { caption: "sound, the KY-037 with the 9.7 mm capsule" });
+K.mount(root, K.sensorModuleTemplate({ element: "mic", micMm: 6, comparator: true, pins: ["AOUT", "GND", "VCC", "DOUT"] }), { caption: "sound, the 6 mm capsule" });
+K.mount(root, K.sensorModuleTemplate({ label: "NTC", element: "bead", pins: ["GND", "VCC", "OUT"] }), { caption: "NTC temperature, 16 × 19 mm" });
+K.mount(root, K.sensorModuleTemplate({ element: "cylinder", pins: ["GND", "VCC", "OUT"], indicators: { power: true } }), { caption: "tilt switch, the 14 mm board, the brass SW-520D past the end" });
+K.mount(root, K.sensorModuleTemplate({ label: "IR RX", element: "ir", pins: ["GND", "VCC", "DAT"], indicators: { power: true } }), { caption: "IR receiver, 15 × 20 mm, its indicator lit" });
+</script>
+</body>
+</html>

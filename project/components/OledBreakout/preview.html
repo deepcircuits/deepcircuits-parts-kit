@@ -1,0 +1,22 @@
+<!-- @dsCard group="Templates" height=230 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>OledBreakout — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.oledBreakout(), { pins: true, scale: 1.2, caption: "off" });
+K.mount(root, K.oledBreakout({ caption: "Hello" }), { scale: 1.2, caption: "painted" });
+K.mount(root, K.oledBreakout({ pins: ["GND", "VCC", "SCL", "SDA"] }), { scale: 1.2, caption: "4-pin" });
+// A 1-bit frame: a ring and a sine wave, as a sketch would draw them.
+var frame = new Uint8Array(128 * 64);
+for (var y = 0; y < 64; y++) for (var x = 0; x < 128; x++) {
+  var r = Math.hypot(x - 32, y - 32);
+  frame[y * 128 + x] = (r > 22 && r < 26) || Math.abs(y - (32 - 18 * Math.sin((x - 64) / 9))) < 1.2 && x > 64 ? 1 : 0;
+}
+K.mount(root, K.oledBreakout({ pixels: { width: 128, height: 64, data: frame } }), { scale: 1.2, caption: "pixels" });
+</script>
+</body>
+</html>

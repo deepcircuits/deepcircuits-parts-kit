@@ -1,0 +1,15 @@
+<!-- @dsCard group="Parts" height=260 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Buzzer — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.buzzer(), { pins: true, caption: "12 mm buzzer" });
+K.mount(root, K.buzzer(), { scale: 1, grid: false, caption: "at 1:1" });
+K.mount(root, K.buzzer({ live: { flow: true, probe: "1" } }), { caption: "current flowing, the probe on +" });
+</script>
+</body>
+</html>

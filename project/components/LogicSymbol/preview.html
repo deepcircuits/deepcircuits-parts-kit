@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=330 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>LogicSymbol — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+["and", "nand", "or", "nor", "xor", "xnor", "not", "buffer"].forEach(function (g) { K.mount(root, K.logicSymbol({ gate: g }), { caption: g }); });
+K.mount(root, K.logicSymbol({ gate: "and", inputs: 4 }), { pins: true, caption: "4-input AND" });
+</script>
+</body>
+</html>

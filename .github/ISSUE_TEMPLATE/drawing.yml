@@ -1,0 +1,38 @@
+name: A drawing doesn't match the real part
+description: Send a photograph of the real part and say what the drawing gets wrong.
+title: "[Drawing] "
+labels: ["drawing"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. A clear photograph taken from straight above (or from the front, for a part that stands up, like an LED) is the most useful thing you can send. Please only send photographs you took yourself or may share.
+  - type: input
+    id: part
+    attributes:
+      label: Part
+      description: Its catalog id or the generator you called.
+      placeholder: "esp32-devkitc-v4, or bluePillBoard()"
+    validations:
+      required: true
+  - type: textarea
+    id: difference
+    attributes:
+      label: What differs
+      description: The feature, where it is on the real part, and where the drawing puts it. Measurements in millimetres help.
+      placeholder: "The reset button sits beside the USB port on the real board; the drawing puts it at the far end."
+    validations:
+      required: true
+  - type: textarea
+    id: photo
+    attributes:
+      label: Photograph
+      description: Drag the photograph in here. A link to the maker's dimension drawing or data sheet helps too.
+    validations:
+      required: true
+  - type: input
+    id: variant
+    attributes:
+      label: Which variant
+      description: Boards come in revisions and clones. What is printed on yours, and where did it come from?
+      placeholder: "V4 marked on the silk"

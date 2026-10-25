@@ -1,0 +1,16 @@
+<!-- @dsCard group="Primitives" height=320 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Chip — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+var ne555 = ["GND", "TRIG", "OUT", "RESET", "CTRL", "THR", "DIS", "VCC"];
+K.mount(root, K.chipTemplate({ pins: ne555, label: "NE555" }), { pins: true, caption: "DIP-8" });
+K.mount(root, K.chipTemplate({ pins: ne555, label: "NE555", package: "soic" }), { caption: "SOIC-8" });
+K.mount(root, K.chipTemplate({ pins: ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "GND", "Q7S", "MR", "SHCP", "STCP", "OE", "DS", "Q0", "VCC"], label: "74HC595" }), { caption: "DIP-16" });
+</script>
+</body>
+</html>

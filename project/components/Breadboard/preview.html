@@ -1,0 +1,15 @@
+<!-- @dsCard group="Templates" height=440 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Breadboard — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.breadboard(), { scale: 0.75, caption: "full, 63 columns" });
+K.mount(root, K.breadboard({ variant: "breadboard-half" }), { scale: 0.75, caption: "half" });
+K.mount(root, K.breadboard({ variant: "breadboard-mini" }), { scale: 0.75, caption: "mini" });
+</script>
+</body>
+</html>

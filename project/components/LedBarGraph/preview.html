@@ -1,0 +1,15 @@
+<!-- @dsCard group="Parts" height=160 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>LedBarGraph — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.ledBarGraph(), { pins: true, scale: 3, caption: "off" });
+K.mount(root, K.ledBarGraph({ levels: [1, 1, 1, 1, 1, 1, 0.6, 0, 0, 0] }), { scale: 3, caption: "six and a half" });
+K.mount(root, K.ledBarGraph({ levels: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], color: "green" }), { scale: 3, caption: "green, full" });
+</script>
+</body>
+</html>

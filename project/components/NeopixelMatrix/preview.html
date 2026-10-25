@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=520 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>NeopixelMatrix — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.neopixelMatrix({ colors: ["#ff0000", null, "#00ff00", null, "#0000ff"] }), { pins: true, scale: 1.3, caption: "8 x 8, 71 mm" });
+K.mount(root, K.neopixelMatrix({ rows: 4, cols: 4 }), { scale: 1.3, caption: "4 x 4, no holes" });
+</script>
+</body>
+</html>

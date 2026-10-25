@@ -1,0 +1,25 @@
+<!-- @dsCard group="Templates" height=720 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Module — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.moduleTemplate({ label: "HC-SR04", pins: ["VCC", "TRIG", "ECHO", "GND"], part: "dual-can", widthPitches: 18, heightPitches: 8, canPitches: 6, finish: "blue" }), { scale: 1.5, pins: true, caption: "dual-can, from the photo: 45 × 20 mm" });
+K.mount(root, K.moduleTemplate({ label: "MPU6050", pins: ["VCC", "GND", "SCL", "SDA", "XDA", "XCL", "AD0", "INT"], part: "chip", ic: "qfn", heightPitches: 5 }), { scale: 1.5, caption: "chip, 8 pins" });
+K.mount(root, K.moduleTemplate({ label: "IR", pins: ["OUT", "GND", "VCC"], part: "chip" }), { scale: 1.5, caption: "chip, 3 pins" });
+K.mount(root, K.dht22Sensor(), { scale: 1.5, caption: "dht22Sensor: the bare AM2302" });
+K.mount(root, K.dht11Module({ indicators: { power: true } }), { scale: 1.5, caption: "dht11Module" });
+K.mount(root, K.bmp180Board(), { scale: 1.5, caption: "bmp180Board, five pins" });
+K.mount(root, K.bmp180Board({ variant: "gy68" }), { scale: 1.5, caption: "bmp180Board, GY-68" });
+K.mount(root, K.pirModule(), { scale: 1.5, caption: "pirModule" });
+K.mount(root, K.gasModuleTemplate({ label: "MQ-2" }), { scale: 1.5, caption: "gasModule" });
+K.mount(root, K.gasModuleTemplate({ label: "MQ-2", indicators: { power: true, out: true } }), { scale: 1.5, caption: "gasModule, indicators lit" });
+K.mount(root, K.hx711Board(), { scale: 1.5, caption: "hx711Board" });
+K.mount(root, K.microsdModule(), { scale: 1.5, caption: "microsdModule" });
+K.mount(root, K.rtcModule(), { scale: 1.5, caption: "rtcModule" });
+</script>
+</body>
+</html>

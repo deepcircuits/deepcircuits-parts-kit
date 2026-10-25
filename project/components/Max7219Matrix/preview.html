@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=480 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Max7219Matrix — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.max7219Matrix({ lit: [["00100100", "00100100", "00000000", "10000001", "01000010", "00111100", "00000000", "00000000"]] }), { pins: true, scale: 1.5, caption: "single module" });
+K.mount(root, K.max7219Matrix({ chain: 2, color: "green" }), { scale: 1.5, caption: "chain of two, green" });
+</script>
+</body>
+</html>

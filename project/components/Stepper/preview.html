@@ -1,0 +1,15 @@
+<!-- @dsCard group="Templates" height=260 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Stepper — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.stepper({ angle: 20 }), { pins: true, scale: 0.9, caption: "NEMA 17" });
+K.mount(root, K.stepper({ frameSize: 28, angle: 110 }), { scale: 0.9, caption: "NEMA 11" });
+K.mount(root, K.stepper({ biaxial: true, angle: 30, angle2: -60 }), { scale: 0.9, caption: "biaxial" });
+</script>
+</body>
+</html>

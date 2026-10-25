@@ -1,0 +1,15 @@
+<!-- @dsCard group="Parts" height=120 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Resistor — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+[220, 1000, 4700, 10000, 1e6, 1].forEach(function (v) { K.mount(root, K.resistor({ ohms: v }), { pins: true, caption: K.formatOhms(v) }); });
+K.mount(root, K.resistor({ ohms: 330, tolerance: 10 }), { caption: "330 Ω, 10%" });
+K.mount(root, K.resistor({ ohms: 220, live: { flow: true, heat: 0.6 } }), { caption: "live: flow, warm" });
+</script>
+</body>
+</html>

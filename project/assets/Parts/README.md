@@ -1,0 +1,20 @@
+# Parts
+
+Example artwork exported from the generators at 1:1 (`PartsKit.<fn>`), one SVG per file, as the editor would store it: 97 files, one for every catalog part family and the variants worth seeing side by side. `export-assets.cjs` writes them from the same suite the checks run, so every file here has passed the overlap check, the standards check and the sanitizer round trip. Each file sets `color="#020817"` on the root so text and symbols drawn in `currentColor` (chip pin names, logic gates) show in an `<img>`; on the canvas that colour is `canvas-ink`.
+
+- `resistor-220.svg`, `resistor-10k.svg`, `capacitor-ceramic.svg`, `capacitor-electrolytic.svg`, `buzzer.svg`: two-leg parts, legs one or four pitches apart.
+- `led-red-off.svg`, `led-red-on.svg`, `led-green-on.svg`: the 5 mm LED off and lit; `rgb-led-off.svg`, `rgb-led-magenta.svg`: the RGB LED with its splayed legs, off and lit.
+- `pushbutton.svg`, `pushbutton-pressed.svg`, `pushbutton-6mm.svg`, `potentiometer.svg`, `slide-potentiometer.svg`, `slide-switch.svg`, `dip-switch-8.svg`, `rotary-encoder.svg`, `joystick.svg`, `keypad-4x4.svg`, `ir-remote.svg`, `rotary-dialer.svg`: inputs, at rest and pressed; the encoder, slide potentiometer, DIP switch and joystick are laid out from their product photographs.
+- `chip-ne555-dip8.svg`, `chip-attiny85-dip8.svg`, `chip-74hc595-dip16.svg`, `chip-74hc165-dip16.svg`, `chip-nlsf595-dip16.svg`: DIP packages with pin 1 under the notch; `to92-ds18b20.svg`: the TO-92 sensor.
+- `module-dht22.svg` (the bare 4-pin sensor), `module-hc-sr04.svg` (the two 16 mm transducers), `module-bmp180.svg` and `module-bmp180-5pin.svg` (the GY-68 and the five-pin breakout), `module-hx711.svg`, `module-microsd.svg`, `module-ds1307.svg`: breakout modules, each from a photograph.
+- `sensor-ldr.svg`, `sensor-flame.svg`, `sensor-sound.svg`, `sensor-ntc.svg`, `sensor-tilt.svg`, `ir-receiver.svg`, `pulse-sensor.svg`: the small sensor boards (comparator boards with the LM393 and trimmer, the NTC bead and IR boards) and the round pulse sensor.
+- `relay-module.svg`, `relay-dpdt.svg`: the red one-channel relay module and the bare DPDT relay; `rfid-rc522.svg`: the RC522 reader with its antenna loop; `logic-analyzer.svg`: the 8-channel analyzer with its channel table.
+- `board-uno-class.svg`, `board-mega-class.svg`, `board-nano-rp2040.svg`, `board-pico-class.svg`, `board-franzininho.svg`, `board-nucleo-32.svg`, `board-nucleo-64.svg`, `board-bluepill.svg`: the development boards, each checked against a photograph (the Uno and Mega with sockets, the Nano, Pico and Nucleo-32 with pads).
+- `board-esp32-devkit-v1.svg`, `board-esp32-devkitc-v4.svg`, `board-esp32-c3.svg`, `board-esp32-c3-devkitm.svg`, `board-esp32-s2-devkitm.svg`, `board-esp32-h2-devkitm.svg`, `board-esp32-s3-devkitc.svg`, `board-esp32-c5-devkitc.svg`, `board-esp32-c6-devkitc.svg`: the ESP32 kits, each with its own module size, USB count and button pair as photographed.
+- `breadboard-full.svg`, `breadboard-half.svg`, `breadboard-mini.svg`: the three breadboards, hole for hole.
+- `lcd-16x2.svg`, `seven-segment-1.svg`, `seven-segment-4.svg`, `oled-breakout.svg`, `oled-ssd1306-4pin.svg`, `oled-sh1107.svg`, `tft-2in4.svg`, `tft-2in4-touch.svg`, `nokia-5110.svg`, `epaper-2in9.svg`, `tm1637-colon.svg`, `max7219-matrix.svg`, `max7219-matrix-4.svg`: displays.
+- `neopixel.svg`, `led-ring-16.svg`, `neopixel-matrix-8x8.svg`, `neopixel-meter.svg`, `led-strip-8.svg`, `led-bar-graph.svg`: addressable pixels and the bar graph.
+- `servo.svg`, `stepper-nema17.svg`, `biaxial-stepper.svg`: the motors, with their `data-cx`/`data-cy` turning hooks.
+- `gate-and.svg`, `gate-nand.svg`, `gate-not.svg`, `symbol-mux.svg`, `symbol-flip-flop-d.svg`, `symbol-flip-flop-dsr.svg`, `symbol-clock.svg`, `symbol-vcc.svg`, `symbol-note.svg`: logic and schematic symbols in `currentColor`.
+
+Regenerate any of them from a console with the bundle loaded (`PartsKit.led({ color: 'red', on: true }).svg`) or with `node export-assets.cjs` rather than editing the SVG.

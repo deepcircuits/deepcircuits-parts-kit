@@ -1,0 +1,17 @@
+<!-- @dsCard group="Primitives" height=210 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Board — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+var p = K.tokens().pitch;
+Object.keys(K.FINISHES).forEach(function (f) {
+  var w = 7 * p, h = 5 * p;
+  K.mount(root, { width: w, height: h, svg: K.svg(w, h, f + " board", K.board({ width: w, height: h, finish: f, title: f.toUpperCase(), mark: { x: w - 2.0 * p, y: 0.55 * p, size: 0.8 * p } })), pins: [] }, { grid: false, caption: "pcb-" + f });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<!-- @dsCard group="Primitives" height=260 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Live — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root"), p = K.tokens().pitch;
+K.setTokenMode("live");
+K.mount(root, K.resistor({ ohms: 220, live: { flow: true } }), { scale: 3, caption: "current flowing" });
+K.mount(root, K.resistor({ ohms: 220, live: { flow: true, heat: 0.85 } }), { scale: 3, caption: "near its rating" });
+K.mount(root, K.led({ color: "red", on: true, live: { flow: true } }), { scale: 3, caption: "lit, current flowing" });
+K.mount(root, K.led({ color: "red", on: true, live: { flow: true, probe: "A" } }), { scale: 3, caption: "the probe on A" });
+K.mount(root, { width: 8 * p, height: 5 * p, svg: K.svg(8 * p, 5 * p, "the mark", K.board({ width: 8 * p, height: 5 * p, finish: "teal", mark: { x: 2.5 * p, y: 1.5 * p, size: 3 * p } })), pins: [] }, { scale: 3, grid: false, caption: "the mark, on silk" });
+</script>
+</body>
+</html>

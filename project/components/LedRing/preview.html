@@ -1,0 +1,15 @@
+<!-- @dsCard group="Templates" height=420 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>LedRing — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.ledRing({ colors: ["#ff0000", "#ff8800", "#ffff00", "#00ff00", "#00ffff", "#0000ff", "#ff00ff"] }), { pins: true, scale: 1.6, caption: "16 pixels, 44.5 mm" });
+K.mount(root, K.ledRing({ pixels: 12 }), { scale: 1.6, caption: "12 pixels, 36.8 mm" });
+K.mount(root, K.ledRing({ pixels: 8 }), { scale: 1.6, caption: "8 pixels" });
+</script>
+</body>
+</html>
