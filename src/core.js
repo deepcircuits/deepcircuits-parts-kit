@@ -57,6 +57,10 @@ export function tokens() {
 
 /** The smallest print on a part: 4px, which is 3pt at the kit's scale (0.1 in = 9.6px), the floor SparkFun's Fritzing guide sets. */
 export const PIN_LABEL = 4;
+/** The width the kit allows for `chars` characters of print `size` px high: 0.62 of the size each, the sans' mean advance. */
+export function textWidth(chars, size) {
+  return chars * size * 0.62;
+}
 export const r2 = function (n) {
   return Math.round(n * 100) / 100;
 };
@@ -121,6 +125,10 @@ export function edge(T, color, w) {
 /** Wrap a drawn part so the overlap checker (check) can see it as one thing. */
 export function tag(name, inner, more) {
   return el('g', Object.assign({ 'data-part': name }, more || {}), inner);
+}
+/** A plated hole through a board: the hole in its pad ring, `w` the ring's stroke (the outline stroke by default). */
+export function hole(T, x, y, r, w) {
+  return tag('hole', circle(x, y, r, T.hole, edge(T, T.pad, w)));
 }
 /**
  * The bevel a moulded or machined box gets from the bench light: one light
@@ -418,7 +426,21 @@ export function pin(props) {
   return s;
 }
 
-/** A row of pins one pitch apart along x (axis 'x') or y (axis 'y'). Returns { svg, pins }. */
+/**
+ * How a row of pin names prints at pitch `p`: the longest name's length, whether the names turn to run along the pins
+ * (when the longest is wider than the gap between pins) and how far the print reaches from the pin centres.
+ */
+export function labelRow(T, names, p) {
+  const longest = names.reduce((m, n) => Math.max(m, n.length), 0);
+  const rotate = textWidth(longest, PIN_LABEL) > p - 1.6;
+  const span = rotate ? T['pad-radius'] + 1.0 + textWidth(longest, PIN_LABEL) + 1.2 : T['label-rise'] + 3.6;
+  return { longest, rotate, span };
+}
+
+/**
+ * A row of pins one pitch apart along x (axis 'x') or y (axis 'y'), printed with `labels` and named `names` (the
+ * labels, or the pin numbers, by default). Returns { svg, pins }.
+ */
 export function header(props) {
   const T = tokens();
   const p = T.pitch;
@@ -441,7 +463,7 @@ export function header(props) {
       size: props.size,
       rotate: props.rotate,
     });
-    pins.push({ name, x, y });
+    pins.push({ name: props.names ? props.names[i] : name, x, y });
   }
   return { svg: s, pins };
 }
@@ -475,7 +497,7 @@ export function board(props) {
           [w - m, y0 + h - m],
         ]
     ).forEach(c => {
-      s += tag('hole', circle(c[0], c[1], r, T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], r);
     });
   }
   if (props.title)
@@ -551,7 +573,7 @@ export function chipTemplate(props) {
       return n.length;
     }),
   );
-  const margin = Math.ceil((longest * NAME * 0.62 + 3) * 10) / 10;
+  const margin = Math.ceil((textWidth(longest, NAME) + 3) * 10) / 10;
   const width = 2 * margin + span;
   const xl = margin;
   const xr = margin + span;
@@ -621,8 +643,8 @@ export function chipTemplate(props) {
   // The lot code beside the part number, as every chip carries one: the two make one block, centred on the
   // body, that stays clear of the pin numbers inside a DIP (two digits at PIN_LABEL) by at least 0.5px.
   const code = lotCode(label);
-  const codeRoom = bodyBottom - bodyTop - 8 >= code.length * PIN_LABEL * 0.62 && labelSize >= 4.4;
-  const numbersW = kind === 'dip' ? 0.8 + 2 * PIN_LABEL * 0.62 + 0.5 : 1.2;
+  const codeRoom = bodyBottom - bodyTop - 8 >= textWidth(code.length, PIN_LABEL) && labelSize >= 4.4;
+  const numbersW = kind === 'dip' ? 0.8 + textWidth(2, PIN_LABEL) + 0.5 : 1.2;
   const block = labelSize + 0.8 + PIN_LABEL;
   const withCode = codeRoom && bodyRight - bodyLeft >= block + 2 * numbersW;
   const labelX = withCode ? cx + block / 2 - labelSize / 2 : cx;

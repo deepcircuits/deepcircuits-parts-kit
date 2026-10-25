@@ -26,7 +26,7 @@ export type TokenMode = 'live' | 'values' | 'vars';
 export type LabelSide = 'above' | 'below' | 'left' | 'right';
 
 export interface PinProps { x: number; y: number; kind?: PinKind; label?: string; side?: LabelSide; silk?: string; size?: number; /** Stand a long label on end, reading away from the pin. */ rotate?: boolean }
-export interface HeaderProps { x: number; y: number; labels?: readonly string[]; count?: number; axis?: 'x' | 'y'; kind?: PinKind; side?: LabelSide; silk?: string; size?: number; rotate?: boolean }
+export interface HeaderProps { x: number; y: number; labels?: readonly string[]; /** The pins' names, where they differ from the printed labels. */ names?: readonly string[]; count?: number; axis?: 'x' | 'y'; kind?: PinKind; side?: LabelSide; silk?: string; size?: number; rotate?: boolean }
 export interface BoardProps { width: number; height: number; finish?: Finish; title?: string; titleX?: number; titleY?: number; titleSize?: number; titleAnchor?: 'start' | 'middle' | 'end'; holes?: boolean; /** The maker's mark on the silk: its top-left corner and width. */ mark?: { x: number; y: number; size?: number } }
 export interface ChipProps { pins: readonly string[]; label: string; package?: 'dip' | 'soic' | 'tssop' }
 /** `hook` names the lens for state (data-hook, `lens` by default; its glow is `<hook>-glow`). */
@@ -327,6 +327,8 @@ export interface PartsKit {
   loadPart<Id extends PartId>(id: Id): Promise<(options?: PartOptions<Id>) => Artwork>;
   /** Whether an option applies beside the other values of a call (its `when`), for showing a control only when it does something. */
   optionApplies(spec: OptionSpec, values: Readonly<Record<string, unknown>>): boolean;
+  /** The value an option's example gives a part: its value, or with `each`, that value for every item the part has (its chain, or the list's length). */
+  exampleValue(entry: CatalogEntry, spec: OptionSpec, example: OptionExample): unknown;
   /** The entry and the props the generator gets for a call: the part's preset under the options, checked first. Throws with every problem. */
   callOf(id: string, options?: unknown): { entry: CatalogEntry; props: Record<string, unknown> };
   /** The drawing turned by quarter turns, its pins with it: 1 a quarter clockwise, -1 or 3 anticlockwise, 2 a half. */

@@ -210,6 +210,13 @@ export function optionApplies(spec, values) {
   });
 }
 
+/** The value an option's example gives part `entry`: its value, or with `each`, that value for every item the part has. */
+export function exampleValue(entry, spec, example) {
+  return example.each
+    ? Array.from({ length: Number(entry.preset.chain ?? spec.length ?? 1) }, () => example.value)
+    : example.value;
+}
+
 function freeze(value) {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) {
     Object.freeze(value);

@@ -7,7 +7,7 @@
 // - pin names follow the convention: unique, a repeated name bare once and .2, .3 after, never .1;
 // - loadPart draws each part from its family's entry point as drawPart draws it.
 import { check, pinsOnPitch } from '../src/check.js';
-import { optionApplies } from '../src/catalog.js';
+import { exampleValue, optionApplies } from '../src/catalog.js';
 import * as K from '../src/index.js';
 
 const problems = [];
@@ -91,8 +91,6 @@ function probe(spec) {
       throw new Error(`no probe for ${spec.type}`);
   }
 }
-const withEach = (spec, ex, preset) =>
-  ex.each ? Array.from({ length: (preset && preset.chain) || spec.length || 1 }, () => ex.value) : ex.value;
 
 // The options that put an option's `when` in force.
 function contextFor(spec, entry) {
@@ -111,7 +109,7 @@ function busyFor(key, spec, entry, ctx) {
   const out = { ...ctx };
   for (const [k, other] of Object.entries(entry.options)) {
     if (k === key || k in ctx || (spec.when && k in spec.when) || other.type === 'object') continue;
-    const v = other.examples && other.examples.length ? withEach(other, other.examples[0], entry.preset) : other.example;
+    const v = other.examples && other.examples.length ? exampleValue(entry, other, other.examples[0]) : other.example;
     if (v !== undefined) out[k] = v;
   }
   for (const [k, other] of Object.entries(entry.options))
@@ -120,10 +118,10 @@ function busyFor(key, spec, entry, ctx) {
 }
 
 // The value to show an option with: its first example that is not its default, or else a probe.
-function showValue(spec, preset) {
+function showValue(spec, entry) {
   const d = JSON.stringify(spec.default);
   for (const ex of spec.examples || []) {
-    const v = withEach(spec, ex, preset);
+    const v = exampleValue(entry, spec, ex);
     if (JSON.stringify(v) !== d) return v;
   }
   return probe(spec);
@@ -158,9 +156,9 @@ for (const e of K.CATALOG) {
     } else {
       if (spec.default !== undefined && !keeps(spec.default, `${k} default`))
         fail(e.id, `${k}: the default ${JSON.stringify(spec.default)} draws something else than leaving it out`);
-      const v = showValue(spec, e.preset);
+      const v = showValue(spec, e);
       if (!holds(v, k)) fail(e.id, `${k}: ${JSON.stringify(v).slice(0, 60)} draws the same as the default`);
-      for (const ex of spec.examples || []) draws({ ...ctx, [k]: withEach(spec, ex, e.preset) }, `${k} example ${ex.label}`);
+      for (const ex of spec.examples || []) draws({ ...ctx, [k]: exampleValue(e, spec, ex) }, `${k} example ${ex.label}`);
     }
   }
   // Pin names.

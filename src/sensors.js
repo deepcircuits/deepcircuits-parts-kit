@@ -10,7 +10,9 @@ import {
   el,
   finish,
   header,
+  hole,
   indicator,
+  labelRow,
   line,
   path,
   r2,
@@ -21,7 +23,7 @@ import {
   tokens,
   trace,
 } from './core.js';
-import { edgeHeader, framed, mountHole, padRow, smd, soicAcross, wire } from './pieces.js';
+import { edgeHeader, framed, mountHole, padRow, silkFrame, smd, soicAcross, wire } from './pieces.js';
 import { moduleTemplate } from './modules.js';
 
 /**
@@ -89,32 +91,18 @@ export function comparatorBoardTemplate(props) {
     return r2(by + k * sy * mm);
   };
   const startX = r2((w - (names.length - 1) * p) / 2);
-  const maxLen = prints.reduce((m, n) => {
-    return Math.max(m, n.length);
-  }, 0);
-  const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+  const { rotate: rotateLabels, span: labelSpan } = labelRow(T, prints, p);
   const edgePins = edgeHeader(T, { names, side: 'bottom', at: by + bh, from: startX, ext });
   const rowY = edgePins.pads[0].y;
-  const labelSpan = rotateLabels ? T['pad-radius'] + 1.0 + maxLen * PIN_LABEL * 0.62 + 1.2 : T['label-rise'] + 3.6;
   const bottom = rowY - labelSpan;
-  const frame = function (x, y, fw, fh) {
-    return rect(x - 1.2, y - 1.2, fw + 2.4, fh + 2.4, 'none', {
-      stroke: f.silk,
-      'stroke-width': T['stroke-fine'],
-      'stroke-opacity': 0.85,
-      rx: 0.4,
-    });
-  };
   const passive = function (kind, x, y, horizontal) {
-    const rw = horizontal ? 0.9 * p : 0.55 * p;
-    const rh = horizontal ? 0.55 * p : 0.9 * p;
     const px = X(x);
     const py = Y(y);
     if (kind === 'mlcc') {
       const cw = horizontal ? 3.0 * mm : 1.5 * mm;
       const chh = horizontal ? 1.5 * mm : 3.0 * mm;
       return (
-        frame(px, py, cw, chh) +
+        silkFrame(T, f, px, py, cw, chh) +
         tag(
           'smd',
           rect(px, py, cw, chh, T['cap-mlcc'], { rx: 0.4 }) +
@@ -126,13 +114,14 @@ export function comparatorBoardTemplate(props) {
         )
       );
     }
-    return frame(px, py, rw, rh) + smd(T, kind, px, py, horizontal);
+    return framed(T, f, kind, px, py, horizontal);
   };
   const lamp = function (x, y, color, hook, state, on, label, where) {
     const isz = 0.6 * p;
     const lx = X(x);
     const ly = Y(y);
-    let out = frame(lx, ly, isz, isz) + indicator({ x: lx, y: ly, size: isz, color, on, hook, state, finish: fin });
+    let out =
+      silkFrame(T, f, lx, ly, isz, isz) + indicator({ x: lx, y: ly, size: isz, color, on, hook, state, finish: fin });
     if (where === 'right')
       out += text(lx + isz + 2.0, ly + isz / 2, label, 4, f.silk, {
         'text-anchor': 'start',
@@ -222,14 +211,14 @@ export function comparatorBoardTemplate(props) {
     mark: { x: X(L.mark[0]), y: Y(L.mark[1]), size: 0.7 * p },
   });
   L.holes.forEach(c => {
-    s += tag('hole', circle(X(c[0]), Y(c[1]), 0.8 * mm, T.hole, edge(T, T.pad, T['stroke-fine'])));
+    s += hole(T, X(c[0]), Y(c[1]), 0.8 * mm, T['stroke-fine']);
   });
   s += circle(X(L.mount[0]), Y(L.mount[1]), 2.2 * mm, 'none', {
     stroke: f.silk,
     'stroke-width': T['stroke-fine'],
     'stroke-opacity': 0.85,
   });
-  s += tag('hole', circle(X(L.mount[0]), Y(L.mount[1]), 1.5 * mm, T.hole, edge(T, T.pad)));
+  s += hole(T, X(L.mount[0]), Y(L.mount[1]), 1.5 * mm);
   const hdr = header({
     x: startX,
     y: rowY,
@@ -490,22 +479,10 @@ export function smallSensorBoardTemplate(props) {
     return r2(cx + k * mm);
   };
   const startX = r2((w - (names.length - 1) * p) / 2);
-  const maxLen = prints.reduce((m, n) => {
-    return Math.max(m, n.length);
-  }, 0);
-  const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+  const { rotate: rotateLabels, span: labelSpan } = labelRow(T, prints, p);
   const edgePins = edgeHeader(T, { names, side: 'bottom', at: by + bh, from: startX, ext });
   const rowY = edgePins.pads[0].y;
-  const labelSpan = rotateLabels ? T['pad-radius'] + 1.0 + maxLen * PIN_LABEL * 0.62 + 1.2 : T['label-rise'] + 3.6;
   const bottom = rowY - labelSpan;
-  const frame = function (x, y, fw, fh) {
-    return rect(x - 1.2, y - 1.2, fw + 2.4, fh + 2.4, 'none', {
-      stroke: f.silk,
-      'stroke-width': T['stroke-fine'],
-      'stroke-opacity': 0.85,
-      rx: 0.4,
-    });
-  };
   s += board({
     width: w,
     height: bh,
@@ -590,7 +567,7 @@ export function smallSensorBoardTemplate(props) {
         'fill-opacity': 0.75,
       });
     s +=
-      frame(cx - 5.2 * mm, by + 7.0 * mm, 0.6 * p, 0.6 * p) +
+      silkFrame(T, f, cx - 5.2 * mm, by + 7.0 * mm, 0.6 * p, 0.6 * p) +
       indicator({
         x: cx - 5.2 * mm,
         y: by + 7.0 * mm,
@@ -605,9 +582,7 @@ export function smallSensorBoardTemplate(props) {
   pads.forEach(x => {
     s += tag('pad', circle(x, r2(padY), 2.2, T.pad) + circle(x, r2(padY), 0.9, T.hole));
   });
-  s +=
-    frame(cx + resX * mm, by + resY * mm, 0.55 * p, 0.9 * p) +
-    smd(T, 'resistor', cx + resX * mm, by + resY * mm, false);
+  s += framed(T, f, 'resistor', cx + resX * mm, by + resY * mm, false);
   if (props.label)
     s += text(
       cx,
@@ -623,9 +598,11 @@ export function smallSensorBoardTemplate(props) {
 
 export function sensorModuleTemplate(props) {
   props = props || {};
-  const el0 = props.element || 'ldr';
-  if (el0 === 'flame' || el0 === 'ldr' || el0 === 'mic' || el0 === 'cylinder') return comparatorBoardTemplate(props);
-  if (el0 === 'bead' || el0 === 'ir') return smallSensorBoardTemplate(props);
+  const element = props.element || 'ldr';
+  if (element === 'flame' || element === 'ldr' || element === 'mic' || element === 'cylinder')
+    return comparatorBoardTemplate(props);
+  if (element === 'bead' || element === 'ir') return smallSensorBoardTemplate(props);
+  // 'none': a bare board, the header, the title near the top and the comparator block where the board has one.
   const T = tokens();
   const p = T.pitch;
   const mm = p / 2.54;
@@ -636,14 +613,9 @@ export function sensorModuleTemplate(props) {
   const h = (props.heightPitches || 14) * p;
   const rowY = h - 0.6 * p;
   let s = '';
-  const element = props.element || 'ldr';
   const cx = w / 2;
   const startX = r2((w - (names.length - 1) * p) / 2);
-  const maxLen = names.reduce((m, n) => {
-    return Math.max(m, n.length);
-  }, 0);
-  const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
-  const labelSpan = rotateLabels ? T['pad-radius'] + 1.0 + maxLen * PIN_LABEL * 0.62 + 1.2 : T['label-rise'] + 3.6;
+  const { rotate: rotateLabels, span: labelSpan } = labelRow(T, names, p);
   const bottom = rowY - labelSpan;
   s += board({
     width: w,
@@ -660,134 +632,7 @@ export function sensorModuleTemplate(props) {
       [pn.x + (i - (names.length - 1) / 2) * 0.3 * p, bottom - 0.2 * p],
     ]);
   });
-  // The element at the top.
-  let ey = 2.4 * p;
-  if (element === 'ldr') {
-    // A 5 mm photocell: the ceramic disc with its serpentine track, seen face on, its two legs into the board.
-    const lr = 2.5 * mm;
-    ey = 1.2 * p + lr;
-    s +=
-      wire(cx - 1.0 * mm, ey + lr - 1, cx - 1.0 * mm, ey + lr + 1.2 * p) +
-      wire(cx + 1.0 * mm, ey + lr - 1, cx + 1.0 * mm, ey + lr + 1.2 * p);
-    let track = '';
-    for (let k = 0; k < 6; k++) {
-      const ty = ey - lr * 0.7 + k * lr * 0.28;
-      track += `M${r2(cx - lr * 0.62)} ${r2(ty)}h${r2(lr * 1.24)}${k < 5 ? `m${r2(k % 2 ? -lr * 1.24 : 0)} ${r2(lr * 0.14)}v0` : ''}`;
-    }
-    s += tag(
-      'element',
-      circle(cx, ey, lr, T['cap-ceramic'], edge(T, T['resistor-body-edge'], T['stroke-detail'])) +
-        path(track, 'none', { stroke: T['resistor-smd'], 'stroke-width': 1.1, 'stroke-linecap': 'round' }),
-    );
-    s += el('ellipse', {
-      cx: cx - lr * 0.4,
-      cy: ey - lr * 0.45,
-      rx: lr * 0.3,
-      ry: lr * 0.14,
-      fill: '#ffffff',
-      'fill-opacity': 0.35,
-      transform: `rotate(-30 ${r2(cx - lr * 0.4)} ${r2(ey - lr * 0.45)})`,
-    });
-  } else if (element === 'mic') {
-    // The 9.7 mm electret capsule: a metal can with its port, lying in the board's end.
-    const mr = 4.85 * mm;
-    ey = 1.0 * p + mr;
-    s += tag(
-      'element',
-      circle(cx, ey, mr, T.metal, edge(T, T['metal-edge'])) +
-        circle(cx, ey, mr * 0.75, '#000000', { 'fill-opacity': 0.08 }) +
-        circle(cx, ey, mr * 0.22, T.cavity),
-    );
-    s += el('ellipse', {
-      cx: cx - mr * 0.4,
-      cy: ey - mr * 0.45,
-      rx: mr * 0.35,
-      ry: mr * 0.16,
-      fill: '#ffffff',
-      'fill-opacity': 0.5,
-      transform: `rotate(-30 ${r2(cx - mr * 0.4)} ${r2(ey - mr * 0.45)})`,
-    });
-  } else if (element === 'bead') {
-    // The thermistor bead on its two legs.
-    ey = 1.6 * p;
-    s +=
-      wire(cx - 0.9 * mm, ey + 0.8 * mm, cx - 0.9 * mm, ey + 1.4 * p) +
-      wire(cx + 0.9 * mm, ey + 0.8 * mm, cx + 0.9 * mm, ey + 1.4 * p);
-    s += tag(
-      'element',
-      el('ellipse', {
-        cx,
-        cy: ey,
-        rx: 1.5 * mm,
-        ry: 1.9 * mm,
-        fill: T['plastic-black'],
-        stroke: T['plastic-black-edge'],
-        'stroke-width': T['stroke-detail'],
-      }),
-    );
-    s += el('ellipse', {
-      cx: cx - 0.5 * mm,
-      cy: ey - 0.7 * mm,
-      rx: 0.5 * mm,
-      ry: 0.3 * mm,
-      fill: '#ffffff',
-      'fill-opacity': 0.3,
-    });
-  } else if (element === 'cylinder') {
-    // The tilt switch: a metal cylinder lying across the board's end.
-    const cl = Math.min(w - 1.6 * p, 12 * mm);
-    const cyl = 4 * mm;
-    ey = 1.4 * p + cyl / 2;
-    s += tag(
-      'element',
-      rect(cx - cl / 2, ey - cyl / 2, cl, cyl, T.metal, Object.assign({ rx: cyl / 2 }, edge(T, T['metal-edge']))) +
-        rect(cx - cl / 2 + 1.5, ey - cyl / 2 + 1.2, cl - 3, cyl * 0.3, '#ffffff', {
-          rx: 1,
-          'fill-opacity': T['opacity-light'] * 0.6,
-        }) +
-        rect(cx - cl / 2 + 1.5, ey + cyl * 0.2, cl - 3, cyl * 0.22, '#000000', {
-          rx: 1,
-          'fill-opacity': T['opacity-shade'],
-        }),
-    );
-    s += wire(cx - cl / 2 - 0.6 * p, ey, cx - cl / 2, ey) + wire(cx + cl / 2, ey, cx + cl / 2 + 0.6 * p, ey);
-  } else if (element === 'ir') {
-    // The 38 kHz receiver: a black body with its dome lens, three legs into the board.
-    const iw = 6.5 * mm;
-    const ih = 5.5 * mm;
-    ey = 1.2 * p + ih / 2;
-    [cx - 1.0 * p, cx, cx + 1.0 * p].forEach(x => {
-      s += wire(x, ey + ih / 2 - 1, x, ey + ih / 2 + 1.0 * p);
-    });
-    s += tag(
-      'element',
-      rect(
-        cx - iw / 2,
-        ey - ih / 2,
-        iw,
-        ih,
-        T['plastic-black'],
-        Object.assign({ rx: 1.5 }, edge(T, T['plastic-black-edge'])),
-      ) +
-        circle(cx, ey, 2.2 * mm, T['plastic-black'], edge(T, T['plastic-black-edge'], T['stroke-detail'])) +
-        circle(cx, ey, 2.2 * mm, '#ffffff', { 'fill-opacity': 0.06 }),
-    );
-    s += el('ellipse', {
-      cx: cx - 0.8 * mm,
-      cy: ey - 0.9 * mm,
-      rx: 0.8 * mm,
-      ry: 0.4 * mm,
-      fill: '#ffffff',
-      'fill-opacity': 0.25,
-      transform: `rotate(-30 ${r2(cx - 0.8 * mm)} ${r2(ey - 0.9 * mm)})`,
-    });
-  }
-  // The title under the element, then the comparator block where the board has one.
-  const ty =
-    ey +
-    (element === 'mic' ? 4.85 * mm : element === 'cylinder' ? 2 * mm : 2.5 * mm) +
-    1.3 * p +
-    (element === 'bead' || element === 'cylinder' ? 0.6 * p : 0);
+  const ty = 2.4 * p + 2.5 * mm + 1.3 * p;
   if (props.label)
     s += text(cx, ty, props.label, Math.min(5, ((w - 1.4 * p) / Math.max(4, props.label.length)) * 1.5), f.silk);
   const by = ty + Math.max(0.5 * p, (bottom - ty - 3.8 * p) / 2);
@@ -1108,7 +953,7 @@ export function ultrasonicRanger(props) {
     [1.7, 18.3],
     [43.3, 18.3],
   ].forEach(c => {
-    s += tag('hole', circle(c[0] * mm, c[1] * mm, 0.9 * mm, T.hole, edge(T, T.pad)));
+    s += hole(T, c[0] * mm, c[1] * mm, 0.9 * mm);
   });
   // The transducers: the aluminium can, its rolled lip, the woven mesh over the dark cavity.
   [cx - 13 * mm, cx + 13 * mm].forEach(x => {
@@ -1236,10 +1081,7 @@ export function bmp180Board(props) {
     const h = 12.5 * mm;
     const names = props.pins || ['SDA', 'SCL', 'GND', 'VCC'];
     s += board({ width: w, height: h, finish: fin, holes: false });
-    const hdr = header({ x: r2((w - (names.length - 1) * p) / 2), y: M(1.6), count: names.length });
-    hdr.pins.forEach((pn, i) => {
-      pn.name = names[i];
-    });
+    const hdr = header({ x: r2((w - (names.length - 1) * p) / 2), y: M(1.6), count: names.length, names });
     s +=
       smd(T, 'resistor', M(0.3), M(3.45), false) +
       smd(T, 'capacitor', M(2.0), M(3.45), false) +
@@ -1308,7 +1150,7 @@ export function pirModule(props) {
     [0.7 * p, 4.6 * p],
     [w - 0.7 * p, 4.6 * p],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   const hdr = padRow(T, fin, f, { x: 5.25 * p, y: h - 0.6 * p, labels: names, side: 'above', silk: f.silk }, -1);
   // The dome: its square base, the lens with its facet rings and radial cuts, the sheen.
@@ -1375,7 +1217,7 @@ export function gasModuleTemplate(props) {
     [0.75 * p, 8.7 * p],
     [w - 0.75 * p, 8.7 * p],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   const edgePins = edgeHeader(T, { names, side: 'bottom', at: bh, from: 2.5 * p });
   const hdr = padRow(
@@ -1465,7 +1307,7 @@ export function hx711Board(props) {
     [1.0 * p, h - 0.8 * p],
     [w - 1.0 * p, h - 0.8 * p],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   const left = padRow(
     T,

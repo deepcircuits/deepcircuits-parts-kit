@@ -89,6 +89,9 @@ var PartsKit = (() => {
     cacheAt = now;
     return out;
   }
+  function textWidth(chars, size) {
+    return chars * size * 0.62;
+  }
   function attrs(props) {
     let s = "";
     for (const k in props) {
@@ -141,6 +144,9 @@ var PartsKit = (() => {
   }
   function tag(name, inner, more) {
     return el("g", Object.assign({ "data-part": name }, more || {}), inner);
+  }
+  function hole(T, x, y, r, w) {
+    return tag("hole", circle(x, y, r, T.hole, edge(T, T.pad, w)));
   }
   function bevel(T, x, y, w, h, d, rx) {
     d = d || Math.max(1, Math.min(2.2, Math.min(w, h) * 0.09));
@@ -325,6 +331,12 @@ var PartsKit = (() => {
     }
     return s;
   }
+  function labelRow(T, names, p) {
+    const longest = names.reduce((m, n) => Math.max(m, n.length), 0);
+    const rotate = textWidth(longest, PIN_LABEL) > p - 1.6;
+    const span = rotate ? T["pad-radius"] + 1 + textWidth(longest, PIN_LABEL) + 1.2 : T["label-rise"] + 3.6;
+    return { longest, rotate, span };
+  }
   function header(props) {
     const T = tokens();
     const p = T.pitch;
@@ -347,7 +359,7 @@ var PartsKit = (() => {
         size: props.size,
         rotate: props.rotate
       });
-      pins.push({ name, x, y });
+      pins.push({ name: props.names ? props.names[i] : name, x, y });
     }
     return { svg: s, pins };
   }
@@ -376,7 +388,7 @@ var PartsKit = (() => {
         [m, y0 + h - m],
         [w - m, y0 + h - m]
       ]).forEach((c) => {
-        s += tag("hole", circle(c[0], c[1], r, T.hole, edge(T, T.pad)));
+        s += hole(T, c[0], c[1], r);
       });
     }
     if (props.title)
@@ -436,7 +448,7 @@ var PartsKit = (() => {
         return n.length;
       })
     );
-    const margin = Math.ceil((longest * NAME * 0.62 + 3) * 10) / 10;
+    const margin = Math.ceil((textWidth(longest, NAME) + 3) * 10) / 10;
     const width = 2 * margin + span;
     const xl = margin;
     const xr = margin + span;
@@ -498,8 +510,8 @@ var PartsKit = (() => {
     });
     const labelSize = Math.min(6.4, (bodyBottom - bodyTop - 8) / Math.max(4, label.length) * 1.6);
     const code = lotCode(label);
-    const codeRoom = bodyBottom - bodyTop - 8 >= code.length * PIN_LABEL * 0.62 && labelSize >= 4.4;
-    const numbersW = kind === "dip" ? 0.8 + 2 * PIN_LABEL * 0.62 + 0.5 : 1.2;
+    const codeRoom = bodyBottom - bodyTop - 8 >= textWidth(code.length, PIN_LABEL) && labelSize >= 4.4;
+    const numbersW = kind === "dip" ? 0.8 + textWidth(2, PIN_LABEL) + 0.5 : 1.2;
     const block = labelSize + 0.8 + PIN_LABEL;
     const withCode = codeRoom && bodyRight - bodyLeft >= block + 2 * numbersW;
     const labelX = withCode ? cx + block / 2 - labelSize / 2 : cx;
@@ -932,7 +944,7 @@ var PartsKit = (() => {
     return tag("chip", s);
   }
   function mountHole(T, f, x, y, r) {
-    return circle(x, y, r + 2.2, "none", { stroke: f.silk, "stroke-width": T["stroke-fine"], "stroke-opacity": 0.85 }) + tag("hole", circle(x, y, r, T.hole, edge(T, T.pad)));
+    return circle(x, y, r + 2.2, "none", { stroke: f.silk, "stroke-width": T["stroke-fine"], "stroke-opacity": 0.85 }) + hole(T, x, y, r);
   }
   function soicAcross(T, x, y, w, h, nSide, label) {
     let s = "";
@@ -962,7 +974,7 @@ var PartsKit = (() => {
     s += rect(x + 0.6, y + 0.6, w - 1.2, 1.1, "#ffffff", { rx: 0.5, "fill-opacity": T["opacity-light"] * 0.4 });
     s += circle(x + 3.2, y + 3.2, 0.9, T["chip-print"]);
     if (label) {
-      const fit = Math.floor((w - 2.4) / (PIN_LABEL * 0.62));
+      const fit = Math.floor((w - 2.4) / textWidth(1, PIN_LABEL));
       const lbl = String(label);
       const cx = x + w / 2;
       const cy = y + h / 2;
@@ -1483,8 +1495,8 @@ var PartsKit = (() => {
         return Math.max(m, silk(n).length);
       }, 0);
     };
-    const labelL = leftX + 0.7 * p + longest(left) * PIN_LABEL * 0.62;
-    const labelR = rightX - 0.7 * p - longest(right) * PIN_LABEL * 0.62;
+    const labelL = leftX + 0.7 * p + textWidth(longest(left), PIN_LABEL);
+    const labelR = rightX - 0.7 * p - textWidth(longest(right), PIN_LABEL);
     const fin = props.finish || "teal";
     const cw0 = Math.max(1.2 * p, Math.min(moduleTop ? 1.8 * p : 2.6 * p, labelR - labelL - 0.6 * p));
     const cxx0 = (labelL + labelR) / 2 - cw0 / 2;
@@ -1567,17 +1579,8 @@ var PartsKit = (() => {
       const ax0 = 1.6 * p;
       const ax1 = w - 1.6 * p;
       const ay = wroom ? 0.7 * p : 0.9 * p;
-      let d = "";
-      const step = 0.5 * p;
-      for (let ax = ax0; ax + step <= ax1; ax += step)
-        d += `${(ax === ax0 ? "M" : "L") + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-      s += tag("antenna", path(d, "none", { stroke: T.pad, "stroke-width": 0.9, "stroke-linejoin": "round" }));
-      s += tag(
-        "module",
-        rect(1.2 * p, canY, w - 2.4 * p, canH, T.metal, Object.assign({ rx: 1.2 }, edge(T, T["metal-edge"])))
-      );
-      s += rect(1.2 * p, canY, w - 2.4 * p, 1 * p, "#ffffff", { rx: 1.2, "fill-opacity": 0.22 });
-      s += rect(1.2 * p, canY + canH - 0.7 * p, w - 2.4 * p, 0.7 * p, "#000000", { rx: 1, "fill-opacity": 0.12 });
+      s += meander(T, ax0, ax1, ay, antH);
+      s += shieldCan(T, 1.2 * p, canY, w - 2.4 * p, canH);
       if (props.chipLabel)
         s += text(
           w / 2,
@@ -1663,20 +1666,10 @@ var PartsKit = (() => {
       const ry = 0.45 * p;
       resetBelow = rx < 5.8 * p - 0.01;
       if (rx - 6 * p >= 1.9 * p)
-        s += tag(
-          "regulator",
-          rect(6.1 * p, 0.3 * p, 0.8 * p, 0.45 * p, T.metal, { rx: 0.2 }) + rect(
-            6 * p,
-            0.7 * p,
-            1 * p,
-            0.8 * p,
-            T["plastic-black"],
-            Object.assign({ rx: 0.3 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
-          )
-        ) + smd(T, "capacitor", 7.25 * p, 0.4 * p, false);
+        s += sot223(T, [6.1 * p, 0.3 * p, 0.8 * p, 0.45 * p], [6 * p, 0.7 * p, 1 * p, 0.8 * p], [0.2, 0.3]) + smd(T, "capacitor", 7.25 * p, 0.4 * p, false);
       if (!resetBelow) s += resetButton2(rx, ry);
       const hasReg = rx - 6 * p >= 1.9 * p;
-      const rstLeft = rx - 1.4 - 3 * PIN_LABEL * 0.62;
+      const rstLeft = rx - 1.4 - textWidth(3, PIN_LABEL);
       if (resetBelow) {
       } else if (kind !== "socket")
         s += text(rx + rsz / 2, ry + rsz + PIN_LABEL - 0.4, props.resetLabel || "RST", PIN_LABEL, f.silk);
@@ -1704,7 +1697,7 @@ var PartsKit = (() => {
         chipP + rect(cxx, cyy, cw, ch, T.chip, Object.assign({ rx: T["radius-chip"] }, edge(T, T["chip-edge"]))) + (moduleTop ? path(`M${r2(cxx + cw / 2 - 2.2)} ${r2(cyy)}a2.2 2.2 0 0 0 4.4 0z`, T["chip-print"]) : circle(cxx + 0.35 * p, cyy + 0.35 * p, 0.8, T["chip-print"]))
       );
       if (props.chipLabel && !moduleTop) {
-        const fit = Math.floor((cw - 2.4) / (PIN_LABEL * 0.62));
+        const fit = Math.floor((cw - 2.4) / textWidth(1, PIN_LABEL));
         const lbl = String(props.chipLabel);
         if (lbl.length <= fit) s += text(cxx + cw / 2, cyy + ch / 2 + 1.4, lbl, PIN_LABEL, T["chip-print"]);
         else if (fit >= 4 && lbl.length <= 2 * fit) {
@@ -1735,7 +1728,8 @@ var PartsKit = (() => {
       kind,
       side: "right",
       silk: f.silk,
-      size: PIN_LABEL
+      size: PIN_LABEL,
+      names: left
     });
     const rh = header({
       x: rightX,
@@ -1745,13 +1739,8 @@ var PartsKit = (() => {
       kind,
       side: "left",
       silk: f.silk,
-      size: PIN_LABEL
-    });
-    lh.pins.forEach((pn, i) => {
-      pn.name = left[i];
-    });
-    rh.pins.forEach((pn, i) => {
-      pn.name = right[i];
+      size: PIN_LABEL,
+      names: right
     });
     s += lh.svg + rh.svg;
     const icspPins = [];
@@ -1807,13 +1796,7 @@ var PartsKit = (() => {
       )
     );
     if (!noReset) s += resetButton(T, f, X, Y, L, 4, 1.5);
-    let icsp2 = "";
-    [11.6, 14.14, 16.68].forEach((cx) => {
-      [5.67, 8.21].forEach((cy) => {
-        icsp2 += circle(X(cx), Y(cy), L(0.9), T.pad) + circle(X(cx), Y(cy), L(0.4), T.hole);
-      });
-    });
-    s += tag("icsp", icsp2);
+    s += tag("icsp", holeGrid(T, [11.6, 14.14, 16.68].map(X), [5.67, 8.21].map(Y), L(0.9), L(0.4)));
     s += tag(
       "chip",
       rect(
@@ -1873,17 +1856,7 @@ var PartsKit = (() => {
   }
   function unoPowerEnd(T, f, X, Y, L, withCrystal) {
     let s = "";
-    s += tag(
-      "regulator",
-      rect(X(15), Y(24.2), L(4.8), L(1.6), T.metal, { rx: 0.3 }) + rect(
-        X(14.5),
-        Y(25.6),
-        L(5.8),
-        L(5),
-        T["plastic-black"],
-        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
-      )
-    );
+    s += sot223(T, [X(15), Y(24.2), L(4.8), L(1.6)], [X(14.5), Y(25.6), L(5.8), L(5)]);
     if (withCrystal)
       s += tag(
         "crystal",
@@ -1962,7 +1935,7 @@ var PartsKit = (() => {
       [66.04, 45.66],
       [13.97, 50.74]
     ].forEach((c) => {
-      s += tag("hole", circle(X(c[0]), Y(c[1]), L(1.6), T.hole, edge(T, T.pad, 1)));
+      s += hole(T, X(c[0]), Y(c[1]), L(1.6), 1);
     });
     const topY = Y(2.54);
     const botY = Y(50.8);
@@ -2021,22 +1994,23 @@ var PartsKit = (() => {
     });
     if (props.label) s += text(X(46), Y(27.6), props.label, 11, f.silk, { "font-weight": 700 });
     if (props.mark !== false) s += silkMark(X(60.3), Y(11), 0.8 * p, f.silk);
-    let icsp = "";
-    [64.27, 66.81].forEach((cx) => {
-      [21.37, 23.91, 26.45].forEach((cy) => {
-        icsp += circle(X(cx), Y(cy), L(0.9), T.pad) + circle(X(cx), Y(cy), L(0.4), T.hole);
-      });
-    });
-    s += tag("icsp", icsp);
+    s += tag("icsp", holeGrid(T, [64.27, 66.81].map(X), [21.37, 23.91, 26.45].map(Y), L(0.9), L(0.4)));
     s += text(X(65.54), Y(30.4), "ICSP", PIN_LABEL, f.silk);
     s += dipOnBoard(T, X(28.5), Y(36), 14, props.chipLabel);
     s += unoPowerEnd(T, f, X, Y, L, true);
     const silk = silkOf(props);
     const row = function(groups, x, y, side) {
       groups.forEach((g) => {
-        const hdr = header({ x, y, labels: g.map(silk), kind, side, silk: f.silk, size: PIN_LABEL, rotate: true });
-        hdr.pins.forEach((pn, i) => {
-          pn.name = g[i];
+        const hdr = header({
+          x,
+          y,
+          labels: g.map(silk),
+          kind,
+          side,
+          silk: f.silk,
+          size: PIN_LABEL,
+          rotate: true,
+          names: g
         });
         s += hdr.svg;
         pins = pins.concat(hdr.pins);
@@ -2052,7 +2026,7 @@ var PartsKit = (() => {
         g.forEach((name, i) => {
           if (props.pwm.indexOf(name) >= 0) {
             const x = px0 + i * p;
-            const ty = topY + gapR + silkOf(props)(name).length * PIN_LABEL * 0.62 + 1.6;
+            const ty = topY + gapR + textWidth(silkOf(props)(name).length, PIN_LABEL) + 1.6;
             s += text(x, ty, "~", PIN_LABEL, f.silk, {
               "text-anchor": "end",
               "dominant-baseline": "middle",
@@ -2110,6 +2084,32 @@ var PartsKit = (() => {
       });
     }
     return tag("smd", s);
+  }
+  function holeGrid(T, xs, ys, pad, hole2) {
+    let s = "";
+    for (const x of xs) for (const y of ys) s += circle(x, y, pad, T.pad) + circle(x, y, hole2, T.hole);
+    return s;
+  }
+  function meander(T, x0, x1, y, h) {
+    const step = 0.5 * T.pitch;
+    let d = "";
+    for (let x = x0; x + step <= x1; x += step)
+      d += `${(x === x0 ? "M" : "L") + r2(x)} ${r2(y)}L${r2(x)} ${r2(y + h)}L${r2(x + step / 2)} ${r2(y + h)}L${r2(x + step / 2)} ${r2(y)}L${r2(x + step)} ${r2(y)}`;
+    return tag("antenna", path(d, "none", { stroke: T.pad, "stroke-width": 0.9, "stroke-linejoin": "round" }));
+  }
+  function shieldCan(T, x, y, w, h) {
+    const p = T.pitch;
+    return tag("module", rect(x, y, w, h, T.metal, Object.assign({ rx: 1.2 }, edge(T, T["metal-edge"])))) + rect(x, y, w, 1 * p, "#ffffff", { rx: 1.2, "fill-opacity": 0.22 }) + rect(x, y + h - 0.7 * p, w, 0.7 * p, "#000000", { rx: 1, "fill-opacity": 0.12 });
+  }
+  function sot223(T, tab, body, radii = [0.3, 0.4]) {
+    return tag(
+      "regulator",
+      rect(...tab, T.metal, { rx: radii[0] }) + rect(
+        ...body,
+        T["plastic-black"],
+        Object.assign({ rx: radii[1] }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
+      )
+    );
   }
   function microUsb(T, cx, y, w, h, mouth) {
     return usbPort(T, { kind: "micro", x: cx - w / 2, y, w, h, mouth: mouth || "down" });
@@ -2197,7 +2197,7 @@ var PartsKit = (() => {
       [89.9, 2.54, 1.5],
       [96.52, 50.8]
     ].forEach((c) => {
-      s += tag("hole", circle(X(c[0]), Y(c[1]), L(c[2] || 1.6), T.hole, edge(T, T.pad, 1)));
+      s += hole(T, X(c[0]), Y(c[1]), L(c[2] || 1.6), 1);
     });
     const topY = Y(2.54);
     const botY = Y(50.8);
@@ -2289,22 +2289,23 @@ var PartsKit = (() => {
       )
     );
     s += smd(T, "capacitor", X(36.5), Y(23.5), true) + smd(T, "capacitor", X(39.5), Y(35), true);
-    let icsp = "";
-    [63.63, 66.17].forEach((cx) => {
-      [22.86, 25.4, 27.94].forEach((cy) => {
-        icsp += circle(X(cx), Y(cy), L(0.9), T.pad) + circle(X(cx), Y(cy), L(0.4), T.hole);
-      });
-    });
-    s += tag("icsp", icsp);
+    s += tag("icsp", holeGrid(T, [63.63, 66.17].map(X), [22.86, 25.4, 27.94].map(Y), L(0.9), L(0.4)));
     s += text(X(64.9), Y(31.4), "ICSP", PIN_LABEL, f.silk);
     s += smd(T, "resistor", X(79.6), Y(18.6), false) + smd(T, "capacitor", X(67), Y(38.5), true);
     s += unoPowerEnd(T, f, X, Y, L, false);
     const silk = silkOf(props);
     const row = function(groups, x, y, side, gaps) {
       groups.forEach((g, k) => {
-        const hdr = header({ x, y, labels: g.map(silk), kind, side, silk: f.silk, size: PIN_LABEL, rotate: true });
-        hdr.pins.forEach((pn, i) => {
-          pn.name = g[i];
+        const hdr = header({
+          x,
+          y,
+          labels: g.map(silk),
+          kind,
+          side,
+          silk: f.silk,
+          size: PIN_LABEL,
+          rotate: true,
+          names: g
         });
         s += hdr.svg;
         pins = pins.concat(hdr.pins);
@@ -2330,7 +2331,7 @@ var PartsKit = (() => {
         g.forEach((name, i) => {
           if (props.pwm.indexOf(name) >= 0) {
             const x = px0 + i * p;
-            const ty = topY + gapR + silkOf(props)(name).length * PIN_LABEL * 0.62 + 1.6;
+            const ty = topY + gapR + textWidth(silkOf(props)(name).length, PIN_LABEL) + 1.6;
             s += text(x, ty, "~", PIN_LABEL, f.silk, {
               "text-anchor": "end",
               "dominant-baseline": "middle",
@@ -2392,7 +2393,7 @@ var PartsKit = (() => {
       [9.6, 27.45],
       [48.6, 27.45]
     ].forEach((c) => {
-      s += tag("hole", circle(X(c[0]), Y(c[1]), L(1.5), T.hole, edge(T, T.pad)));
+      s += hole(T, X(c[0]), Y(c[1]), L(1.5));
     });
     const py = 15.03;
     let usb = rect(0.4, Y(py - 6), X(4.3) - 0.4, L(12), T.metal, Object.assign({ rx: L(0.6) }, edge(T, T["metal-edge"])));
@@ -2400,9 +2401,7 @@ var PartsKit = (() => {
     usb += rect(X(-13.6), Y(py - 4.3), L(2.4), L(1.8), T.cavity, { rx: 0.4 }) + rect(X(-13.6), Y(py + 2.5), L(2.4), L(1.8), T.cavity, { rx: 0.4 });
     usb += line(X(-1.2), Y(py - 6) + 1, X(-1.2), Y(py + 6) - 1, T["metal-edge"], T["stroke-fine"]);
     s += tag("usb", usb);
-    [11.53, 13.9, 16.16, 18.53].forEach((y) => {
-      s += circle(X(5.39), Y(y), L(0.9), T.pad) + circle(X(5.39), Y(y), L(0.4), T.hole);
-    });
+    s += holeGrid(T, [X(5.39)], [11.53, 13.9, 16.16, 18.53].map(Y), L(0.9), L(0.4));
     s += trace(T, fin, [
       [X(5.39), Y(13.9)],
       [X(8.21), Y(13.94)]
@@ -2516,7 +2515,8 @@ var PartsKit = (() => {
       kind,
       side: "right",
       silk: f.silk,
-      size: PIN_LABEL
+      size: PIN_LABEL,
+      names: side
     });
     const rw = header({
       x: rowX,
@@ -2526,13 +2526,8 @@ var PartsKit = (() => {
       kind,
       side: "below",
       silk: f.silk,
-      size: PIN_LABEL
-    });
-    col.pins.forEach((pn, k) => {
-      pn.name = side[k];
-    });
-    rw.pins.forEach((pn, k) => {
-      pn.name = power[k];
+      size: PIN_LABEL,
+      names: power
     });
     s += col.svg + rw.svg;
     return art(w, h, props.description || props.label || "ATtiny85 board", s, col.pins.concat(rw.pins));
@@ -2603,14 +2598,9 @@ var PartsKit = (() => {
     const ax0 = mx + 0.4 * p;
     const ax1 = mx + mw - 0.4 * p;
     const ay = 0.7 * p;
-    let d = "";
-    const step = 0.5 * p;
     s += rect(mx, 0.4 * p, mw, 2.6 * p, T["pcb-black"], { rx: 1, "fill-opacity": 0.5 });
-    for (let ax = ax0; ax + step <= ax1; ax += step)
-      d += `${(ax === ax0 ? "M" : "L") + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + 1.2 * p)}L${r2(ax + step / 2)} ${r2(ay + 1.2 * p)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-    s += tag("antenna", path(d, "none", { stroke: T.pad, "stroke-width": 0.9, "stroke-linejoin": "round" }));
-    s += tag("module", rect(mx, 2.9 * p, mw, 7.5 * p, T.metal, Object.assign({ rx: 1.2 }, edge(T, T["metal-edge"]))));
-    s += rect(mx, 2.9 * p, mw, 1 * p, "#ffffff", { rx: 1.2, "fill-opacity": 0.22 }) + rect(mx, 9.7 * p, mw, 0.7 * p, "#000000", { rx: 1, "fill-opacity": 0.12 });
+    s += meander(T, ax0, ax1, ay, 1.2 * p);
+    s += shieldCan(T, mx, 2.9 * p, mw, 7.5 * p);
     if (props.chipLabel)
       s += text(
         w / 2,
@@ -2622,17 +2612,7 @@ var PartsKit = (() => {
       );
     s += text(w / 2, 7.6 * p, lotCode(props.chipLabel || "ESP32"), PIN_LABEL, T["chip-edge"], { "fill-opacity": 0.8 });
     s += qfp(T, 3.2 * p, 11.3 * p, 1.9 * p, 1.9 * p, 7, "CP2102");
-    s += tag(
-      "regulator",
-      rect(6.9 * p, 11.2 * p, 1.6 * p, 0.6 * p, T.metal, { rx: 0.3 }) + rect(
-        6.7 * p,
-        11.75 * p,
-        2 * p,
-        1.5 * p,
-        T["plastic-black"],
-        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
-      )
-    );
+    s += sot223(T, [6.9 * p, 11.2 * p, 1.6 * p, 0.6 * p], [6.7 * p, 11.75 * p, 2 * p, 1.5 * p]);
     s += indicator({
       x: 2.4 * p,
       y: 14.2 * p,
@@ -2668,7 +2648,8 @@ var PartsKit = (() => {
       kind,
       side: "right",
       silk: f.silk,
-      size: PIN_LABEL
+      size: PIN_LABEL,
+      names: left
     });
     const rh = header({
       x: rightX,
@@ -2678,13 +2659,8 @@ var PartsKit = (() => {
       kind,
       side: "left",
       silk: f.silk,
-      size: PIN_LABEL
-    });
-    lh.pins.forEach((pn, i) => {
-      pn.name = left[i];
-    });
-    rh.pins.forEach((pn, i) => {
-      pn.name = right[i];
+      size: PIN_LABEL,
+      names: right
     });
     s += lh.svg + rh.svg;
     return art(w, h, props.description || props.label || "ESP32 development board", s, lh.pins.concat(rh.pins));
@@ -2736,17 +2712,9 @@ var PartsKit = (() => {
     const ax0 = mx + 0.4 * p;
     const ax1 = mx + mw - 0.4 * p;
     const ay = 0.5 * p;
-    let d = "";
-    const step = 0.5 * p;
     s += rect(mx, 0, mw, 10 * p, T["pcb-black"], Object.assign({ rx: 1 }, edge(T, f.edge, T["stroke-fine"])));
-    for (let ax = ax0; ax + step <= ax1; ax += step)
-      d += `${(ax === ax0 ? "M" : "L") + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + 1.2 * p)}L${r2(ax + step / 2)} ${r2(ay + 1.2 * p)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-    s += tag("antenna", path(d, "none", { stroke: T.pad, "stroke-width": 0.9, "stroke-linejoin": "round" }));
-    s += tag(
-      "module",
-      rect(mx + 0.3 * p, 2.65 * p, mw - 0.6 * p, 6.85 * p, T.metal, Object.assign({ rx: 1.2 }, edge(T, T["metal-edge"])))
-    );
-    s += rect(mx + 0.3 * p, 2.65 * p, mw - 0.6 * p, 1 * p, "#ffffff", { rx: 1.2, "fill-opacity": 0.22 }) + rect(mx + 0.3 * p, 8.8 * p, mw - 0.6 * p, 0.7 * p, "#000000", { rx: 1, "fill-opacity": 0.12 });
+    s += meander(T, ax0, ax1, ay, 1.2 * p);
+    s += shieldCan(T, mx + 0.3 * p, 2.65 * p, mw - 0.6 * p, 6.85 * p);
     if (props.chipLabel)
       s += text(
         w / 2,
@@ -2759,17 +2727,7 @@ var PartsKit = (() => {
     s += text(w / 2, 7.4 * p, lotCode(props.chipLabel || "ESP32"), PIN_LABEL, T["chip-edge"], { "fill-opacity": 0.8 });
     if (props.label) s += text(w / 2, h - 10.6 * p, props.label, 4.4, f.silk);
     const b = h - 21.5 * p;
-    s += tag(
-      "regulator",
-      rect(3.7 * p, b + 12.3 * p, 1.6 * p, 0.6 * p, T.metal, { rx: 0.3 }) + rect(
-        3.5 * p,
-        b + 12.85 * p,
-        2 * p,
-        1.5 * p,
-        T["plastic-black"],
-        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
-      )
-    );
+    s += sot223(T, [3.7 * p, b + 12.3 * p, 1.6 * p, 0.6 * p], [3.5 * p, b + 12.85 * p, 2 * p, 1.5 * p]);
     s += qfp(T, 5 * p, b + 16.3 * p, 1.9 * p, 1.9 * p, 7, "CP2102");
     s += indicator({
       x: 2.3 * p,
@@ -2793,7 +2751,8 @@ var PartsKit = (() => {
       kind,
       side: "right",
       silk: f.silk,
-      size: PIN_LABEL
+      size: PIN_LABEL,
+      names: left
     });
     const rh = header({
       x: rightX,
@@ -2803,13 +2762,8 @@ var PartsKit = (() => {
       kind,
       side: "left",
       silk: f.silk,
-      size: PIN_LABEL
-    });
-    lh.pins.forEach((pn, i) => {
-      pn.name = left[i];
-    });
-    rh.pins.forEach((pn, i) => {
-      pn.name = right[i];
+      size: PIN_LABEL,
+      names: right
     });
     s += lh.svg + rh.svg;
     return art(w, h, props.description || props.label || "ESP32 development board", s, lh.pins.concat(rh.pins));
@@ -2877,17 +2831,9 @@ var PartsKit = (() => {
     const ax1 = mx + mw - M(1);
     const ay = M(0.9);
     const antH = M(Math.min(2.6, ov - 2));
-    let d = "";
-    const step = 0.5 * p;
     s += rect(mx, 0, mw, mh, T["pcb-black"], Object.assign({ rx: 1 }, edge(T, f.edge, T["stroke-fine"])));
-    for (let ax = ax0; ax + step <= ax1; ax += step)
-      d += `${(ax === ax0 ? "M" : "L") + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-    s += tag("antenna", path(d, "none", { stroke: T.pad, "stroke-width": 0.9, "stroke-linejoin": "round" }));
-    s += tag(
-      "module",
-      rect(mx + inset, shY, mw - 2 * inset, shH, T.metal, Object.assign({ rx: 1.2 }, edge(T, T["metal-edge"])))
-    );
-    s += rect(mx + inset, shY, mw - 2 * inset, 1 * p, "#ffffff", { rx: 1.2, "fill-opacity": 0.22 }) + rect(mx + inset, shY + shH - 0.7 * p, mw - 2 * inset, 0.7 * p, "#000000", { rx: 1, "fill-opacity": 0.12 });
+    s += meander(T, ax0, ax1, ay, antH);
+    s += shieldCan(T, mx + inset, shY, mw - 2 * inset, shH);
     if (props.chipLabel) {
       const room = mw - 2 * inset - 1 * p;
       const fitSize = function(t) {
@@ -2944,17 +2890,7 @@ var PartsKit = (() => {
     const y1 = low - M(1.2);
     const cx = (x0 + x1) / 2;
     const ym = (y0 + y1) / 2;
-    s += tag(
-      "regulator",
-      rect(x0 + M(1.6), y0, M(3), M(1.2), T.metal, { rx: 0.3 }) + rect(
-        x0,
-        y0 + M(1),
-        M(6.2),
-        M(3.4),
-        T["plastic-black"],
-        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
-      )
-    );
+    s += sot223(T, [x0 + M(1.6), y0, M(3), M(1.2)], [x0, y0 + M(1), M(6.2), M(3.4)]);
     s += indicator({
       x: x1 - M(1.4),
       y: y0 + M(1.6),
@@ -3025,25 +2961,17 @@ var PartsKit = (() => {
       [leftX, M(41.91)],
       [rightX, M(41.91)]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], M(0.82), T.hole, edge(T, T.pad, 1)));
+      s += hole(T, c[0], c[1], M(0.82), 1);
     });
     const ax0 = mx + M(0.8);
     const ax1 = mx + mw - M(0.8);
     const ay = M(0.8);
     const antH = M(2);
-    let d = "";
-    const step = 0.5 * p;
     const shY = M(3.9);
     const shH = M(9.7);
     s += rect(mx, my, mw, mh, T["pcb-black"], Object.assign({ rx: 1 }, edge(T, f.edge, T["stroke-fine"])));
-    for (let ax = ax0; ax + step <= ax1; ax += step)
-      d += `${(ax === ax0 ? "M" : "L") + r2(ax)} ${r2(ay)}L${r2(ax)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay + antH)}L${r2(ax + step / 2)} ${r2(ay)}L${r2(ax + step)} ${r2(ay)}`;
-    s += tag("antenna", path(d, "none", { stroke: T.pad, "stroke-width": 0.9, "stroke-linejoin": "round" }));
-    s += tag(
-      "module",
-      rect(mx + M(0.35), shY, mw - M(0.7), shH, T.metal, Object.assign({ rx: 1.2 }, edge(T, T["metal-edge"])))
-    );
-    s += rect(mx + M(0.35), shY, mw - M(0.7), 1 * p, "#ffffff", { rx: 1.2, "fill-opacity": 0.22 }) + rect(mx + M(0.35), shY + shH - 0.7 * p, mw - M(0.7), 0.7 * p, "#000000", { rx: 1, "fill-opacity": 0.12 });
+    s += meander(T, ax0, ax1, ay, antH);
+    s += shieldCan(T, mx + M(0.35), shY, mw - M(0.7), shH);
     s += text(w / 2, shY + shH * 0.45, props.moduleLabel || "NINA-W102", 4.4, T["chip-edge"], { "font-weight": 600 }) + text(w / 2, shY + shH * 0.45 + 1.4 * p, lotCode(props.moduleLabel || "NINA"), PIN_LABEL, T["chip-edge"], {
       "fill-opacity": 0.8
     });
@@ -3188,7 +3116,7 @@ var PartsKit = (() => {
       [X0 + M(55.6), top - M(4.1)],
       [X0 + M(40), top + M(47.6)]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], M(1.6), T.hole, edge(T, T.pad, 1)));
+      s += hole(T, c[0], c[1], M(1.6), 1);
     });
     for (let r = 0; r < 19; r++) {
       const y = rowYof(r);
@@ -3224,10 +3152,8 @@ var PartsKit = (() => {
       jp += circle(c[0], c[1], 0.3 * p, T.pad) + circle(c[0], c[1], 0.14 * p, T.hole);
     });
     s += tag("icsp", jp) + text(M(21.9), M(9.6), "CN2", PIN_LABEL, f.silk);
-    let swd = "";
-    for (let k = 0; k < 6; k++)
-      swd += circle(M(8), M(9.8) + k * p, 0.3 * p, T.pad) + circle(M(8), M(9.8) + k * p, 0.14 * p, T.hole);
-    s += tag("icsp", swd) + text(M(11.6), M(16.4), "SWD", PIN_LABEL, f.silk);
+    const swd = Array.from({ length: 6 }, (_, k) => M(9.8) + k * p);
+    s += tag("icsp", holeGrid(T, [M(8)], swd, 0.3 * p, 0.14 * p)) + text(M(11.6), M(16.4), "SWD", PIN_LABEL, f.silk);
     s += text(M(34.5), M(22.6), "DEBUGGER", PIN_LABEL, f.silk, { "fill-opacity": 0.8 });
     s += line(1.5 * p, M(25.9), w - 1.5 * p, M(25.9), f.silk, T["stroke-fine"], {
       "stroke-dasharray": "3 2.4",
@@ -3273,17 +3199,7 @@ var PartsKit = (() => {
       finish: fin,
       label: "LD4"
     });
-    s += tag(
-      "regulator",
-      rect(M(20), M(37.6), M(3), M(1.4), T.metal, { rx: 0.3 }) + rect(
-        M(18.3),
-        M(38.8),
-        M(6.5),
-        M(3.5),
-        T["plastic-black"],
-        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
-      )
-    );
+    s += sot223(T, [M(20), M(37.6), M(3), M(1.4)], [M(18.3), M(38.8), M(6.5), M(3.5)]);
     s += qfp(T, M(31), M(52.2), M(7.6), M(7.6), 12, props.chipLabel || "STM32C031C6");
     s += smd(T, "crystal", M(22), M(53), false) + smd(T, "capacitor", M(25), M(48.5), false) + smd(T, "capacitor", M(42.6), M(48.5), false) + smd(T, "resistor", M(25), M(60), false) + smd(T, "resistor", M(42.6), M(60), false);
     s += smd(T, "capacitor", M(29), M(40), true) + smd(T, "capacitor", M(36), M(40), true);
@@ -3358,7 +3274,7 @@ var PartsKit = (() => {
       [2.6 * p, 18 * p],
       [5.7 * p, 18 * p]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     left.forEach((_, k) => {
       const y = top + k * p;
@@ -3414,7 +3330,8 @@ var PartsKit = (() => {
       kind: "pad",
       side: "right",
       silk: f.silk,
-      size: PIN_LABEL
+      size: PIN_LABEL,
+      names: left
     });
     const rh = header({
       x: rightX,
@@ -3424,13 +3341,8 @@ var PartsKit = (() => {
       kind: "pad",
       side: "left",
       silk: f.silk,
-      size: PIN_LABEL
-    });
-    lh.pins.forEach((pn, i) => {
-      pn.name = left[i];
-    });
-    rh.pins.forEach((pn, i) => {
-      pn.name = right[i];
+      size: PIN_LABEL,
+      names: right
     });
     s += lh.svg + rh.svg + dbg.svg.replace(/<text[^>]*>[^<]*<\/text>/g, "");
     return art(
@@ -3535,7 +3447,8 @@ var PartsKit = (() => {
       kind: "pad",
       side: "right",
       silk: f.silk,
-      size: PIN_LABEL
+      size: PIN_LABEL,
+      names: left
     });
     const rh = header({
       x: rightX,
@@ -3545,13 +3458,8 @@ var PartsKit = (() => {
       kind: "pad",
       side: "left",
       silk: f.silk,
-      size: PIN_LABEL
-    });
-    lh.pins.forEach((pn, i) => {
-      pn.name = left[i];
-    });
-    rh.pins.forEach((pn, i) => {
-      pn.name = right[i];
+      size: PIN_LABEL,
+      names: right
     });
     s += lh.svg + rh.svg;
     return art(w, h, props.description || props.label || "Nucleo-32 board", s, lh.pins.concat(rh.pins, extra));
@@ -4478,10 +4386,7 @@ var PartsKit = (() => {
       return n !== null && n !== void 0;
     };
     const allNames = names ? names.top.concat(names.bottom).filter(named).map(silkName) : [];
-    const maxLen = allNames.reduce((m, n) => {
-      return Math.max(m, n.length);
-    }, 0);
-    const rot = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+    const { rotate: rot } = labelRow(T, allNames, p);
     const pinTop = rot ? 1.6 * p : 1 * p;
     const dy = pinTop - 1 * p;
     h = rot ? 9.2 * p : 9 * p;
@@ -4640,10 +4545,7 @@ var PartsKit = (() => {
     const fin = props.finish || "blue";
     const f = finish(T, fin);
     const names = props.pins || ["DATA", "CLK", "DC", "RST", "CS", "3V3", "VIN", "GND"];
-    const maxLen = names.reduce((m, n) => {
-      return Math.max(m, n.length);
-    }, 0);
-    const rotate = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+    const { rotate } = labelRow(T, names, p);
     const w = 10.6 * p;
     const h = rotate ? 11 * p : 10.6 * p;
     const gy = rotate ? 2.3 * p : 1.6 * p;
@@ -4715,7 +4617,7 @@ var PartsKit = (() => {
       [2.5, 43],
       [31.8, 43]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0] * mm, c[1] * mm, 1.3 * mm, T.hole, edge(T, T.pad, 1)));
+      s += hole(T, c[0] * mm, c[1] * mm, 1.3 * mm, 1);
     });
     const hdr = header({
       x: r2((w - (names.length - 1) * p) / 2),
@@ -4810,7 +4712,7 @@ var PartsKit = (() => {
       mark: props.mark === false ? void 0 : { x: 10 * mm, y: 3 * mm, size: 0.7 * p }
     });
     G.holes.forEach((c) => {
-      s += tag("hole", circle(c[0] * mm, c[1] * mm, 1.5 * mm, T.hole, edge(T, T.pad, 1)));
+      s += hole(T, c[0] * mm, c[1] * mm, 1.5 * mm, 1);
     });
     const jx = G.jx * mm;
     const jy = h - 2 * mm;
@@ -4965,7 +4867,7 @@ var PartsKit = (() => {
       [M(87.5), M(2.5)],
       [M(87.5), M(35.5)]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], M(1.5), T.hole, edge(T, T.pad, 1)));
+      s += hole(T, c[0], c[1], M(1.5), 1);
     });
     const pw = M(79);
     const ph = M(36.7);
@@ -5137,7 +5039,7 @@ var PartsKit = (() => {
       [2.5 * mm, 2.5 * mm],
       [2.5 * mm, h - 2.5 * mm]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     const names = props.pins || ["CLK", "DIO", "VCC", "GND"];
     const pins = [];
@@ -5408,7 +5310,7 @@ var PartsKit = (() => {
     const kind = STRIP_SIZES[props.pixelSize] || STRIP_SIZES["5050"];
     const step = kind.step * p;
     const k = kind.size / 5;
-    const round2 = props.pixelShape === "round" || props.pixelShape === "circle";
+    const round = props.pixelShape === "round" || props.pixelShape === "circle";
     const w = Math.ceil((4.8 * p + n * step) / p) * p;
     const h = 4 * p;
     let s = "";
@@ -5440,7 +5342,7 @@ var PartsKit = (() => {
       const c = colors[i] || null;
       const pc = pixelColor(T, c);
       let g = "";
-      if (round2) {
+      if (round) {
         g += tag("glow", circle(cx, cy, 3.4 * mm * k, pc.fill, { "fill-opacity": r2(T["opacity-glow"] * pc.level) }));
         g += tag(
           "body",
@@ -5656,7 +5558,7 @@ var PartsKit = (() => {
         [cols / 2 - 1.5, rows - 1.5],
         [cols / 2 + 1.5, rows - 1.5]
       ].forEach((c) => {
-        s += tag("hole", circle(x0 + c[0] * pitch, y0 + c[1] * pitch, T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+        s += hole(T, x0 + c[0] * pitch, y0 + c[1] * pitch, T["mount-hole-radius"]);
       });
     for (let r = 0; r < rows; r++)
       for (let c = 0; c < cols; c++) {
@@ -5757,11 +5659,7 @@ var PartsKit = (() => {
         size: 0.8 * p
       } : void 0
     });
-    const maxLen = names.reduce((m, n) => {
-      return Math.max(m, n.length);
-    }, 0);
-    const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
-    const labelSpan = rotateLabels ? T["pad-radius"] + 1 + maxLen * PIN_LABEL * 0.62 + 1.2 : T["label-rise"] + 3.6;
+    const { longest: maxLen, rotate: rotateLabels, span: labelSpan } = labelRow(T, names, p);
     const extraY = rowY - Math.floor((rowY - 0.8 * p) / p) * p;
     const extra = props.extraPads && props.extraPads.length ? header({
       x: r2((w - (props.extraPads.length - 1) * p) / 2),
@@ -5851,7 +5749,7 @@ var PartsKit = (() => {
           });
       }
       s += tag("chip", chipS);
-      const codeFit = Math.floor((2 * half - 1.6) / (PIN_LABEL * 0.62));
+      const codeFit = Math.floor((2 * half - 1.6) / textWidth(1, PIN_LABEL));
       if (half >= 0.8 * p && codeFit >= 4)
         s += text(cx, mid + half * 0.55, lotCode(props.label || "IC").slice(0, codeFit), PIN_LABEL, T["chip-print"], {
           "fill-opacity": 0.85
@@ -5897,7 +5795,7 @@ var PartsKit = (() => {
       let cs;
       let cyc = mid;
       if (part === "dual-can") {
-        const zoneHalf = (names.length - 1) * p / 2 + (rotateLabels ? PIN_LABEL / 2 : maxLen * PIN_LABEL * 0.62 / 2) + 0.6;
+        const zoneHalf = (names.length - 1) * p / 2 + (rotateLabels ? PIN_LABEL / 2 : textWidth(maxLen, PIN_LABEL) / 2) + 0.6;
         const canBottom = rowY - T["pad-radius"] - 0.6;
         r = Math.min(
           (props.canPitches || 2.6) * p / 2,
@@ -6213,7 +6111,7 @@ var PartsKit = (() => {
       [0.8 * p, h - 0.8 * p],
       [w - 0.8 * p, h - 0.8 * p]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     const hdr = padRow(
       T,
@@ -6285,7 +6183,7 @@ var PartsKit = (() => {
       [0.8 * p, h - 0.8 * p],
       [w - 0.8 * p, h - 0.8 * p]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     const hdr = padRow(
       T,
@@ -6340,7 +6238,7 @@ var PartsKit = (() => {
       [22.5 * p, 2 * p],
       [22.5 * p, h - 2 * p]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     const hdr = padRow(
       T,
@@ -6469,7 +6367,7 @@ var PartsKit = (() => {
       [0.9 * p, h - 0.9 * p],
       [w - 0.9 * p, h - 0.9 * p]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     const hdr = padRow(
       T,
@@ -6597,42 +6495,28 @@ var PartsKit = (() => {
       return r2(by + k * sy * mm);
     };
     const startX = r2((w - (names.length - 1) * p) / 2);
-    const maxLen = prints.reduce((m, n) => {
-      return Math.max(m, n.length);
-    }, 0);
-    const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+    const { rotate: rotateLabels, span: labelSpan } = labelRow(T, prints, p);
     const edgePins = edgeHeader(T, { names, side: "bottom", at: by + bh, from: startX, ext });
     const rowY = edgePins.pads[0].y;
-    const labelSpan = rotateLabels ? T["pad-radius"] + 1 + maxLen * PIN_LABEL * 0.62 + 1.2 : T["label-rise"] + 3.6;
     const bottom = rowY - labelSpan;
-    const frame = function(x, y, fw, fh) {
-      return rect(x - 1.2, y - 1.2, fw + 2.4, fh + 2.4, "none", {
-        stroke: f.silk,
-        "stroke-width": T["stroke-fine"],
-        "stroke-opacity": 0.85,
-        rx: 0.4
-      });
-    };
     const passive = function(kind, x, y, horizontal) {
-      const rw = horizontal ? 0.9 * p : 0.55 * p;
-      const rh = horizontal ? 0.55 * p : 0.9 * p;
       const px = X(x);
       const py = Y(y);
       if (kind === "mlcc") {
         const cw2 = horizontal ? 3 * mm : 1.5 * mm;
         const chh = horizontal ? 1.5 * mm : 3 * mm;
-        return frame(px, py, cw2, chh) + tag(
+        return silkFrame(T, f, px, py, cw2, chh) + tag(
           "smd",
           rect(px, py, cw2, chh, T["cap-mlcc"], { rx: 0.4 }) + (horizontal ? rect(px, py, cw2 * 0.18, chh, T.lead, { rx: 0.3 }) + rect(px + cw2 * 0.82, py, cw2 * 0.18, chh, T.lead, { rx: 0.3 }) : rect(px, py, cw2, chh * 0.18, T.lead, { rx: 0.3 }) + rect(px, py + chh * 0.82, cw2, chh * 0.18, T.lead, { rx: 0.3 }))
         );
       }
-      return frame(px, py, rw, rh) + smd(T, kind, px, py, horizontal);
+      return framed(T, f, kind, px, py, horizontal);
     };
     const lamp = function(x, y, color, hook, state2, on2, label, where) {
       const isz = 0.6 * p;
       const lx = X(x);
       const ly = Y(y);
-      let out = frame(lx, ly, isz, isz) + indicator({ x: lx, y: ly, size: isz, color, on: on2, hook, state: state2, finish: fin });
+      let out = silkFrame(T, f, lx, ly, isz, isz) + indicator({ x: lx, y: ly, size: isz, color, on: on2, hook, state: state2, finish: fin });
       if (where === "right")
         out += text(lx + isz + 2, ly + isz / 2, label, 4, f.silk, {
           "text-anchor": "start",
@@ -6717,14 +6601,14 @@ var PartsKit = (() => {
       mark: { x: X(L.mark[0]), y: Y(L.mark[1]), size: 0.7 * p }
     });
     L.holes.forEach((c) => {
-      s += tag("hole", circle(X(c[0]), Y(c[1]), 0.8 * mm, T.hole, edge(T, T.pad, T["stroke-fine"])));
+      s += hole(T, X(c[0]), Y(c[1]), 0.8 * mm, T["stroke-fine"]);
     });
     s += circle(X(L.mount[0]), Y(L.mount[1]), 2.2 * mm, "none", {
       stroke: f.silk,
       "stroke-width": T["stroke-fine"],
       "stroke-opacity": 0.85
     });
-    s += tag("hole", circle(X(L.mount[0]), Y(L.mount[1]), 1.5 * mm, T.hole, edge(T, T.pad)));
+    s += hole(T, X(L.mount[0]), Y(L.mount[1]), 1.5 * mm);
     const hdr = header({
       x: startX,
       y: rowY,
@@ -6931,22 +6815,10 @@ var PartsKit = (() => {
       return r2(cx + k * mm);
     };
     const startX = r2((w - (names.length - 1) * p) / 2);
-    const maxLen = prints.reduce((m, n) => {
-      return Math.max(m, n.length);
-    }, 0);
-    const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
+    const { rotate: rotateLabels, span: labelSpan } = labelRow(T, prints, p);
     const edgePins = edgeHeader(T, { names, side: "bottom", at: by + bh, from: startX, ext });
     const rowY = edgePins.pads[0].y;
-    const labelSpan = rotateLabels ? T["pad-radius"] + 1 + maxLen * PIN_LABEL * 0.62 + 1.2 : T["label-rise"] + 3.6;
     const bottom = rowY - labelSpan;
-    const frame = function(x, y, fw, fh) {
-      return rect(x - 1.2, y - 1.2, fw + 2.4, fh + 2.4, "none", {
-        stroke: f.silk,
-        "stroke-width": T["stroke-fine"],
-        "stroke-opacity": 0.85,
-        rx: 0.4
-      });
-    };
     s += board({
       width: w,
       height: bh,
@@ -7025,7 +6897,7 @@ var PartsKit = (() => {
       s += bevel(T, X(-3.2), itop, iw, id, 0.8, 0.8) + path(`M${X(-2.3)} ${r2(itop + 0.2)}A${r2(dr)} ${r2(dd)} 0 0 1 ${X(2.3)} ${r2(itop + 0.2)}Z`, sheen("lens"), {
         "fill-opacity": 0.75
       });
-      s += frame(cx - 5.2 * mm, by + 7 * mm, 0.6 * p, 0.6 * p) + indicator({
+      s += silkFrame(T, f, cx - 5.2 * mm, by + 7 * mm, 0.6 * p, 0.6 * p) + indicator({
         x: cx - 5.2 * mm,
         y: by + 7 * mm,
         size: 0.6 * p,
@@ -7039,7 +6911,7 @@ var PartsKit = (() => {
     pads.forEach((x) => {
       s += tag("pad", circle(x, r2(padY), 2.2, T.pad) + circle(x, r2(padY), 0.9, T.hole));
     });
-    s += frame(cx + resX * mm, by + resY * mm, 0.55 * p, 0.9 * p) + smd(T, "resistor", cx + resX * mm, by + resY * mm, false);
+    s += framed(T, f, "resistor", cx + resX * mm, by + resY * mm, false);
     if (props.label)
       s += text(
         cx,
@@ -7054,9 +6926,10 @@ var PartsKit = (() => {
   }
   function sensorModuleTemplate(props) {
     props = props || {};
-    const el0 = props.element || "ldr";
-    if (el0 === "flame" || el0 === "ldr" || el0 === "mic" || el0 === "cylinder") return comparatorBoardTemplate(props);
-    if (el0 === "bead" || el0 === "ir") return smallSensorBoardTemplate(props);
+    const element = props.element || "ldr";
+    if (element === "flame" || element === "ldr" || element === "mic" || element === "cylinder")
+      return comparatorBoardTemplate(props);
+    if (element === "bead" || element === "ir") return smallSensorBoardTemplate(props);
     const T = tokens();
     const p = T.pitch;
     const mm = p / 2.54;
@@ -7067,14 +6940,9 @@ var PartsKit = (() => {
     const h = (props.heightPitches || 14) * p;
     const rowY = h - 0.6 * p;
     let s = "";
-    const element = props.element || "ldr";
     const cx = w / 2;
     const startX = r2((w - (names.length - 1) * p) / 2);
-    const maxLen = names.reduce((m, n) => {
-      return Math.max(m, n.length);
-    }, 0);
-    const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
-    const labelSpan = rotateLabels ? T["pad-radius"] + 1 + maxLen * PIN_LABEL * 0.62 + 1.2 : T["label-rise"] + 3.6;
+    const { rotate: rotateLabels, span: labelSpan } = labelRow(T, names, p);
     const bottom = rowY - labelSpan;
     s += board({
       width: w,
@@ -7091,112 +6959,7 @@ var PartsKit = (() => {
         [pn.x + (i - (names.length - 1) / 2) * 0.3 * p, bottom - 0.2 * p]
       ]);
     });
-    let ey = 2.4 * p;
-    if (element === "ldr") {
-      const lr = 2.5 * mm;
-      ey = 1.2 * p + lr;
-      s += wire(cx - 1 * mm, ey + lr - 1, cx - 1 * mm, ey + lr + 1.2 * p) + wire(cx + 1 * mm, ey + lr - 1, cx + 1 * mm, ey + lr + 1.2 * p);
-      let track = "";
-      for (let k = 0; k < 6; k++) {
-        const ty2 = ey - lr * 0.7 + k * lr * 0.28;
-        track += `M${r2(cx - lr * 0.62)} ${r2(ty2)}h${r2(lr * 1.24)}${k < 5 ? `m${r2(k % 2 ? -lr * 1.24 : 0)} ${r2(lr * 0.14)}v0` : ""}`;
-      }
-      s += tag(
-        "element",
-        circle(cx, ey, lr, T["cap-ceramic"], edge(T, T["resistor-body-edge"], T["stroke-detail"])) + path(track, "none", { stroke: T["resistor-smd"], "stroke-width": 1.1, "stroke-linecap": "round" })
-      );
-      s += el("ellipse", {
-        cx: cx - lr * 0.4,
-        cy: ey - lr * 0.45,
-        rx: lr * 0.3,
-        ry: lr * 0.14,
-        fill: "#ffffff",
-        "fill-opacity": 0.35,
-        transform: `rotate(-30 ${r2(cx - lr * 0.4)} ${r2(ey - lr * 0.45)})`
-      });
-    } else if (element === "mic") {
-      const mr = 4.85 * mm;
-      ey = 1 * p + mr;
-      s += tag(
-        "element",
-        circle(cx, ey, mr, T.metal, edge(T, T["metal-edge"])) + circle(cx, ey, mr * 0.75, "#000000", { "fill-opacity": 0.08 }) + circle(cx, ey, mr * 0.22, T.cavity)
-      );
-      s += el("ellipse", {
-        cx: cx - mr * 0.4,
-        cy: ey - mr * 0.45,
-        rx: mr * 0.35,
-        ry: mr * 0.16,
-        fill: "#ffffff",
-        "fill-opacity": 0.5,
-        transform: `rotate(-30 ${r2(cx - mr * 0.4)} ${r2(ey - mr * 0.45)})`
-      });
-    } else if (element === "bead") {
-      ey = 1.6 * p;
-      s += wire(cx - 0.9 * mm, ey + 0.8 * mm, cx - 0.9 * mm, ey + 1.4 * p) + wire(cx + 0.9 * mm, ey + 0.8 * mm, cx + 0.9 * mm, ey + 1.4 * p);
-      s += tag(
-        "element",
-        el("ellipse", {
-          cx,
-          cy: ey,
-          rx: 1.5 * mm,
-          ry: 1.9 * mm,
-          fill: T["plastic-black"],
-          stroke: T["plastic-black-edge"],
-          "stroke-width": T["stroke-detail"]
-        })
-      );
-      s += el("ellipse", {
-        cx: cx - 0.5 * mm,
-        cy: ey - 0.7 * mm,
-        rx: 0.5 * mm,
-        ry: 0.3 * mm,
-        fill: "#ffffff",
-        "fill-opacity": 0.3
-      });
-    } else if (element === "cylinder") {
-      const cl = Math.min(w - 1.6 * p, 12 * mm);
-      const cyl = 4 * mm;
-      ey = 1.4 * p + cyl / 2;
-      s += tag(
-        "element",
-        rect(cx - cl / 2, ey - cyl / 2, cl, cyl, T.metal, Object.assign({ rx: cyl / 2 }, edge(T, T["metal-edge"]))) + rect(cx - cl / 2 + 1.5, ey - cyl / 2 + 1.2, cl - 3, cyl * 0.3, "#ffffff", {
-          rx: 1,
-          "fill-opacity": T["opacity-light"] * 0.6
-        }) + rect(cx - cl / 2 + 1.5, ey + cyl * 0.2, cl - 3, cyl * 0.22, "#000000", {
-          rx: 1,
-          "fill-opacity": T["opacity-shade"]
-        })
-      );
-      s += wire(cx - cl / 2 - 0.6 * p, ey, cx - cl / 2, ey) + wire(cx + cl / 2, ey, cx + cl / 2 + 0.6 * p, ey);
-    } else if (element === "ir") {
-      const iw = 6.5 * mm;
-      const ih = 5.5 * mm;
-      ey = 1.2 * p + ih / 2;
-      [cx - 1 * p, cx, cx + 1 * p].forEach((x) => {
-        s += wire(x, ey + ih / 2 - 1, x, ey + ih / 2 + 1 * p);
-      });
-      s += tag(
-        "element",
-        rect(
-          cx - iw / 2,
-          ey - ih / 2,
-          iw,
-          ih,
-          T["plastic-black"],
-          Object.assign({ rx: 1.5 }, edge(T, T["plastic-black-edge"]))
-        ) + circle(cx, ey, 2.2 * mm, T["plastic-black"], edge(T, T["plastic-black-edge"], T["stroke-detail"])) + circle(cx, ey, 2.2 * mm, "#ffffff", { "fill-opacity": 0.06 })
-      );
-      s += el("ellipse", {
-        cx: cx - 0.8 * mm,
-        cy: ey - 0.9 * mm,
-        rx: 0.8 * mm,
-        ry: 0.4 * mm,
-        fill: "#ffffff",
-        "fill-opacity": 0.25,
-        transform: `rotate(-30 ${r2(cx - 0.8 * mm)} ${r2(ey - 0.9 * mm)})`
-      });
-    }
-    const ty = ey + (element === "mic" ? 4.85 * mm : element === "cylinder" ? 2 * mm : 2.5 * mm) + 1.3 * p + (element === "bead" || element === "cylinder" ? 0.6 * p : 0);
+    const ty = 2.4 * p + 2.5 * mm + 1.3 * p;
     if (props.label)
       s += text(cx, ty, props.label, Math.min(5, (w - 1.4 * p) / Math.max(4, props.label.length) * 1.5), f.silk);
     const by = ty + Math.max(0.5 * p, (bottom - ty - 3.8 * p) / 2);
@@ -7466,7 +7229,7 @@ var PartsKit = (() => {
       [1.7, 18.3],
       [43.3, 18.3]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0] * mm, c[1] * mm, 0.9 * mm, T.hole, edge(T, T.pad)));
+      s += hole(T, c[0] * mm, c[1] * mm, 0.9 * mm);
     });
     [cx - 13 * mm, cx + 13 * mm].forEach((x) => {
       const m = r * 0.78;
@@ -7564,10 +7327,7 @@ var PartsKit = (() => {
       const h = 12.5 * mm;
       const names = props.pins || ["SDA", "SCL", "GND", "VCC"];
       s += board({ width: w, height: h, finish: fin, holes: false });
-      const hdr = header({ x: r2((w - (names.length - 1) * p) / 2), y: M(1.6), count: names.length });
-      hdr.pins.forEach((pn, i) => {
-        pn.name = names[i];
-      });
+      const hdr = header({ x: r2((w - (names.length - 1) * p) / 2), y: M(1.6), count: names.length, names });
       s += smd(T, "resistor", M(0.3), M(3.45), false) + smd(T, "capacitor", M(2), M(3.45), false) + regulator(M(5.7), M(4.6)) + smd(T, "capacitor", M(8.3), M(3.45), false);
       s += text(M(6.9), M(7.3), "BMP180", 4.6, f.silk, { "font-weight": 600 });
       s += lga(M(2.2), M(9.4));
@@ -7617,7 +7377,7 @@ var PartsKit = (() => {
       [0.7 * p, 4.6 * p],
       [w - 0.7 * p, 4.6 * p]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     const hdr = padRow(T, fin, f, { x: 5.25 * p, y: h - 0.6 * p, labels: names, side: "above", silk: f.silk }, -1);
     s += tag(
@@ -7668,7 +7428,7 @@ var PartsKit = (() => {
       [0.75 * p, 8.7 * p],
       [w - 0.75 * p, 8.7 * p]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     const edgePins = edgeHeader(T, { names, side: "bottom", at: bh, from: 2.5 * p });
     const hdr = padRow(
@@ -7746,7 +7506,7 @@ var PartsKit = (() => {
       [1 * p, h - 0.8 * p],
       [w - 1 * p, h - 0.8 * p]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     const left = padRow(
       T,
@@ -8289,7 +8049,7 @@ var PartsKit = (() => {
       [w - 3 * mm, 3 * mm],
       [w - 3 * mm, h - 3 * mm]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], 1.6 * mm, T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], 1.6 * mm);
     });
     s += text(w - 1 * mm, h / 2, "KY-023", 4.4, f.silk, { transform: `rotate(-90 ${r2(w - 1 * mm)} ${r2(h / 2)})` });
     const hdr = edgeHeader(T, { names, side: "left", at: ext, from: h / 2 - 2 * p, ext });
@@ -8698,7 +8458,7 @@ var PartsKit = (() => {
       [0.8 * p, h - 0.8 * p],
       [w - 0.8 * p, h - 0.8 * p]
     ].forEach((c) => {
-      s += tag("hole", circle(c[0], c[1], T["mount-hole-radius"], T.hole, edge(T, T.pad)));
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
     });
     const hdr = padRow(
       T,
@@ -8914,14 +8674,14 @@ var PartsKit = (() => {
       rx: 0.06 * bw,
       "fill-opacity": 0.5
     });
-    const hole = frame >= 40 ? 31 * mm / 2 : frame * 0.37;
+    const hole2 = frame >= 40 ? 31 * mm / 2 : frame * 0.37;
     [
       [-1, -1],
       [1, -1],
       [-1, 1],
       [1, 1]
     ].forEach((c) => {
-      s += circle(cx + c[0] * hole, cy + c[1] * hole, 1.5 * mm, T.hole, edge(T, T["metal-edge"], T["stroke-fine"]));
+      s += circle(cx + c[0] * hole2, cy + c[1] * hole2, 1.5 * mm, T.hole, edge(T, T["metal-edge"], T["stroke-fine"]));
     });
     s += circle(cx, cy, 11 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-detail"])) + circle(cx, cy, 11 * mm, "#000000", { "fill-opacity": 0.06 });
     if (biaxial) {
@@ -9596,6 +9356,7 @@ var PartsKit = (() => {
     esp32S2DevKit: () => esp32S2DevKit,
     esp32S3DevKit: () => esp32S3DevKit,
     espDevKitTemplate: () => espDevKitTemplate,
+    exampleValue: () => exampleValue,
     findHook: () => findHook,
     findPart: () => findPart,
     flameSensor: () => flameSensor,
@@ -10372,6 +10133,10 @@ var PartsKit = (() => {
       return (Array.isArray(want) ? want : [want]).some((w) => w === v);
     });
   }
+  function exampleValue(entry2, spec, example) {
+    var _a, _b;
+    return example.each ? Array.from({ length: Number((_b = (_a = entry2.preset.chain) != null ? _a : spec.length) != null ? _b : 1) }, () => example.value) : example.value;
+  }
   function freeze(value) {
     if (value && typeof value === "object" && !Object.isFrozen(value)) {
       Object.freeze(value);
@@ -10593,8 +10358,8 @@ var PartsKit = (() => {
   }
 
   // src/helpers.js
+  init_core();
   init_tokens();
-  var round = (v) => Math.round(v * 100) / 100;
   function parts(art2) {
     const open = /^<svg\b[^>]*>/.exec(art2.svg);
     const close = art2.svg.lastIndexOf("</svg>");
@@ -10609,7 +10374,7 @@ var PartsKit = (() => {
     const { open, inner } = parts(art2);
     const [W, H] = t === 2 ? [w, h] : [h, w];
     const transform = t === 1 ? `translate(${h} 0) rotate(90)` : t === 2 ? `translate(${w} ${h}) rotate(180)` : `translate(0 ${w}) rotate(-90)`;
-    const turn2 = (p) => t === 1 ? { ...p, x: round(h - p.y), y: round(p.x) } : t === 2 ? { ...p, x: round(w - p.x), y: round(h - p.y) } : { ...p, x: round(p.y), y: round(w - p.x) };
+    const turn2 = (p) => t === 1 ? { ...p, x: r2(h - p.y), y: r2(p.x) } : t === 2 ? { ...p, x: r2(w - p.x), y: r2(h - p.y) } : { ...p, x: r2(p.y), y: r2(w - p.x) };
     return {
       width: W,
       height: H,
@@ -10627,7 +10392,7 @@ var PartsKit = (() => {
       width: w,
       height: h,
       svg: `${open}<g transform="${transform}">${inner}</g></svg>`,
-      pins: art2.pins.map((p) => across ? { ...p, x: round(w - p.x) } : { ...p, y: round(h - p.y) })
+      pins: art2.pins.map((p) => across ? { ...p, x: r2(w - p.x) } : { ...p, y: r2(h - p.y) })
     };
   }
   function scopeIds(art2, prefix2) {
@@ -10921,7 +10686,7 @@ var PartsKit = (() => {
       } else if (tagName === "text") {
         const txt = inner.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"');
         const fs = num2(attrs2, "font-size", 4);
-        const tw = txt.length * fs * 0.62;
+        const tw = textWidth(txt.length, fs);
         const tx = num2(attrs2, "x", 0);
         const ty = num2(attrs2, "y", 0);
         const anchor = attr(attrs2, "text-anchor") || "middle";
@@ -11217,12 +10982,12 @@ var PartsKit = (() => {
   }
 
   // src/elementControls.js
-  var JOYSTICK_FULL_DRAG = 9 * 9.6 / 2.54;
+  init_core();
+  var JOYSTICK_FULL_DRAG = 9 * PITCH / 2.54;
   var WIND_DEGREES_PER_SECOND = 720;
   var RUN_DEGREES_PER_SECOND = 280;
   var STOP_MS = 120;
   var clamp = (value, low, high) => Math.min(high, Math.max(low, value));
-  var hundredths = (value) => Math.round(value * 100) / 100;
   var degreesOf = (dx, dy) => Math.atan2(dy, dx) * 180 / Math.PI;
   var data2 = (element, name) => {
     var _a;
@@ -11250,7 +11015,7 @@ var PartsKit = (() => {
   function sliderKey(c, event) {
     const step = SLIDER_KEYS[event.key];
     if (!step) return false;
-    c.step({ position: hundredths(clamp(step(Number(c.state().position) || 0), 0, 1)) });
+    c.step({ position: r2(clamp(step(Number(c.state().position) || 0), 0, 1)) });
     return true;
   }
   function turn(c, steps) {
@@ -11300,7 +11065,7 @@ var PartsKit = (() => {
         return;
       }
       const angle = t < wind ? travel * t / wind : travel * (1 - Math.max(0, t - wind - STOP_MS) / run);
-      c.show({ angle: hundredths(angle) });
+      c.show({ angle: r2(angle) });
       globalThis.requestAnimationFrame(frame);
     };
     globalThis.requestAnimationFrame(frame);
@@ -11350,7 +11115,7 @@ var PartsKit = (() => {
         const cx = data2(knob, "data-cx");
         const cy = data2(knob, "data-cy");
         if (!Number.isFinite(cx) || !Number.isFinite(cy)) return;
-        c.set({ position: hundredths(knobPosition(point.x - cx, point.y - cy, Number(c.state().position))) });
+        c.set({ position: r2(knobPosition(point.x - cx, point.y - cy, Number(c.state().position))) });
       },
       key: sliderKey
     },
@@ -11361,7 +11126,7 @@ var PartsKit = (() => {
       down: (c, event, point, drag) => (drag.position = Number(c.state().position) || 0, true),
       move: (c, event, point, drag) => {
         const travel = data2(c.hook("lever"), "data-travel");
-        if (travel > 0) c.set({ position: hundredths(clamp(drag.position + (point.x - drag.x) / travel, 0, 1)) });
+        if (travel > 0) c.set({ position: r2(clamp(drag.position + (point.x - drag.x) / travel, 0, 1)) });
       },
       key: sliderKey
     },
@@ -11424,7 +11189,7 @@ var PartsKit = (() => {
       },
       // Each finger and key pushes the stick; letting go of all of them centres it.
       held: (tokens2) => {
-        const sum = (axis) => hundredths(
+        const sum = (axis) => r2(
           clamp(
             tokens2.reduce((total, token) => {
               var _a;

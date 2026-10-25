@@ -9,7 +9,9 @@ import {
   el,
   finish,
   header,
+  hole,
   indicator,
+  labelRow,
   line,
   lotCode,
   path,
@@ -18,6 +20,7 @@ import {
   sheen,
   tag,
   text,
+  textWidth,
   tokens,
   trace,
   via,
@@ -67,11 +70,7 @@ export function moduleTemplate(props) {
           }
         : undefined,
   });
-  const maxLen = names.reduce((m, n) => {
-    return Math.max(m, n.length);
-  }, 0);
-  const rotateLabels = maxLen * PIN_LABEL * 0.62 > p - 1.6;
-  const labelSpan = rotateLabels ? T['pad-radius'] + 1.0 + maxLen * PIN_LABEL * 0.62 + 1.2 : T['label-rise'] + 3.6;
+  const { longest: maxLen, rotate: rotateLabels, span: labelSpan } = labelRow(T, names, p);
   const extraY = rowY - Math.floor((rowY - 0.8 * p) / p) * p;
   const extra =
     props.extraPads && props.extraPads.length
@@ -176,7 +175,7 @@ export function moduleTemplate(props) {
     }
     s += tag('chip', chipS);
     // The lot code at the floor size, as many characters as the body holds (a small package carries a short code).
-    const codeFit = Math.floor((2 * half - 1.6) / (PIN_LABEL * 0.62));
+    const codeFit = Math.floor((2 * half - 1.6) / textWidth(1, PIN_LABEL));
     if (half >= 0.8 * p && codeFit >= 4)
       s += text(cx, mid + half * 0.55, lotCode(props.label || 'IC').slice(0, codeFit), PIN_LABEL, T['chip-print'], {
         'fill-opacity': 0.85,
@@ -233,7 +232,7 @@ export function moduleTemplate(props) {
     let cyc = mid;
     if (part === 'dual-can') {
       const zoneHalf =
-        ((names.length - 1) * p) / 2 + (rotateLabels ? PIN_LABEL / 2 : (maxLen * PIN_LABEL * 0.62) / 2) + 0.6;
+        ((names.length - 1) * p) / 2 + (rotateLabels ? PIN_LABEL / 2 : textWidth(maxLen, PIN_LABEL) / 2) + 0.6;
       const canBottom = rowY - T['pad-radius'] - 0.6;
       r = Math.min(
         ((props.canPitches || 2.6) * p) / 2,
@@ -606,7 +605,7 @@ export function microsdModule(props) {
     [0.8 * p, h - 0.8 * p],
     [w - 0.8 * p, h - 0.8 * p],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   const hdr = padRow(
     T,
@@ -700,7 +699,7 @@ export function rtcModule(props) {
     [0.8 * p, h - 0.8 * p],
     [w - 0.8 * p, h - 0.8 * p],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   const hdr = padRow(
     T,
@@ -779,7 +778,7 @@ export function rfidModule(props) {
     [22.5 * p, 2.0 * p],
     [22.5 * p, h - 2.0 * p],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   const hdr = padRow(
     T,
@@ -928,7 +927,7 @@ export function relayModule(props) {
     [0.9 * p, h - 0.9 * p],
     [w - 0.9 * p, h - 0.9 * p],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   const hdr = padRow(
     T,

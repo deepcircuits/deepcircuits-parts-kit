@@ -1,5 +1,5 @@
 /** The overlap check: what in an artwork sits on what. */
-import { r2 } from './core.js';
+import { r2, textWidth } from './core.js';
 
 /**
  * The overlap check. Parses an Artwork's SVG (the kit's own output: one
@@ -272,7 +272,7 @@ export function check(a) {
         .replace(/&gt;/g, '>')
         .replace(/&quot;/g, '"');
       const fs = num(attrs, 'font-size', 4);
-      const tw = txt.length * fs * 0.62;
+      const tw = textWidth(txt.length, fs);
       const tx = num(attrs, 'x', 0);
       const ty = num(attrs, 'y', 0);
       const anchor = attr(attrs, 'text-anchor') || 'middle';

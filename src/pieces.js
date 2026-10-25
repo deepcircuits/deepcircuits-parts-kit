@@ -8,6 +8,7 @@ import {
   circle,
   edge,
   header,
+  hole,
   line,
   lotCode,
   path,
@@ -16,6 +17,7 @@ import {
   sheen,
   tag,
   text,
+  textWidth,
   tokens,
   trace,
 } from './core.js';
@@ -306,7 +308,7 @@ export function soic(T, x, y, w, h, nSide, label) {
 export function mountHole(T, f, x, y, r) {
   return (
     circle(x, y, r + 2.2, 'none', { stroke: f.silk, 'stroke-width': T['stroke-fine'], 'stroke-opacity': 0.85 }) +
-    tag('hole', circle(x, y, r, T.hole, edge(T, T.pad)))
+    hole(T, x, y, r)
   );
 }
 
@@ -350,7 +352,7 @@ export function qfp(T, x, y, w, h, nSide, label) {
   s += rect(x + 0.6, y + 0.6, w - 1.2, 1.1, '#ffffff', { rx: 0.5, 'fill-opacity': T['opacity-light'] * 0.4 });
   s += circle(x + 3.2, y + 3.2, 0.9, T['chip-print']);
   if (label) {
-    const fit = Math.floor((w - 2.4) / (PIN_LABEL * 0.62));
+    const fit = Math.floor((w - 2.4) / textWidth(1, PIN_LABEL));
     const lbl = String(label);
     const cx = x + w / 2;
     const cy = y + h / 2;

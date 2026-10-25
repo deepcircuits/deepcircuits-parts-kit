@@ -9,6 +9,7 @@ import {
   el,
   finish,
   header,
+  hole,
   lensColor,
   line,
   path,
@@ -406,7 +407,7 @@ export function joystick(props) {
     [w - 3 * mm, 3 * mm],
     [w - 3 * mm, h - 3 * mm],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], 1.6 * mm, T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], 1.6 * mm);
   });
   s += text(w - 1.0 * mm, h / 2, 'KY-023', 4.4, f.silk, { transform: `rotate(-90 ${r2(w - 1.0 * mm)} ${r2(h / 2)})` });
   // The header: the pins past the edge, the spacer on the board's edge, the board's print beside the pads.
@@ -892,7 +893,7 @@ export function slidePotentiometer(props) {
     [0.8 * p, h - 0.8 * p],
     [w - 0.8 * p, h - 0.8 * p],
   ].forEach(c => {
-    s += tag('hole', circle(c[0], c[1], T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
   });
   const hdr = padRow(
     T,

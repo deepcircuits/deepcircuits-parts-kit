@@ -6,7 +6,7 @@
 // Run by npm run build and npm run check. The folder is committed, so a page can link to the files; it is not in the
 // npm package.
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { CATALOG, FAMILIES, FAMILY_TITLES, optionApplies } from './src/catalog.js';
+import { CATALOG, FAMILIES, FAMILY_TITLES, exampleValue, optionApplies } from './src/catalog.js';
 import { drawPart } from './src/draw.js';
 import { PITCH } from './src/index.js';
 
@@ -54,9 +54,7 @@ function picturesOf(entry) {
   if (Object.keys(example).length) pictures.push({ suffix: 'example', label: 'Example', options: example });
   for (const [key, spec] of specs)
     for (const ex of spec.examples ?? []) {
-      const value = ex.each
-        ? Array.from({ length: Number(entry.preset.chain ?? spec.length ?? 1) }, () => ex.value)
-        : ex.value;
+      const value = exampleValue(entry, spec, ex);
       const name = typeof ex.value === 'number' ? ex.value : slug(ex.label);
       pictures.push({ suffix: `${kebab(key)}-${name}`, label: `${spec.label ?? key}: ${ex.label}`, options: { [key]: value } });
     }

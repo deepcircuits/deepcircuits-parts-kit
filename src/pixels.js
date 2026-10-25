@@ -9,6 +9,7 @@ import {
   el,
   finish,
   header,
+  hole,
   lensColor,
   line,
   path,
@@ -481,7 +482,7 @@ export function neopixelMatrix(props) {
       [cols / 2 - 1.5, rows - 1.5],
       [cols / 2 + 1.5, rows - 1.5],
     ].forEach(c => {
-      s += tag('hole', circle(x0 + c[0] * pitch, y0 + c[1] * pitch, T['mount-hole-radius'], T.hole, edge(T, T.pad)));
+      s += hole(T, x0 + c[0] * pitch, y0 + c[1] * pitch, T['mount-hole-radius']);
     });
   for (let r = 0; r < rows; r++)
     for (let c = 0; c < cols; c++) {
