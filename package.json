@@ -108,8 +108,8 @@
       "types": "./tokens-css.d.mts",
       "default": "./tokens-css.mjs"
     },
-    "./bundle.js": "./project/components/bundle.js",
-    "./bundle.css": "./project/components/bundle.css",
+    "./bundle.js": "./project/generators/bundle.js",
+    "./bundle.css": "./project/generators/bundle.css",
     "./package.json": "./package.json"
   },
   "bin": {
@@ -117,7 +117,7 @@
   },
   "sideEffects": [
     "*.css",
-    "./project/components/bundle.js",
+    "./project/generators/bundle.js",
     "./src/element.js"
   ],
   "files": [
@@ -127,10 +127,10 @@
     "tokens-css.mjs",
     "tokens-css.d.mts",
     "project/tokens.json",
-    "project/components/bundle.js",
-    "project/components/bundle.css",
-    "project/components/index.d.ts",
-    "project/components/catalog.d.ts"
+    "project/generators/bundle.js",
+    "project/generators/bundle.css",
+    "project/generators/index.d.ts",
+    "project/generators/catalog.d.ts"
   ],
   "publishConfig": {
     "access": "public"

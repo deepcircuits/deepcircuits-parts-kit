@@ -1,4 +1,4 @@
-require('./project/components/bundle.js'); const K = globalThis.PartsKit;
+require('./project/generators/bundle.js'); const K = globalThis.PartsKit;
 let seed = 7; const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
 const pick = a => a[Math.floor(rnd() * a.length)];
 const names = ['VCC','GND','SDA','SCL','TX','RX','D13','A0','IO18','IOREF','RESET','3V3','5V','VIN','AREF','MISO','MOSI','SCK','CS','DC','EN','NC','OUT','DATA','TRIG','ECHO','SQW','INT','XDA','GP28'];

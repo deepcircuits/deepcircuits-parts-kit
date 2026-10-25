@@ -5,7 +5,7 @@
 `<parts-kit-part>` draws any catalog part on a web page, without writing code:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/project/components/bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/project/generators/bundle.js"></script>
 
 <parts-kit-part type="led-5-mm" color="green" on></parts-kit-part>
 <parts-kit-part type="servo" angle="45" scale="2"></parts-kit-part>

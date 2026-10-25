@@ -1,4 +1,4 @@
-require('./project/components/bundle.js'); const K = globalThis.PartsKit;
+require('./project/generators/bundle.js'); const K = globalThis.PartsKit;
 const S = {
   'chip dip8': K.chipTemplate({pins:['GND','TRIG','OUT','RESET','CTRL','THR','DIS','VCC'],label:'NE555'}),
   'chip soic8': K.chipTemplate({pins:['GND','TRIG','OUT','RESET','CTRL','THR','DIS','VCC'],label:'NE555',package:'soic'}),

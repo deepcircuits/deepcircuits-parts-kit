@@ -46,7 +46,7 @@ A host can build its controls from them:
 - `when` says which other values an option needs before it has any effect. `optionApplies(spec, values)` checks it.
 - `examples` give values a control can't build from the type alone, such as a picture or a glyph.
 
-`checkOptions(id, options)` lists what is wrong with a call without drawing it. The types in `project/components/catalog.d.ts` (`PartId`, `PartOptions<'servo'>` and `PartCall`) are generated from the same data.
+`checkOptions(id, options)` lists what is wrong with a call without drawing it. The types in `project/generators/catalog.d.ts` (`PartId`, `PartOptions<'servo'>` and `PartCall`) are generated from the same data.
 
 ## Ids and pin names
 

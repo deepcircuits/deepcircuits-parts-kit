@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 import fs from 'fs'; import vm from 'vm';
-const ctx = { console }; ctx.window = ctx; vm.runInNewContext(fs.readFileSync('project/components/bundle.js', 'utf8'), ctx); const K = ctx.PartsKit;
+const ctx = { console }; ctx.window = ctx; vm.runInNewContext(fs.readFileSync('project/generators/bundle.js', 'utf8'), ctx); const K = ctx.PartsKit;
 const S = new Function('K', fs.readFileSync(new URL('../suite.cjs', import.meta.url), 'utf8').match(/const S = \{[\s\S]*?\n\};/)[0].replace('const S =', 'return'))(K);
 const names = process.argv[2].split(',');
 const arts = names.map((n) => { if (!S[n]) throw new Error(n); return S[n]; });
