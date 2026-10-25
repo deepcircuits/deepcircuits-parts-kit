@@ -140,8 +140,7 @@
     "test": "npm run lint && npm run check",
     "lint": "eslint . && prettier --check src build.mjs",
     "format": "prettier --write src build.mjs",
-    "check": "node build.mjs && node gallery.mjs && node images.mjs && node modules.mjs && node catalog.mjs && node options.mjs && node element.mjs && node suite.cjs && node suite-previews.cjs && node fuzz.cjs && node inventory.cjs && node standards.cjs && node contrast.mjs",
-    "assets": "node export-assets.cjs"
+    "check": "node build.mjs && node gallery.mjs && node images.mjs && node modules.mjs && node catalog.mjs && node options.mjs && node element.mjs && node suite.cjs && node suite-previews.cjs && node fuzz.cjs && node inventory.cjs && node standards.cjs && node contrast.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

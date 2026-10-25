@@ -8,7 +8,7 @@ The Parts Kit is how DeepCircuits draws electronic parts: the LEDs, chips, modul
 - **Start from the real part.** Look at the physical part before drawing: its silhouette, its true size, and the features people recognise it by (the lead frame inside an LED, the stripe on an electrolytic, the two cans on an ultrasonic ranger, the USB-B and barrel jack on an Uno-class board). Draw those at true size (see *Measured from the real part*), then snap the pins to the grid and say where you snapped.
 - **Original art only.** Never copy another simulator's or vendor's board art, documentation drawings or logos. Name what a board is on its silk (`UNO-CLASS`, `ESP32-C3`), never whose it is.
 - A part has **a fixed material palette and a canvas-facing ink**. Its body is painted in the material tokens below and looks the same on any canvas. Anything that stands on the canvas rather than on the part (a chip's pin names, a logic symbol, an outline part) is `currentColor`, which is `canvas-ink` in either theme.
-- **Presentation attributes only.** The app's sanitizer strips `<style>` and `style=""`, so every fill, stroke and font is an attribute. Give the root `<svg>` explicit `width`, `height`, a matching `viewBox`, `role="img"` and an `aria-label` that says what the part is and, if it has one, its state (`red LED, lit`).
+- **Presentation attributes only.** SVG sanitizers strip `<style>` and `style=""`, so every fill, stroke and font is an attribute. Give the root `<svg>` explicit `width`, `height`, a matching `viewBox`, `role="img"` and an `aria-label` that says what the part is and, if it has one, its state (`red LED, lit`).
 - **Checked, not eyeballed.** Every generator's output passes `PartsKit.check`, the kit's overlap check: labels never touch each other or a part, parts never touch each other, nothing leaves the box. A part that fails the check does not ship, whatever it looks like at one zoom.
 - Write a generator, not a file. A part is a function of its attributes that returns an `Artwork` (`width`, `height`, `svg`, `pins`); the kit's ES modules (`src/`) are the reference implementation, and `components/bundle.js` (`window.PartsKit`) is built from them.
 
@@ -58,7 +58,7 @@ Use the token for the material, never a colour of your own. Each body has one pa
 
 State is shown with the same palette at a different opacity or position, never with a second palette. The editor animates artwork through stable hooks:
 
-- Give the element that changes an `id`: `lens` and `glow` on an LED (`fill-opacity`), `cap` on a button (`r`, `data-pressed`), `knob` on a pot (`transform`), `lever` on a switch (`x`), `glass` on an LCD, `heat` and `flow-*` on a resistor, `reset-button` on a board (never `reset`, `submit` or any other name of a document or form property: the sanitizer drops those ids). When the editor stores a part it scopes every `id` and exposes the original as `data-svg-id`, so a hook is always written as `id` in the artwork and read as `data-svg-id` by the editor; never write `data-svg-id` yourself, the sanitizer strips it. The editor's `animatableElements` map targets those ids by state and may set only `fill`, `stroke`, opacity, `transform` and geometry attributes.
+- Give the element that changes an `id`: `lens` and `glow` on an LED (`fill-opacity`), `cap` on a button (`r`, `data-pressed`), `knob` on a pot (`transform`), `lever` on a switch (`x`), `glass` on an LCD, `heat` and `flow-*` on a resistor, `reset-button` on a board (never `reset`, `submit` or any other name of a document or form property: the sanitizer drops those ids). When the editor stores a part it scopes every `id` and exposes the original as `data-svg-id`, so a hook is always written as `id` in the artwork and read as `data-svg-id` by the editor; never write `data-svg-id` yourself, the sanitizer strips it. A state painter sets only `fill`, `stroke`, opacity, `transform` and geometry attributes.
 - Onboard LEDs use the ids and attributes the editor already reads: `user-led` for the board's own LED (lit from the solved current), `rgb-led` for an addressable one (filled from its pixel colour), and `data-lit-state="<state>"` with `data-on-fill` and `data-off-fill` for an indicator the part's active state lights (`power`, `tx`, `rx`). `PartsKit.indicator` writes all of them.
 - A display window is `id="display"` (and `glass` behind it): the run lays a `<canvas>` over that rectangle, one artwork pixel per panel pixel.
 - A logic output lead carries `data-level-pin="<pin index>"`: the editor strokes it `level-high` or `level-low` from the solved voltage.
@@ -122,12 +122,12 @@ One pitch is 2.54 mm, so a millimetre is 3.78 px (`pitch / 2.54`). Each template
 | ESP32 DevKitC V4 | 27.9 × 54.6 mm with the antenna, 19-pin rows 25.4 mm apart running nearly end to end, the WROOM module over the first seven rows with its antenna past the board's end, EN and BOOT either side of the micro USB, no user LED | EspDevKit with `layout: 'devkitc'`: 11 × 21.5 pitches, rows ten pitches apart, as photographed |
 | Raspberry Pi Pico | 21 × 51 mm, two 20-pin rows 17.78 mm apart with castellated edges, the RP2040 and 2 MB flash between them, micro USB at one end, BOOTSEL beside it, SWD pads at the other end, four holes | picoBoard: 8.6 × 20 pitches, rows seven pitches apart (0.7 inch, the real pitch), the SWCLK/GND/SWDIO pads on the grid, holes where the photograph has them |
 | Nucleo-32 | 18.5 × 50.8 mm, two 15-pin rows 15.24 mm apart, the ST-LINK across the top with its micro USB, the LQFP-32 controller below, LD3 and the power LED, two VCP solder pads | nucleo32Board: 18.5 mm by 20 pitches, the rows six pitches apart and centred, the VCP pads two and four pitches in, `user-led` and `power-led` hooks |
-| Breadboard | 0.1 inch holes, rows e and f 0.3 inch apart, rails in fives; the 170-point mini 46 × 34.5 mm | Breadboard: DeepCircuits' breadboard layout, hole for hole, the mini's body at its true size centred on its holes |
+| Breadboard | 0.1 inch holes, rows e and f 0.3 inch apart, rails in fives; the 170-point mini 46 × 34.5 mm | Breadboard: hole for hole, the mini's body at its true size centred on its holes |
 | USB logic analyzer | 54.7 × 27.4 mm case, mini-USB at one end, a right-angle 2 × 5 header out of the other: CH0, CH2, CH4, CH6, GND in one row and CH1, CH3, CH5, CH7, GND in the other | LogicAnalyzer: true size, the header folded flat as the label maps it, its sockets the pins |
 
 ## Measured against the published standard
 
-The kit's rules are held against two published standards. The first is the one for breadboard-view part graphics: Fritzing's graphic standards (fritzing.org/fritzings-graphic-standards), SparkFun's guide to them (learn.sparkfun.com/tutorials/make-your-own-fritzing-parts/custom-breadboard-svg) and Fritzing's part file format notes (github.com/fritzing/fritzing-app/wiki/2.1-Part-file-format). The second is KiCad's Library Conventions (klc.kicad.org), whose symbol and silkscreen rules give an independent floor for the same measurements. Both sites refuse automated readers, so the rule text was taken from the pages as search engines index them and from a proxied copy, and every value used here (0.1 inch pins, 0.03 inch legs, 5pt print with a 3pt floor, 1.00 mm silkscreen text, 0.10 to 0.15 mm lines, the 100 mil grid) agrees across those readings and SparkFun's copy of the Fritzing values; read on 2026-10-13. `standards.cjs` measures every artwork in the suite, every card's preview and every example asset against the rules that can be measured.
+The kit's rules are held against two published standards. The first is the one for breadboard-view part graphics: Fritzing's graphic standards (fritzing.org/fritzings-graphic-standards), SparkFun's guide to them (learn.sparkfun.com/tutorials/make-your-own-fritzing-parts/custom-breadboard-svg) and Fritzing's part file format notes (github.com/fritzing/fritzing-app/wiki/2.1-Part-file-format). The second is KiCad's Library Conventions (klc.kicad.org), whose symbol and silkscreen rules give an independent floor for the same measurements. Every value used here (0.1 inch pins, 0.03 inch legs, 5pt print with a 3pt floor, 1.00 mm silkscreen text, 0.10 to 0.15 mm lines, the 100 mil grid) agrees across those sources. `standards.cjs` measures every artwork in the suite, every card's preview and every picture in `images/` against the rules that can be measured.
 
 | Their rule | The kit |
 | --- | --- |
@@ -137,18 +137,16 @@ The kit's rules are held against two published standards. The first is the one f
 | Explicit values on every attribute, `stroke-width` above all | every stroke is written with its width; the check fails on one without |
 | Flat colour, SVG Tiny features only: no gradients, filters or images | flat colour everywhere except the five sheens (`g-dome`, `g-lens`, `g-metal`, `g-glow-<hex>`, `g-hot`), two-stop gradients on curved surfaces only; no filters, patterns or images. A deliberate departure from SVG Tiny, recorded here; `standards.cjs` fails any other `url()` reference |
 | Legs grey (8C8C8C), contacts copper (9A916C), their named cable colours | not adopted: those match Fritzing's own library. `lead`, `pad` and `metal` are the kit's materials, held to the contrast floors above |
-| OCR A or Droid Sans | not adopted: print is the `mono` stack as a presentation attribute, since the editor's sanitizer keeps no `<style>` or font files |
+| OCR A or Droid Sans | not adopted: print is the `mono` stack as a presentation attribute, since SVG sanitizers keep no `<style>` or font files |
 | KLC S4.1: pins on a 100 mil (2.54 mm) grid | the same `pinsOnPitch` rule, 100 mil = 9.6px |
 | KLC F5.1: silkscreen reference text 1.00 mm; silkscreen lines 0.10 to 0.15 mm, 0.12 nominal | the 4px floor is 1.06 mm at the kit's scale; the finest stroke, `stroke-fine` 0.4px, is 0.106 mm, `stroke-detail` 0.6px is 0.16 mm |
-
-DeepCircuits' acceptance for the artwork kit asks for original art only, no vendor logos, every pin on the 0.1-inch pitch, a pin-pitch test, and forced-colours and contrast checks. Each is one of the checks below.
 
 ## What ships
 
 A part is production ready when six checks pass, not when it looks right at one zoom:
 
-1. **No overlaps.** `PartsKit.check(artwork)` returns nothing (see the checklist). The kit's own suite runs it over every card's preview, the example assets and a fuzz of random pin names, counts, finishes and sizes.
-2. **It survives the editor.** DeepCircuits stores a part through its sanitizer (DOMPurify's SVG profile, no `<style>`, `style`, `<image>`, `<animate>`, ids scoped and exposed as `data-svg-id`, `role` dropped while `aria-label` stays). Run the artwork through it and nothing else is lost: every element, every attribute, every `data-*` hook, every `id` back as `data-svg-id`. DeepCircuits' own tests run every artwork through it.
+1. **No overlaps.** `PartsKit.check(artwork)` returns nothing (see the checklist). The kit's own suite runs it over every card's preview, every catalog part and a fuzz of random pin names, counts, finishes and sizes.
+2. **It survives a sanitizer.** DeepCircuits stores a part through DOMPurify's SVG profile: no `<style>`, `style`, `<image>` or `<animate>`, ids scoped and exposed as `data-svg-id`, `role` dropped while `aria-label` stays. Draw only what survives it, so nothing else is lost: every element, every attribute, every `data-*` hook, every `id` back as `data-svg-id`.
 3. **Print reads.** Every text-on-ground pair in *Theme, forced colours and contrast* meets its floor by `contrast.mjs`.
 4. **It carries its inventory.** The parts the real one has, as *Measured from the real part* lists them, are present and tagged (`data-part`): a board has its traces, vias, mark, mount holes and labelled pins; a chip its lot code, notch and pin numbers; an LED its lens, glow and lead frame.
 5. **It meets the published standards.** `standards.cjs` passes: pins on the 0.1-inch grid, legs 0.03 inch, no print under 3pt or under KLC's 1.00 mm, no stroke under KLC's 0.10 mm, every stroke with a width, flat colour but the sheens (*Measured against the published standard*). The scripts behind every check here sit at the kit's root; its README says how to run them.
@@ -168,14 +166,14 @@ Build a new part from the nearest template rather than from a blank box:
 interface Artwork { width: number; height: number; svg: string; pins: { name: string; x: number; y: number }[] }
 ```
 
-The part's pins become the catalog's `pins` (`name`, `x`, `y`, `handle_id: pin-N`), `svg` becomes its `svg_path`, and the editor places handles at `(x, y)`. Keep the generator free of app imports so Node can run it when the catalog is rebuilt, and give an attribute that changes the pins (a digit count, a chain length) a pin rule so the handles regenerate.
+The editor places a pin's handle at its `(x, y)` and knows each pin by its place in `pins`, so the order is the contract. Keep the generator free of DOM and host code so it runs in Node, and say on its card when an attribute changes the pins (a digit count, a chain length), since a host must then rebuild the handles.
 
 ## Checklist for a new part
 
 1. Pins on the pitch (`pinsOnPitch` passes) and named from the data sheet, in the printed order.
 2. Only material tokens on the body; `currentColor` for anything on the canvas; no gradients but the kit's five sheens (`g-dome`, `g-lens`, `g-metal`, `g-hot`, `g-glow-<hex>`), no filters, `<style>` or `style=""`.
 3. One edge stroke per body; strokes, radii and text sizes from the scales.
-4. State through `id` hooks, `data-svg-id="display"` or `data-level-pin`, shown by opacity or position; current through the live layer (`flow`, `heat`), and `signal` used for nothing else.
+4. State through `id` hooks, `id="display"` or `data-level-pin`, shown by opacity or position; current through the live layer (`flow`, `heat`), and `signal` used for nothing else.
 5. `role="img"` and an `aria-label` with the state in words.
 6. Print at 4.5:1 on its body; meaningful marks at 3:1.
 7. No vendor art, no vendor name.

@@ -4,7 +4,7 @@
 // part file format notes (https://github.com/fritzing/fritzing-app/wiki/2.1-Part-file-format).
 // A second standard, KiCad's Library Conventions (https://klc.kicad.org/symbol/s4/s4.1/, https://klc.kicad.org/footprint/f5/f5.1/),
 // gives the 100 mil pin grid and the silkscreen text and line sizes checked as 6.
-// Measured over the suite set, every preview on the page and the example assets.
+// Measured over the suite set, every preview on the page and every picture in images/.
 //   1. Pins 0.1 in apart: every pin centre is a whole number of pitches from the first, both axes.
 //   2. Legs at least 0.03 in wide and long: the drawn leg (lead plus its outline) and the chip lead are >= 2.88px.
 //   3. Print never below 3pt: at 0.1 in = 9.6px, 3pt is 4px; the standard size, 5pt, is 6.67px.
@@ -25,7 +25,7 @@ for (const d of fs.readdirSync('project/components', { withFileTypes: true })) {
   vm.runInNewContext(m[1], { window: globalThis, document: { getElementById: () => ({ card: d.name }) }, console });
 }
 arts.push(...drawn);
-for (const f of fs.readdirSync('project/assets/Parts')) if (f.endsWith('.svg')) arts.push({ name: 'asset · ' + f, svg: fs.readFileSync('project/assets/Parts/' + f, 'utf8') });
+for (const f of fs.readdirSync('images')) if (f.endsWith('.svg')) arts.push({ name: 'image · ' + f, svg: fs.readFileSync('images/' + f, 'utf8') });
 
 const fail = [];
 let pinsChecked = 0, textsChecked = 0, strokes = 0, minText = Infinity;
