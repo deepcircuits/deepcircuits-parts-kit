@@ -311,6 +311,8 @@ export interface PartsKit {
   readonly CATALOG: readonly CatalogEntry[];
   /** The families, in the order a picker shows them. */
   readonly FAMILIES: readonly CatalogFamily[];
+  /** Each family's title, as a picker shows it. */
+  readonly FAMILY_TITLES: Readonly<Record<CatalogFamily, string>>;
   /** Draws catalog part `id` with `options`, the ones its entry lists. Throws for an unknown id, an unknown option (naming the nearest) or a value of the wrong type. */
   drawPart: DrawPart;
   /** A catalog part's size and pins without its SVG: drawn once for each set of options and kept. */

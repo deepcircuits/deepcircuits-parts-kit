@@ -1,7 +1,7 @@
 // Builds the kit from src/: writes src/tokens.js and tokens.css from project/tokens.json, the type declarations of each
 // entry point, and the classic bundle project/generators/bundle.js (window.PartsKit) that the gallery and the checks load.
 // esbuild bundles every entry point's exports onto one object, in an immediately invoked function.
-import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 import { tokensCss } from './tokens-css.mjs';
@@ -24,20 +24,10 @@ writeFileSync('tokens.css', tokensCss(tokens));
 
 // The entry points the package exports (package.json "exports"), each with generated declarations naming its exports'
 // types on PartsKit.
-const ENTRIES = [
-  'index',
-  'templates',
-  'primitives',
-  'check',
-  'mount',
-  'dom',
-  'element',
-  'controls',
-  'catalog',
-  ...readdirSync('src/families')
-    .filter(f => f.endsWith('.js'))
-    .map(f => `families/${f.slice(0, -3)}`),
-];
+const ENTRIES = Object.values(JSON.parse(readFileSync('package.json', 'utf8')).exports)
+  .map(e => e.default)
+  .filter(file => file?.startsWith('./src/'))
+  .map(file => file.slice('./src/'.length, -'.js'.length));
 const exportsOf = {};
 for (const name of ENTRIES)
   exportsOf[name] = Object.keys(await import(pathToFileURL(`src/${name}.js`).href)).filter(n => n !== 'default');

@@ -6,25 +6,12 @@
 // Run by npm run build and npm run check. The folder is committed, so a page can link to the files; it is not in the
 // npm package.
 import { mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { CATALOG, FAMILIES, optionApplies } from './src/catalog.js';
+import { CATALOG, FAMILIES, FAMILY_TITLES, optionApplies } from './src/catalog.js';
 import { drawPart } from './src/draw.js';
 import { PITCH } from './src/index.js';
 
 const OUT = 'images';
 const INK = '#020817';
-const FAMILY_TITLES = {
-  board: 'Boards',
-  display: 'Displays',
-  sensor: 'Sensors',
-  input: 'Inputs',
-  output: 'Outputs',
-  module: 'Modules',
-  chip: 'Chips',
-  passive: 'Passives',
-  breadboard: 'Breadboards',
-  symbol: 'Logic symbols',
-};
-
 const kebab = key => key.replace(/[A-Z]/g, c => `-${c.toLowerCase()}`);
 const slug = text =>
   String(text)
@@ -174,7 +161,7 @@ const readme = [
 for (const family of FAMILIES) {
   const inFamily = parts.filter(p => p.family === family);
   if (!inFamily.length) continue;
-  readme.push(`## ${FAMILY_TITLES[family] ?? family}`, '', '| Part | Pictures |', '| --- | --- |');
+  readme.push(`## ${FAMILY_TITLES[family]}`, '', '| Part | Pictures |', '| --- | --- |');
   for (const part of inFamily) readme.push(`| ${part.name}<br>\`${part.id}\` | ${part.images.map(thumb).join(' ')} |`);
   readme.push('');
 }

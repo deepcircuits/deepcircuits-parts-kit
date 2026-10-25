@@ -18,7 +18,7 @@ export * from './families/breadboards.js';
 export * from './families/symbols.js';
 
 // The catalog: every part by id, with its options.
-export { CATALOG, FAMILIES, checkOptions, searchParts, loadPart } from './catalog.js';
+export { CATALOG, FAMILIES, FAMILY_TITLES, checkOptions, searchParts, loadPart } from './catalog.js';
 export { drawPart, partPins } from './draw.js';
 
 // Helpers on a drawing.

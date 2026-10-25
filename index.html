@@ -535,7 +535,6 @@ var CARDS = [
     var a = K.drawPart(p[0], p[1]), d = document.createElement('div'); d.innerHTML = fit(a, a.width, 140); bench.appendChild(d);
   });
 
-  var FAMILIES = { board: 'Boards', display: 'Displays', sensor: 'Sensors', input: 'Inputs', output: 'Outputs', module: 'Modules', chip: 'Chips', passive: 'Passives', breadboard: 'Breadboards', symbol: 'Symbols' };
   var families = document.getElementById('families'), chips = document.getElementById('chips'), tiles = [], current = 'all';
   function chip(key, label) {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = label; b.setAttribute('aria-pressed', key === 'all' ? 'true' : 'false');
@@ -543,11 +542,11 @@ var CARDS = [
     chips.appendChild(b);
   }
   chip('all', 'All');
-  Object.keys(FAMILIES).forEach(function (f) {
+  K.FAMILIES.forEach(function (f) {
     var parts = K.CATALOG.filter(function (e) { return e.family === f; }); if (!parts.length) return;
-    chip(f, FAMILIES[f]);
+    chip(f, K.FAMILY_TITLES[f]);
     var sec = document.createElement('div'); sec.className = 'family'; sec.setAttribute('data-family', f);
-    sec.innerHTML = '<h3>' + FAMILIES[f] + '</h3><div class="grid"></div>';
+    sec.innerHTML = '<h3>' + K.FAMILY_TITLES[f] + '</h3><div class="grid"></div>';
     var grid = sec.lastChild;
     parts.forEach(function (e) {
       var call = "drawPart('" + e.id + "')", fig = document.createElement('figure'); fig.className = 'tile';

@@ -2,19 +2,17 @@
 // (project/generators/cards.js, typed by cards.d.ts) and the README's hero picture (project/assets/hero.svg). The
 // gallery draws the catalog index and runs every card's preview script with the classic bundle, so it needs no build
 // step of its own and no server.
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
+import { previewScripts } from './checks/drawings.mjs';
 
 const REPO = 'https://github.com/deepcircuits/deepcircuits-parts-kit';
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-// Each card's name, the first clause of its README, and its preview script.
-const cards = readdirSync('project/generators', { withFileTypes: true })
-  .filter(d => d.isDirectory()).map(d => d.name).sort()
-  .map(name => {
-    const html = readFileSync(`project/generators/${name}/preview.html`, 'utf8');
-    // A preview opts into live colours on its own card; the gallery draws every card in 'vars' so its theme switch works.
-    const script = /<script>\s*([\s\S]*?)\s*<\/script>/.exec(html)[1].replace(/\r\n/g, '\n').replace(/^K\.setTokenMode\("live"\);\n/m, '');
+// Each card's name, the first clause of its README, and its preview script. A preview opts into live colours on its own
+// card; previewScripts leaves that line out, and the gallery draws every card in 'vars' so its theme switch works.
+const cards = previewScripts()
+  .map(({ name, script }) => {
     if (/<\/script/i.test(script)) throw new Error(`${name}: its preview script contains </script`);
     const readme = readFileSync(`project/generators/${name}/README.md`, 'utf8');
     const para = readme.split(/\n\s*\n/).find(p => p.trim() && !p.startsWith('#')) || '';
@@ -238,7 +236,6 @@ ${cardData}
     var a = K.drawPart(p[0], p[1]), d = document.createElement('div'); d.innerHTML = fit(a, a.width, 140); bench.appendChild(d);
   });
 
-  var FAMILIES = { board: 'Boards', display: 'Displays', sensor: 'Sensors', input: 'Inputs', output: 'Outputs', module: 'Modules', chip: 'Chips', passive: 'Passives', breadboard: 'Breadboards', symbol: 'Symbols' };
   var families = document.getElementById('families'), chips = document.getElementById('chips'), tiles = [], current = 'all';
   function chip(key, label) {
     var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = label; b.setAttribute('aria-pressed', key === 'all' ? 'true' : 'false');
@@ -246,11 +243,11 @@ ${cardData}
     chips.appendChild(b);
   }
   chip('all', 'All');
-  Object.keys(FAMILIES).forEach(function (f) {
+  K.FAMILIES.forEach(function (f) {
     var parts = K.CATALOG.filter(function (e) { return e.family === f; }); if (!parts.length) return;
-    chip(f, FAMILIES[f]);
+    chip(f, K.FAMILY_TITLES[f]);
     var sec = document.createElement('div'); sec.className = 'family'; sec.setAttribute('data-family', f);
-    sec.innerHTML = '<h3>' + FAMILIES[f] + '</h3><div class="grid"></div>';
+    sec.innerHTML = '<h3>' + K.FAMILY_TITLES[f] + '</h3><div class="grid"></div>';
     var grid = sec.lastChild;
     parts.forEach(function (e) {
       var call = "drawPart('" + e.id + "')", fig = document.createElement('figure'); fig.className = 'tile';

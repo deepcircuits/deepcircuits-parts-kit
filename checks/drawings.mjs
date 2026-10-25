@@ -1,5 +1,25 @@
-require('./project/generators/bundle.js'); const K = globalThis.PartsKit;
-const S = {
+// The drawings the checks share: the suite (parts in their states, by name), the fuzz cases (templates with random
+// pin names, counts, finishes and sizes) and the artworks each card's preview mounts. Each takes the kit to draw with,
+// so a check can draw the same set from the bundle and from the ES modules.
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
+
+const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
+const GENERATORS = path.join(ROOT, 'project/generators');
+
+/** The built bundle's PartsKit, loaded in a context of its own so a check can replace its functions. */
+export function loadBundle() {
+  const ctx = { console };
+  ctx.window = ctx;
+  vm.runInNewContext(readFileSync(path.join(GENERATORS, 'bundle.js'), 'utf8'), ctx);
+  return ctx.PartsKit;
+}
+
+/** The suite: a fixed set of parts in their states, by name. */
+export function suite(K) {
+  return {
   'chip dip8': K.chipTemplate({pins:['GND','TRIG','OUT','RESET','CTRL','THR','DIS','VCC'],label:'NE555'}),
   'chip soic8': K.chipTemplate({pins:['GND','TRIG','OUT','RESET','CTRL','THR','DIS','VCC'],label:'NE555',package:'soic'}),
   'chip dip16': K.chipTemplate({pins:['Q1','Q2','Q3','Q4','Q5','Q6','Q7','GND','Q7S','MR','SHCP','STCP','OE','DS','Q0','VCC'],label:'74HC595'}),
@@ -59,7 +79,7 @@ const S = {
   'oled sh1107': K.oledSquare({caption:'128x128'}),
   'oled 4pin': K.oledBreakout({pins:['GND','VCC','SCL','SDA']}),
   'matrix 1': K.max7219Matrix({lit:[['00100100','00100100','00000000','10000001','01000010','00111100','00000000','00000000']]}),
-  'matrix 4': K.max7219Matrix({chain:4}),
+  'max7219 4': K.max7219Matrix({chain:4}),
   'matrix 32': K.max7219Matrix({chain:32}),
   'tm1637 colon': K.tm1637Module({value:'1234',colon:true}),
   'tm1637 dp': K.tm1637Module({type:'dp',value:'88.8',dp:[0,1,0,0]}),
@@ -95,11 +115,58 @@ const S = {
   'cat ssd1306': K.ssd1306Module({caption:'Hello'}), 'cat sh1107': K.sh1107Module(), 'cat ili9341 touch': K.ili9341TouchDisplay(), 'cat mfrc522': K.rfidModule(),
   'oled pixels': K.oledBreakout({pixels:{width:128,height:64,data:Array.from({length:128*64},(_,i)=>((i%128)^(i>>7))%7===0)}}), 'nokia pixels': K.nokiaModule({pixels:{width:84,height:48,data:Array.from({length:84*48},(_,i)=>(i%84)<(i/84|0))}}), 'epaper pixels': K.epaperModule({pixels:{width:296,height:128,data:Array.from({length:296*128},(_,i)=>(i%296)%40<20)}}), 'tft pixels': K.tftModule({pixels:{width:240,height:320,data:Array.from({length:240*320},(_,i)=>['#ff0000','#00ff00','#0000ff',null][(i/240|0)%4])}}), 'sh1107 pixels': K.sh1107Module({pixels:{width:128,height:128,data:Array.from({length:128*128},(_,i)=>i%3===0)}}),
   'and': K.logicSymbol({gate:'and'}), 'xnor': K.logicSymbol({gate:'xnor'}), 'and4': K.logicSymbol({gate:'and',inputs:4}),
-};
-let total = 0;
-for (const [name, art] of Object.entries(S)) {
-  const pr = K.check(art); total += pr.length;
-  if (pr.length) { console.log('\n== ' + name + ' (' + pr.length + ')'); pr.slice(0, 12).forEach(p => console.log('  ' + p.kind + ': ' + p.a + (p.b ? '  x  ' + p.b : ''))); if (pr.length > 12) console.log('  … ' + (pr.length - 12) + ' more'); }
+  };
 }
-console.log('\nTOTAL', total);
-process.exitCode = total ? 1 : 0;
+
+/** The fuzz cases, [name, make], from a fixed seed: each make draws a template with random pins, counts and sizes. */
+export function fuzzCases(K) {
+  let seed = 7;
+  const rnd = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  const pick = a => a[Math.floor(rnd() * a.length)];
+  const names = ['VCC','GND','SDA','SCL','TX','RX','D13','A0','IO18','IOREF','RESET','3V3','5V','VIN','AREF','MISO','MOSI','SCK','CS','DC','EN','NC','OUT','DATA','TRIG','ECHO','SQW','INT','XDA','GP28'];
+  const fin = ['blue','green','teal','black','purple','white'];
+  const cases = [];
+  for (let i = 0; i < 60; i++) { const n = 3 + Math.floor(rnd() * 8); const pins = Array.from({ length: n }, () => pick(names)); cases.push(['module ' + n + ' ' + i, () => K.moduleTemplate({ label: pick(['BMP180','MPU6050','RTC','HX711','MICRO-SD','IR','MQ-135']), pins, part: pick(['chip','sensor','can','dual-can','dome','none']), finish: pick(fin), widthPitches: rnd() < 0.5 ? undefined : 5 + Math.floor(rnd() * 14), heightPitches: rnd() < 0.5 ? undefined : 4.6 + Math.floor(rnd() * 7), canPitches: rnd() < 0.3 ? 6 : undefined, vent: rnd() < 0.5 ? 'holes' : undefined })]); }
+  for (let i = 0; i < 40; i++) { const rows = 4 + Math.floor(rnd() * 16); const left = Array.from({ length: rows }, () => pick(names)), right = Array.from({ length: rows }, () => pick(names)); cases.push(['portrait ' + rows + ' ' + i, () => K.devBoardTemplate({ label: pick(['NANO-CLASS','RP2040','ESP32-C3','ATTINY']), chipLabel: pick(['ATMEGA328P','RP2040','ESP32-C3']), finish: pick(fin), pinKind: pick(['socket','pad']), controller: rnd() < 0.3 ? 'module' : 'chip', widthPitches: 8 + Math.floor(rnd() * 5), left, right, indicators: { power: rnd() < 0.5, user: rnd() < 0.5 } })]); }
+  for (let i = 0; i < 10; i++) { cases.push(['landscape ' + i, () => K.devBoardTemplate({ layout: 'landscape', label: 'UNO-CLASS', chipLabel: 'ATMEGA328P', finish: pick(fin), pinKind: pick(['socket','pad']), top: [Array.from({ length: 10 }, () => pick(names)), Array.from({ length: 8 }, () => pick(names))], bottom: [Array.from({ length: 8 }, () => pick(names)), Array.from({ length: 6 }, () => pick(names))], groupNames: { top: ['DIGITAL (PWM ~)'], bottom: ['POWER', 'ANALOG IN'] }, pwm: ['3', '5', '6', '9', '10', '11'], indicators: { power: rnd() < 0.5, user: rnd() < 0.5 } })]); }
+  for (let i = 0; i < 20; i++) { const n = 2 * (2 + Math.floor(rnd() * 14)); cases.push(['chip ' + n + ' ' + i, () => K.chipTemplate({ pins: Array.from({ length: n }, () => pick(names)), label: pick(['NE555','74HC595','ATMEGA328P','L293D','MCP23017','PCF8574']), package: pick(['dip','soic','tssop']) })]); }
+  for (const c of [[16,2],[20,4]]) for (const col of ['green','blue']) cases.push(['lcd ' + c, () => K.characterLcd({ cols: c[0], rows: c[1], color: col, lines: ['Hello, world!', 'DeepCircuits 20x4', 'Temp 23.5 C', 'Hum 41 %'] })]);
+  for (const c of [[16,2],[20,4]]) for (const backpack of [false, true]) cases.push(['lcd glyphs ' + c + (backpack ? ' backpack' : ''), () => K.characterLcd({ cols: c[0], rows: c[1], backpack, glyphs: Array.from({ length: c[0] * c[1] }, (_, i) => [31, 17, 21, 21, 21, 17, 31, i % 2 ? 31 : 0]) })]);
+  for (let d = 1; d <= 4; d++) cases.push(['seg ' + d, () => K.sevenSegment({ digits: d, value: '8888'.slice(0, d), dp: [1,1,1,1] })]);
+  for (const g of ['and','nand','or','nor','xor','xnor','not','buffer']) for (const n of [2,3,4,8]) cases.push(['gate ' + g + n, () => K.logicSymbol({ gate: g, inputs: n })]);
+  for (const v of [0, 0.25, 0.5, 0.75, 1]) cases.push(['pot ' + v, () => K.potentiometer({ position: v })]);
+  for (const live of [{}, { flow: true }, { flow: true, heat: 1, probe: '1' }, { probe: '2' }]) cases.push(['resistor', () => K.resistor({ ohms: 4700, live })]);
+  for (const o of [{}, { on: true }, { on: true, brightness: 0.2, live: { flow: true, probe: 'K' } }, { color: 'white', live: { probe: 'A' } }]) cases.push(['led', () => K.led(o)]);
+  for (const live of [{}, { flow: true }, { flow: true, probe: '1' }, { probe: '2' }]) cases.push(['buzzer', () => K.buzzer({ live })]);
+  return cases;
+}
+
+/**
+ * Each card's preview script (project/generators/<Name>/preview.html), by card name, without the line that sets the
+ * live token mode: the gallery and the checks draw the cards in the mode they set themselves.
+ */
+export function previewScripts() {
+  return readdirSync(GENERATORS, { withFileTypes: true })
+    .filter(d => d.isDirectory())
+    .map(d => d.name)
+    .sort()
+    .map(name => {
+      const html = readFileSync(path.join(GENERATORS, name, 'preview.html'), 'utf8');
+      const script = /<script>\s*([\s\S]*?)\s*<\/script>/.exec(html)[1];
+      return { name, script: script.replace(/\r\n/g, '\n').replace(/^K\.setTokenMode\("live"\);\n/m, '') };
+    });
+}
+
+/** The artworks the card previews mount, drawn with K: [{ name: 'Card · caption', art }]. */
+export function drawPreviews(K) {
+  const out = [];
+  for (const { name, script } of previewScripts()) {
+    const mount = (target, art, o) => {
+      out.push({ name: `${name} · ${(o && o.caption) || ''}`, art });
+      return null;
+    };
+    const kit = { ...K, mount };
+    vm.runInNewContext(script, { window: { PartsKit: kit }, document: { getElementById: () => ({}) }, console });
+  }
+  return out;
+}

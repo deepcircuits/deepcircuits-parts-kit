@@ -9,19 +9,22 @@
  */
 import { OPTIONS } from './options.js';
 
+/** The families, in the order a picker shows them, each with the title a picker gives it. */
+export const FAMILY_TITLES = {
+  board: 'Boards',
+  display: 'Displays',
+  sensor: 'Sensors',
+  input: 'Inputs',
+  output: 'Outputs',
+  module: 'Modules',
+  chip: 'Chips',
+  passive: 'Passives',
+  breadboard: 'Breadboards',
+  symbol: 'Symbols',
+};
+
 /** The families, in the order a picker shows them. */
-export const FAMILIES = [
-  'board',
-  'display',
-  'sensor',
-  'input',
-  'output',
-  'module',
-  'chip',
-  'passive',
-  'breadboard',
-  'symbol',
-];
+export const FAMILIES = Object.keys(FAMILY_TITLES);
 
 // [id, name, family, generator, preset, search terms]
 const PARTS = [

@@ -5,7 +5,7 @@ const browser = { document: 'readonly', window: 'readonly', getComputedStyle: 'r
 const node = { process: 'readonly', console: 'readonly', URL: 'readonly' };
 
 export default [
-  { ignores: ['node_modules/', 'project/', 'index.html', 'src/tokens.js', '*.cjs', 'tools/'] },
+  { ignores: ['node_modules/', 'project/', 'index.html', 'src/tokens.js'] },
   js.configs.recommended,
   {
     files: ['src/**/*.js'],
@@ -19,5 +19,5 @@ export default [
       'no-unused-vars': ['error', { args: 'none' }],
     },
   },
-  { files: ['*.mjs', '*.js', 'bin/**/*.mjs'], ignores: ['src/**'], languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: node } },
+  { files: ['*.mjs', '*.js', 'bin/**/*.mjs', 'checks/**/*.mjs', 'tools/**/*.mjs'], ignores: ['src/**'], languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: node } },
 ];

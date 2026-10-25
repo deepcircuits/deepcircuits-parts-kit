@@ -4,6 +4,7 @@ export type * from '../project/generators/index.d.ts';
 export declare const BREADBOARD_COLORS: PartsKit['BREADBOARD_COLORS'];
 export declare const CATALOG: PartsKit['CATALOG'];
 export declare const FAMILIES: PartsKit['FAMILIES'];
+export declare const FAMILY_TITLES: PartsKit['FAMILY_TITLES'];
 export declare const LED_STRIP_MAX_PIXELS: PartsKit['LED_STRIP_MAX_PIXELS'];
 export declare const PITCH: PartsKit['PITCH'];
 export declare const attiny85: PartsKit['attiny85'];

@@ -9551,6 +9551,7 @@ var PartsKit = (() => {
     BREADBOARD_COLORS: () => BREADBOARD_COLORS,
     CATALOG: () => CATALOG,
     FAMILIES: () => FAMILIES,
+    FAMILY_TITLES: () => FAMILY_TITLES,
     FINISHES: () => FINISHES,
     LED_STRIP_MAX_PIXELS: () => LED_STRIP_MAX_PIXELS,
     PITCH: () => PITCH,
@@ -10178,18 +10179,19 @@ var PartsKit = (() => {
   };
 
   // src/catalog.js
-  var FAMILIES = [
-    "board",
-    "display",
-    "sensor",
-    "input",
-    "output",
-    "module",
-    "chip",
-    "passive",
-    "breadboard",
-    "symbol"
-  ];
+  var FAMILY_TITLES = {
+    board: "Boards",
+    display: "Displays",
+    sensor: "Sensors",
+    input: "Inputs",
+    output: "Outputs",
+    module: "Modules",
+    chip: "Chips",
+    passive: "Passives",
+    breadboard: "Breadboards",
+    symbol: "Symbols"
+  };
+  var FAMILIES = Object.keys(FAMILY_TITLES);
   var PARTS = [
     ["uno-class-board", "Uno-class board", "board", "unoClassBoard", null, ["Arduino Uno", "ATmega328P"]],
     ["nano-class-board", "Nano-class board", "board", "nanoClassBoard", null, ["Arduino Nano", "ATmega328P"]],

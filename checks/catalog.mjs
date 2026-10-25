@@ -1,15 +1,25 @@
-// The catalog's names and options, held to what the parts draw:
-// - every id is its name as a slug, starts with a letter and is unique;
+// The catalog (src/catalog.js), held to what the parts draw:
+// - every id is its name as a slug, starts with a letter and is unique, in a known family, with a name and a state list;
+// - every entry draws at rest with nothing overlapping and its pins on the pitch, and an unknown id throws;
 // - every option's default draws what leaving it out draws, and every other value of it changes the drawing (in the
 //   context its `when` names), so a part never lists an option it ignores;
 // - every example passes checkOptions and draws;
 // - pin names follow the convention: unique, a repeated name bare once and .2, .3 after, never .1;
-// - each family entry point exports the generators its parts name.
-import * as K from './src/index.js';
-import { optionApplies } from './src/catalog.js';
+// - loadPart draws each part from its family's entry point as drawPart draws it.
+import { check, pinsOnPitch } from '../src/check.js';
+import { optionApplies } from '../src/catalog.js';
+import * as K from '../src/index.js';
 
 const problems = [];
 const fail = (id, msg) => problems.push(`${id}: ${msg}`);
+
+// Each drawing once: the option checks draw the same contexts again and again.
+const drawn = new Map();
+function svgOf(id, options = {}) {
+  const key = `${id} ${JSON.stringify(options)}`;
+  if (!drawn.has(key)) drawn.set(key, K.drawPart(id, options).svg);
+  return drawn.get(key);
+}
 
 const slug = name =>
   name
@@ -25,6 +35,28 @@ for (const e of K.CATALOG) {
   if (ids.has(e.id)) fail(e.id, 'the id repeats');
   ids.add(e.id);
   if (!K.FAMILIES.includes(e.family)) fail(e.id, `no family ${e.family}`);
+  if (!e.name || !Array.isArray(e.state)) fail(e.id, 'needs a name and a state list');
+  if (typeof K[e.fn] !== 'function') {
+    fail(e.id, `PartsKit has no ${e.fn}`);
+    continue;
+  }
+  let art;
+  try {
+    art = K.drawPart(e.id);
+  } catch (err) {
+    fail(e.id, `throws ${err.message}`);
+    continue;
+  }
+  if (!art.svg || !art.pins) fail(e.id, 'not an Artwork');
+  const overlaps = check(art);
+  if (overlaps.length) fail(e.id, `${overlaps.length} overlaps`);
+  if (art.pins.length && !pinsOnPitch(art.pins)) fail(e.id, 'pins off the pitch');
+}
+try {
+  K.drawPart('no-such-part');
+  problems.push('drawPart accepts an unknown id');
+} catch {
+  /* expected */
 }
 
 // A value of the spec other than its default, to show the option changes the drawing.
@@ -97,13 +129,12 @@ function showValue(spec, preset) {
   return probe(spec);
 }
 
-const svgOf = (id, options) => K.drawPart(id, options).svg;
 for (const e of K.CATALOG) {
   for (const [k, spec] of Object.entries(e.options)) {
     const ctx = contextFor(spec, e);
     if (!optionApplies(spec, { ...e.preset, ...ctx })) fail(e.id, `${k}: its when cannot be met`);
     const busy = busyFor(k, spec, e, ctx);
-    const check = (options, label) => {
+    const draws = (options, label) => {
       const bad = K.checkOptions(e.id, options);
       if (bad.length) return fail(e.id, `${label}: ${bad.join('; ')}`);
       return svgOf(e.id, options);
@@ -111,13 +142,12 @@ for (const e of K.CATALOG) {
     // The default draws what leaving the option out draws; `value` draws something else, alone or beside the others.
     const holds = (value, label) => {
       for (const c of [ctx, busy]) {
-        const at = svgOf(e.id, c);
-        const drawn = check({ ...c, [k]: value }, label);
-        if (drawn !== undefined && drawn !== at) return true;
+        const drawnWith = draws({ ...c, [k]: value }, label);
+        if (drawnWith !== undefined && drawnWith !== svgOf(e.id, c)) return true;
       }
       return false;
     };
-    const keeps = (value, label) => [ctx, busy].every(c => check({ ...c, [k]: value }, label) === svgOf(e.id, c));
+    const keeps = (value, label) => [ctx, busy].every(c => draws({ ...c, [k]: value }, label) === svgOf(e.id, c));
     if (spec.type === 'object') {
       for (const [f, fspec] of Object.entries(spec.fields)) {
         if (fspec.default !== undefined && !keeps({ [f]: fspec.default }, `${k}.${f} default`))
@@ -130,7 +160,7 @@ for (const e of K.CATALOG) {
         fail(e.id, `${k}: the default ${JSON.stringify(spec.default)} draws something else than leaving it out`);
       const v = showValue(spec, e.preset);
       if (!holds(v, k)) fail(e.id, `${k}: ${JSON.stringify(v).slice(0, 60)} draws the same as the default`);
-      for (const ex of spec.examples || []) check({ ...ctx, [k]: withEach(spec, ex, e.preset) }, `${k} example ${ex.label}`);
+      for (const ex of spec.examples || []) draws({ ...ctx, [k]: withEach(spec, ex, e.preset) }, `${k} example ${ex.label}`);
     }
   }
   // Pin names.
@@ -141,28 +171,14 @@ for (const e of K.CATALOG) {
     seen.add(n);
     const m = /^(.+)\.(\d+)$/.exec(n);
     if (m && m[2] === '1') fail(e.id, `pin ${n}: the first of a repeated name is bare`);
-    if (m && m[2] !== '1' && !names.includes(m[1]) && !/^\d+$/.test(m[1]))
-      fail(e.id, `pin ${n} has no bare ${m[1]}`);
+    if (m && m[2] !== '1' && !names.includes(m[1]) && !/^\d+$/.test(m[1])) fail(e.id, `pin ${n} has no bare ${m[1]}`);
   }
-}
-
-// The family entry points export the generators their parts name.
-const families = {
-  board: 'boards',
-  display: 'displays',
-  sensor: 'sensors',
-  input: 'inputs',
-  output: 'outputs',
-  module: 'modules',
-  chip: 'chips',
-  passive: 'passives',
-  breadboard: 'breadboards',
-  symbol: 'symbols',
-};
-for (const [fam, file] of Object.entries(families)) {
-  const mod = await import(`./src/families/${file}.js`);
-  for (const e of K.CATALOG.filter(c => c.family === fam))
-    if (typeof mod[e.fn] !== 'function') fail(e.id, `src/families/${file}.js has no ${e.fn}`);
+  // loadPart: the family's entry point exports the generator, and draws the part as drawPart does.
+  try {
+    if ((await K.loadPart(e.id))().svg !== svgOf(e.id)) fail(e.id, 'loadPart draws it differently from drawPart');
+  } catch (err) {
+    fail(e.id, `loadPart: ${err.message}`);
+  }
 }
 
 if (problems.length) {
@@ -170,4 +186,6 @@ if (problems.length) {
   console.log(`${problems.length} problems`);
   process.exit(1);
 }
-console.log(`options: ${K.CATALOG.length} parts, ${K.CATALOG.reduce((n, e) => n + Object.keys(e.options).length, 0)} options, all drawn as listed`);
+console.log(
+  `catalog: ${K.CATALOG.length} parts in ${K.FAMILIES.length} families, ${K.CATALOG.reduce((n, e) => n + Object.keys(e.options).length, 0)} options, all drawn as listed`,
+);

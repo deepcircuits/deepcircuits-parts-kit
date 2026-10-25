@@ -8,11 +8,11 @@
 //   the encoder turns it a detent each 18°, and each digit's hole on the dialer is found and winds round to the stop
 //   within the dial's range (src/controls.js).
 import { isDeepStrictEqual } from 'node:util';
-import { CATALOG, checkOptions } from './src/catalog.js';
-import { angleBetween, detentsTurned, dialDigitAt, dialGeometry, dialTravel, knobPosition } from './src/controls.js';
-import { CONTROLS } from './src/elementControls.js';
-import { drawPart } from './src/draw.js';
-import { optionsFromAttributes } from './src/element.js';
+import { CATALOG, checkOptions } from '../src/catalog.js';
+import { angleBetween, detentsTurned, dialDigitAt, dialGeometry, dialTravel, knobPosition } from '../src/controls.js';
+import { CONTROLS } from '../src/elementControls.js';
+import { drawPart } from '../src/draw.js';
+import { optionsFromAttributes } from '../src/element.js';
 
 const problems = [];
 const fail = (id, msg) => problems.push(`${id}: ${msg}`);
