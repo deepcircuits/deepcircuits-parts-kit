@@ -8,14 +8,14 @@ const REPO = 'https://github.com/deepcircuits/deepcircuits-parts-kit';
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // Each card's name, the first clause of its README, and its preview script.
-const cards = readdirSync('project/components', { withFileTypes: true })
-  .filter(d => d.isDirectory() && d.name !== 'Cover').map(d => d.name).sort()
+const cards = readdirSync('project/generators', { withFileTypes: true })
+  .filter(d => d.isDirectory()).map(d => d.name).sort()
   .map(name => {
-    const html = readFileSync(`project/components/${name}/preview.html`, 'utf8');
+    const html = readFileSync(`project/generators/${name}/preview.html`, 'utf8');
     // A preview opts into live colours on its own card; the gallery draws every card in 'vars' so its theme switch works.
     const script = /<script>\s*([\s\S]*?)\s*<\/script>/.exec(html)[1].replace(/^K\.setTokenMode\("live"\);\r?\n/m, '');
     if (/<\/script/i.test(script)) throw new Error(`${name}: its preview script contains </script`);
-    const readme = readFileSync(`project/components/${name}/README.md`, 'utf8');
+    const readme = readFileSync(`project/generators/${name}/README.md`, 'utf8');
     const para = readme.split(/\n\s*\n/).find(p => p.trim() && !p.startsWith('#')) || '';
     let depth = 0, cut = para.length;
     for (let i = 0; i < para.length; i++) {
@@ -37,7 +37,7 @@ const page = `<!doctype html>
 <title>DeepCircuits Parts Kit</title>
 <meta name="description" content="Original electronic part artwork as SVG generators: boards, chips, sensors, displays and modules at true size on the 0.1-inch grid, with pins and live state.">
 <link rel="stylesheet" href="tokens.css">
-<link rel="stylesheet" href="project/components/bundle.css">
+<link rel="stylesheet" href="project/generators/bundle.css">
 <style>
   :root { color-scheme: light; --surface: color-mix(in srgb, var(--canvas-ink) 3%, var(--canvas)); --line: color-mix(in srgb, var(--canvas-ink) 11%, var(--canvas)); --accent: var(--mark-select); }
   [data-theme="dark"] { color-scheme: dark; }
@@ -112,7 +112,7 @@ const page = `<!doctype html>
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" href="#top"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" fill="#0f766e"/><g fill="#d4a017"><circle cx="7" cy="9" r="1.3"/><circle cx="12" cy="9" r="1.3"/><circle cx="17" cy="9" r="1.3"/><circle cx="7" cy="15" r="1.3"/><circle cx="12" cy="15" r="1.3"/><circle cx="17" cy="15" r="1.3"/></g></svg>Parts Kit</a>
-  <nav><a href="#catalog">Catalog</a><a href="#components" class="wide">Components</a><a href="${REPO}/blob/main/project/README.md" class="wide">Brand book</a><a href="${REPO}">GitHub</a></nav>
+  <nav><a href="#catalog">Catalog</a><a href="#generators" class="wide">Generators</a><a href="${REPO}/blob/main/project/README.md" class="wide">Brand book</a><a href="${REPO}">GitHub</a></nav>
   <button class="theme" type="button" aria-label="Switch between light and dark" title="Light or dark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg></button>
 </div></header>
 
@@ -121,7 +121,7 @@ const page = `<!doctype html>
   <div>
     <h1>Electronic parts, drawn by code.</h1>
     <p>Original SVG artwork for boards, chips, sensors, displays and modules. Every part is at true size on the 0.1-inch grid, returns its pin positions, and shows its state: LEDs light, screens show text, servos turn.</p>
-    <div class="install"><span id="cmd">npm install @deepcircuits/parts-kit</span><button class="copy" type="button" data-copy="npm install @deepcircuits/parts-kit">Copy</button></div>
+    <div class="install"><span id="cmd">npm install github:deepcircuits/deepcircuits-parts-kit</span><button class="copy" type="button" data-copy="npm install github:deepcircuits/deepcircuits-parts-kit">Copy</button></div>
     <div class="links"><a href="${REPO}#readme">Documentation</a><a href="${REPO}/blob/main/project/README.md">Brand book</a><span>MIT licence</span></div>
   </div>
   <div>
@@ -148,8 +148,8 @@ lcd.pins;                <span class="c">// [{ name, x, y }, …]</span></pre>
   <p class="empty" id="empty">No part matches that search.</p>
 </div></section>
 
-<section class="block" id="components"><div class="wrap">
-  <h2>Components</h2>
+<section class="block" id="generators"><div class="wrap">
+  <h2>Generators</h2>
   <p class="lead">The generators behind the catalog, each in the states and variants it draws, over the pitch grid every pin lands on.</p>
   <ul class="toc" id="toc"></ul>
   <div id="cards"></div>
@@ -161,7 +161,7 @@ lcd.pins;                <span class="c">// [{ name, x, y }, …]</span></pre>
 </div></footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-<script src="project/components/bundle.js"></script>
+<script src="project/generators/bundle.js"></script>
 <script>
 var CARDS = [
 ${cardData}
@@ -232,7 +232,7 @@ ${cardData}
   var cards = document.getElementById('cards'), toc = document.getElementById('toc');
   CARDS.forEach(function (c) {
     var sec = document.createElement('section'); sec.className = 'card'; sec.id = 'card-' + c.name;
-    sec.innerHTML = '<header><h3>' + c.name + '</h3><a href="${REPO}/blob/main/project/components/' + c.name + '/README.md">Read the card</a></header><p>' + c.intro + '</p><div class="shelf"><div class="pk-row"></div></div>';
+    sec.innerHTML = '<header><h3>' + c.name + '</h3><a href="${REPO}/blob/main/project/generators/' + c.name + '/README.md">Read the card</a></header><p>' + c.intro + '</p><div class="shelf"><div class="pk-row"></div></div>';
     cards.appendChild(sec);
     var row = sec.querySelector('.pk-row');
     try { c.run({ getElementById: function () { return row; } }); } catch (err) { row.textContent = 'This card did not draw: ' + err.message; }

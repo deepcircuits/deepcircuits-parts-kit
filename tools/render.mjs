@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 import fs from 'fs'; import vm from 'vm';
-const ctx = { console }; ctx.window = ctx; vm.runInNewContext(fs.readFileSync('project/components/bundle.js', 'utf8'), ctx); const K = ctx.PartsKit;
+const ctx = { console }; ctx.window = ctx; vm.runInNewContext(fs.readFileSync('project/generators/bundle.js', 'utf8'), ctx); const K = ctx.PartsKit;
 const specs = JSON.parse(process.argv[2]);
 const arts = specs.map(([fn, o]) => K[fn](o));
 const sized = (a, sc) => a.svg.replace(/^<svg ([^>]*?)width="[^"]*" height="[^"]*"/, `<svg $1width="${a.width*sc}" height="${a.height*sc}"`);

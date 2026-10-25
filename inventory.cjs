@@ -1,5 +1,5 @@
 // The detail inventory: what each template must draw, from the brand book's "Measured from the real part" table.
-require('./project/components/bundle.js'); const K = globalThis.PartsKit;
+require('./project/generators/bundle.js'); const K = globalThis.PartsKit;
 const count = (svg, part) => (svg.match(new RegExp('data-part="' + part + '"', 'g')) || []).length;
 const has = (svg, re) => re.test(svg);
 const SPEC = [

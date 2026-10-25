@@ -5,7 +5,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import vm from 'node:vm';
 
-const ctx = { console }; ctx.window = ctx; vm.runInNewContext(readFileSync('project/components/bundle.js', 'utf8'), ctx);
+const ctx = { console }; ctx.window = ctx; vm.runInNewContext(readFileSync('project/generators/bundle.js', 'utf8'), ctx);
 const bundle = ctx.PartsKit, esm = {};
 // Every entry point's exports, as the bundle carries them on one object.
 const entries = ['index', 'templates', 'primitives', 'check', 'mount', 'dom', 'element', 'controls', 'catalog', ...readdirSync('src/families').filter(f => f.endsWith('.js')).map(f => 'families/' + f.slice(0, -3))];
@@ -20,9 +20,9 @@ function draw(K) {
   const out = new Map(), put = (name, art) => out.set(out.has(name) ? name + ' #' + out.size : name, art);
   for (const [n, a] of Object.entries(new Function('K', suiteSrc)(K))) put('suite · ' + n, a);
   const mount = K.mount; K.mount = (target, art, o) => { put(target.card + ' · ' + ((o && o.caption) || ''), art); return null; };
-  for (const d of readdirSync('project/components', { withFileTypes: true })) {
+  for (const d of readdirSync('project/generators', { withFileTypes: true })) {
     if (!d.isDirectory()) continue;
-    let html; try { html = readFileSync(`project/components/${d.name}/preview.html`, 'utf8'); } catch { continue; }
+    let html; try { html = readFileSync(`project/generators/${d.name}/preview.html`, 'utf8'); } catch { continue; }
     const m = /<script>\s*([\s\S]*?)\s*<\/script>/.exec(html); if (!m) continue;
     vm.runInNewContext(m[1], { window: { PartsKit: K }, PartsKit: K, document: { getElementById: () => ({ card: d.name }), querySelector: () => ({ card: d.name }) }, console });
   }

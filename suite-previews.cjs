@@ -1,12 +1,12 @@
 // Run every component preview's script with mount stubbed, and check each artwork it draws.
 const fs = require('fs'), vm = require('vm');
-require('./project/components/bundle.js'); const K = globalThis.PartsKit;
+require('./project/generators/bundle.js'); const K = globalThis.PartsKit;
 const arts = [];
 K.mount = (target, art, o) => { arts.push({ card: target.card, caption: (o && o.caption) || '', art }); return null; };
-const names = fs.readdirSync('project/components', { withFileTypes: true }).filter(d => d.isDirectory() && d.name !== 'Cover' && d.name !== 'lib').map(d => d.name);
+const names = fs.readdirSync('project/generators', { withFileTypes: true }).filter(d => d.isDirectory() && d.name !== 'lib').map(d => d.name);
 let total = 0, count = 0;
 for (const name of names) {
-  const html = fs.readFileSync(`project/components/${name}/preview.html`, 'utf8');
+  const html = fs.readFileSync(`project/generators/${name}/preview.html`, 'utf8');
   const m = /<script>\s*([\s\S]*?)\s*<\/script>/.exec(html); if (!m) continue;
   arts.length = 0;
   const ctx = { window: globalThis, document: { getElementById: () => ({ card: name }) }, console };

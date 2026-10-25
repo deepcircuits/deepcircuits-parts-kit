@@ -45,7 +45,7 @@ export function Part({ id, options }) {
 
 ```html
 <div id="bench"></div>
-<script src="https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/project/components/bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/project/generators/bundle.js"></script>
 <script>
   document.getElementById('bench').innerHTML = PartsKit.drawPart('servo', { angle: 45 }).svg;
 </script>

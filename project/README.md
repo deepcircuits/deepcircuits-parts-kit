@@ -10,7 +10,7 @@ The Parts Kit is how DeepCircuits draws electronic parts: the LEDs, chips, modul
 - A part has **a fixed material palette and a canvas-facing ink**. Its body is painted in the material tokens below and looks the same on any canvas. Anything that stands on the canvas rather than on the part (a chip's pin names, a logic symbol, an outline part) is `currentColor`, which is `canvas-ink` in either theme.
 - **Presentation attributes only.** SVG sanitizers strip `<style>` and `style=""`, so every fill, stroke and font is an attribute. Give the root `<svg>` explicit `width`, `height`, a matching `viewBox`, `role="img"` and an `aria-label` that says what the part is and, if it has one, its state (`red LED, lit`).
 - **Checked, not eyeballed.** Every generator's output passes `PartsKit.check`, the kit's overlap check: labels never touch each other or a part, parts never touch each other, nothing leaves the box. A part that fails the check does not ship, whatever it looks like at one zoom.
-- Write a generator, not a file. A part is a function of its attributes that returns an `Artwork` (`width`, `height`, `svg`, `pins`); the kit's ES modules (`src/`) are the reference implementation, and `components/bundle.js` (`window.PartsKit`) is built from them.
+- Write a generator, not a file. A part is a function of its attributes that returns an `Artwork` (`width`, `height`, `svg`, `pins`); the kit's ES modules (`src/`) are the reference implementation, and `generators/bundle.js` (`window.PartsKit`) is built from them.
 
 ## The grid
 
@@ -177,6 +177,6 @@ The editor places a pin's handle at its `(x, y)` and knows each pin by its place
 5. `role="img"` and an `aria-label` with the state in words.
 6. Print at 4.5:1 on its body; meaningful marks at 3:1.
 7. No vendor art, no vendor name.
-8. A card (`components/<Name>/preview.html`) and a README that says what the consumer provides.
+8. A card (`generators/<Name>/preview.html`) and a README that says what the consumer provides.
 9. `PartsKit.check(artwork)` returns nothing: no label on another label or on a part, no part on another part, nothing outside the box. Every drawn part is wrapped in a `data-part` group so the check can see it; `body` and `board` are grounds the others may sit on.
 10. `standards.cjs` passes with the new part in the suite: no print under `pin-label` (4px), every stroke with its width, pins on the grid, flat colour but the sheens.

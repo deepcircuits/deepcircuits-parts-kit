@@ -1,6 +1,6 @@
 // The brand book's contrast claims (Theme, forced colours and contrast), by WCAG 2 relative luminance.
 import { readFileSync } from 'node:fs';
-await import('./project/components/bundle.js'); const { BREADBOARD_COLORS, breadboardPaint } = globalThis.PartsKit;
+await import('./project/generators/bundle.js'); const { BREADBOARD_COLORS, breadboardPaint } = globalThis.PartsKit;
 const t = JSON.parse(readFileSync('project/tokens.json', 'utf8'));
 const v = n => { const k = t.color.tokens.find(x => x.name === n); return typeof k.value === 'string' ? k.value : k.value.light; };
 /** WCAG contrast between two #rrggbb colours. */

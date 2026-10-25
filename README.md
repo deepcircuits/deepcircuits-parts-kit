@@ -35,7 +35,7 @@ npm install github:deepcircuits/deepcircuits-parts-kit
 Or, without a bundler:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/project/components/bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/project/generators/bundle.js"></script>
 ```
 
 ## Use it
@@ -69,7 +69,7 @@ const { svg, pins } = drawPart('led-5-mm', { color: 'green', on: true });
 | [Drawing in code](docs/drawing.md) | `drawPart`, React, updating a drawing in place, wiring parts together |
 | [The catalog](docs/catalog.md) | All 101 parts, their ids, pin names and options, and templates for your own |
 | [API reference](docs/api.md) | Artwork, state options, themes, helpers and entry points |
-| [Brand book](project/README.md) | The rules every drawing follows, and a [card](project/components) for each generator |
+| [Brand book](project/README.md) | The rules every drawing follows, and a [card](project/generators) for each generator |
 
 ## Contributing
 
