@@ -2,7 +2,7 @@
 
 [Parts Kit](../README.md) › The catalog
 
-101 parts in ten families. The [gallery](https://deepcircuits.github.io/deepcircuits-parts-kit/) shows every part and every generator's card.
+101 parts in ten families. The [gallery](https://deepcircuits.io/parts) shows every part and every generator's card.
 
 | Family | Parts |
 | --- | --- |

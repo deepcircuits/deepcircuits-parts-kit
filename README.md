@@ -12,7 +12,7 @@ Boards, chips, sensors, displays and modules as SVG, each at true size on the 0.
 [![Types included](https://img.shields.io/badge/types-included-3178c6)](src/index.d.ts)
 [![No dependencies](https://img.shields.io/badge/dependencies-none-16a34a)](package.json)
 
-[**Gallery**](https://deepcircuits.github.io/deepcircuits-parts-kit/) · [Catalog](docs/catalog.md) · [API](docs/api.md) · [Brand book](project/README.md) · [Contributing](CONTRIBUTING.md)
+[**Gallery**](https://deepcircuits.io/parts) · [Catalog](docs/catalog.md) · [API](docs/api.md) · [Brand book](project/README.md) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
