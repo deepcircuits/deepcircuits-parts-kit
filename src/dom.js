@@ -20,9 +20,9 @@ function keyOf(node) {
   }
   return null;
 }
-const sameNode = (a, b) =>
-  a.nodeType === b.nodeType &&
-  (!isElement(a) || !isElement(b) || (a.localName === b.localName && keyOf(a) === keyOf(b)));
+/** Whether `a` stands for `b`, whose key is `key`: the same kind of node, and for elements the same tag and hook. */
+const sameNode = (a, b, key = keyOf(b)) =>
+  a.nodeType === b.nodeType && (!isElement(a) || !isElement(b) || (a.localName === b.localName && keyOf(a) === key));
 
 /**
  * Brings `current` (a drawing on the page) to `next` (the same part redrawn), child by child. A hooked element that is
@@ -39,29 +39,35 @@ export function syncSvg(current, next) {
   for (const { name } of Array.from(current.attributes))
     if (!next.hasAttribute(name) && !hostOwned(name)) current.removeAttribute(name);
   const after = Array.from(next.childNodes);
-  const drawn = new Set(after.map(keyOf).filter(key => key !== null));
+  const keys = after.map(keyOf);
+  const drawn = new Set(keys.filter(key => key !== null));
   const kept = node => {
     const key = keyOf(node);
     return key !== null && drawn.has(key);
   };
   let index = 0;
-  for (const child of after) {
+  for (const [i, child] of after.entries()) {
+    const key = keys[i];
     let old = current.childNodes[index] || null;
-    if (old && !sameNode(old, child) && keyOf(child) !== null) {
+    let same = old !== null && sameNode(old, child, key);
+    if (old && !same && key !== null) {
       // This hook's element further on: the siblings before it are gone.
       const between = [];
       let match = old;
-      while (match && !sameNode(match, child)) {
+      while (match && !sameNode(match, child, key)) {
         between.push(match);
         match = match.nextSibling;
       }
       if (match && !between.some(kept)) {
         for (const gone of between) current.removeChild(gone);
         old = match;
+        same = true;
       }
     }
-    if (old && sameNode(old, child)) syncSvg(old, child);
-    else if (old && kept(old)) current.insertBefore(child, old);
+    // An unchanged element needs no walk through its children.
+    if (same) {
+      if (!old.isEqualNode(child)) syncSvg(old, child);
+    } else if (old && kept(old)) current.insertBefore(child, old);
     else if (old) current.replaceChild(child, old);
     else current.appendChild(child);
     index++;

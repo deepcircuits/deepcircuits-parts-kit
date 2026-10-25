@@ -82,42 +82,9 @@ var PartsKit = (() => {
       }
     for (const k in FALLBACK) {
       const v = css ? css.getPropertyValue(`--${prefix}${k}`).trim() : "";
-      out[k] = v || (mode === "vars" && COLOR[k] ? `var(--${prefix}${k}, ${FALLBACK[k]})` : FALLBACK[k]);
+      out[k] = v || (mode === "vars" && COLOR.has(k) ? `var(--${prefix}${k}, ${FALLBACK[k]})` : FALLBACK[k]);
     }
-    [
-      "pitch",
-      "pitch-half",
-      "pitch-2",
-      "pitch-3",
-      "pin-margin",
-      "lead-length",
-      "lead-width",
-      "leg-width",
-      "pad-radius",
-      "hole-radius",
-      "mount-hole-radius",
-      "board-inset",
-      "label-rise",
-      "label-drop",
-      "radius-board",
-      "radius-bezel",
-      "radius-chip",
-      "radius-part",
-      "radius-detail",
-      "stroke-outline",
-      "stroke-detail",
-      "stroke-fine",
-      "stroke-symbol",
-      "opacity-lens-off",
-      "opacity-glow",
-      "opacity-segment-dim",
-      "opacity-light",
-      "opacity-shade",
-      "opacity-heat",
-      "opacity-flow"
-    ].forEach((k) => {
-      out[k] = num(out[k], num(FALLBACK[k], 0));
-    });
+    for (const k in FALLBACK) if (!COLOR.has(k)) out[k] = num(out[k], num(FALLBACK[k], 0));
     cache = out;
     cacheAt = now;
     return out;
@@ -127,7 +94,7 @@ var PartsKit = (() => {
     for (const k in props) {
       const v = props[k];
       if (v === void 0 || v === null || v === false) continue;
-      s += ` ${k}="${esc(typeof v === "number" ? r2(v) : v)}"`;
+      s += ` ${k}="${typeof v === "number" ? r2(v) : esc(v)}"`;
     }
     return s;
   }
@@ -202,42 +169,42 @@ var PartsKit = (() => {
     });
   }
   function sheen(kind, color) {
+    const key = kind === "glow" ? `glow ${color}` : kind;
+    let found = SHEENS.get(key);
+    if (!found) {
+      if (SHEENS.size >= 512) SHEENS.clear();
+      found = gradient(kind, color);
+      SHEENS.set(key, found);
+    }
+    DEFS[found.id] = found.def;
+    return `url(#${found.id})`;
+  }
+  function gradient(kind, color) {
+    let id;
+    let shape;
     if (kind === "glow") {
-      const gid = `pk-glow-${String(color).replace(/[^0-9a-z]/gi, "").toLowerCase()}`;
-      DEFS[gid] = el(
+      id = `pk-glow-${String(color).replace(/[^0-9a-z]/gi, "").toLowerCase()}`;
+      shape = [
         "radialGradient",
-        { id: gid, cx: "50%", cy: "50%", r: "50%" },
-        el("stop", { offset: "0", "stop-color": color, "stop-opacity": 0.9 }) + el("stop", { offset: "0.55", "stop-color": color, "stop-opacity": 0.55 }) + el("stop", { offset: "1", "stop-color": color, "stop-opacity": 0 })
-      );
-      return `url(#${gid})`;
+        { cx: "50%", cy: "50%", r: "50%" },
+        [
+          ["0", color, 0.9],
+          ["0.55", color, 0.55],
+          ["1", color, 0]
+        ]
+      ];
+    } else {
+      const name = kind === "hot" || kind === "dome" || kind === "lens" ? kind : "metal";
+      id = `pk-${name}`;
+      shape = GRADIENTS[name];
     }
-    if (kind === "hot") {
-      DEFS["pk-hot"] = el(
-        "radialGradient",
-        { id: "pk-hot", cx: "50%", cy: "50%", r: "50%" },
-        el("stop", { offset: "0", "stop-color": "#ffffff", "stop-opacity": 0.95 }) + el("stop", { offset: "0.4", "stop-color": "#ffffff", "stop-opacity": 0.45 }) + el("stop", { offset: "1", "stop-color": "#ffffff", "stop-opacity": 0 })
-      );
-      return "url(#pk-hot)";
-    }
-    if (kind === "dome")
-      DEFS["pk-dome"] = el(
-        "radialGradient",
-        { id: "pk-dome", cx: "38%", cy: "30%", r: "70%" },
-        el("stop", { offset: "0", "stop-color": "#ffffff", "stop-opacity": 0.55 }) + el("stop", { offset: "0.45", "stop-color": "#ffffff", "stop-opacity": 0.08 }) + el("stop", { offset: "1", "stop-color": "#000000", "stop-opacity": 0.22 })
-      );
-    else if (kind === "lens")
-      DEFS["pk-lens"] = el(
-        "radialGradient",
-        { id: "pk-lens", cx: "36%", cy: "32%", r: "65%" },
-        el("stop", { offset: "0", "stop-color": "#ffffff", "stop-opacity": 0.5 }) + el("stop", { offset: "0.5", "stop-color": "#ffffff", "stop-opacity": 0.06 }) + el("stop", { offset: "1", "stop-color": "#000000", "stop-opacity": 0.18 })
-      );
-    else
-      DEFS["pk-metal"] = el(
-        "linearGradient",
-        { id: "pk-metal", x1: "0", y1: "0", x2: "1", y2: "1" },
-        el("stop", { offset: "0", "stop-color": "#ffffff", "stop-opacity": 0.42 }) + el("stop", { offset: "0.5", "stop-color": "#ffffff", "stop-opacity": 0.04 }) + el("stop", { offset: "1", "stop-color": "#000000", "stop-opacity": 0.2 })
-      );
-    return `url(#pk-${kind === "dome" ? "dome" : kind === "lens" ? "lens" : "metal"})`;
+    const [element, geometry, stops] = shape;
+    const def = el(
+      element,
+      { id, ...geometry },
+      stops.map(([offset, c, opacity]) => el("stop", { offset, "stop-color": c, "stop-opacity": opacity })).join("")
+    );
+    return { id, def };
   }
   function bevelPoly(T, pts, d) {
     d = d || 2.2;
@@ -649,7 +616,7 @@ var PartsKit = (() => {
     if (props.label) s += text(props.x + w / 2, props.y + w + 4.2, props.label, PIN_LABEL, f.silk);
     return s;
   }
-  var PITCH, MONO, cache, cacheAt, mode, prefix, COLOR, PIN_LABEL, r2, esc, DEFS, FINISHES, LENSES, ROW_PITCHES;
+  var PITCH, MONO, cache, cacheAt, mode, prefix, COLOR, PIN_LABEL, r2, ESCAPED, esc, DEFS, SHEENS, GRADIENTS, FINISHES, LENSES, ROW_PITCHES;
   var init_core = __esm({
     "src/core.js"() {
       init_tokens();
@@ -659,18 +626,56 @@ var PartsKit = (() => {
       cacheAt = 0;
       mode = "values";
       prefix = "";
-      COLOR = {};
-      COLOR_TOKENS.forEach((k) => {
-        COLOR[k] = true;
-      });
+      COLOR = new Set(COLOR_TOKENS);
       PIN_LABEL = 4;
       r2 = function(n) {
         return Math.round(n * 100) / 100;
       };
+      ESCAPED = /[&<>"]/;
       esc = function(s) {
-        return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        s = String(s);
+        return ESCAPED.test(s) ? s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;") : s;
       };
       DEFS = {};
+      SHEENS = /* @__PURE__ */ new Map();
+      GRADIENTS = {
+        hot: [
+          "radialGradient",
+          { cx: "50%", cy: "50%", r: "50%" },
+          [
+            ["0", "#ffffff", 0.95],
+            ["0.4", "#ffffff", 0.45],
+            ["1", "#ffffff", 0]
+          ]
+        ],
+        dome: [
+          "radialGradient",
+          { cx: "38%", cy: "30%", r: "70%" },
+          [
+            ["0", "#ffffff", 0.55],
+            ["0.45", "#ffffff", 0.08],
+            ["1", "#000000", 0.22]
+          ]
+        ],
+        lens: [
+          "radialGradient",
+          { cx: "36%", cy: "32%", r: "65%" },
+          [
+            ["0", "#ffffff", 0.5],
+            ["0.5", "#ffffff", 0.06],
+            ["1", "#000000", 0.18]
+          ]
+        ],
+        metal: [
+          "linearGradient",
+          { x1: "0", y1: "0", x2: "1", y2: "1" },
+          [
+            ["0", "#ffffff", 0.42],
+            ["0.5", "#ffffff", 0.04],
+            ["1", "#000000", 0.2]
+          ]
+        ]
+      };
       FINISHES = {
         blue: { board: "pcb-blue", edge: "pcb-blue-edge", silk: "silk", indicatorOff: "indicator-off" },
         green: { board: "pcb-green", edge: "pcb-green-edge", silk: "silk", indicatorOff: "indicator-off" },
@@ -11094,7 +11099,7 @@ var PartsKit = (() => {
     }
     return null;
   }
-  var sameNode = (a, b) => a.nodeType === b.nodeType && (!isElement(a) || !isElement(b) || a.localName === b.localName && keyOf(a) === keyOf(b));
+  var sameNode = (a, b, key = keyOf(b)) => a.nodeType === b.nodeType && (!isElement(a) || !isElement(b) || a.localName === b.localName && keyOf(a) === key);
   function syncSvg(current, next) {
     if (!isElement(current) || !isElement(next)) {
       if (current.nodeValue !== next.nodeValue) current.nodeValue = next.nodeValue;
@@ -11105,28 +11110,33 @@ var PartsKit = (() => {
     for (const { name } of Array.from(current.attributes))
       if (!next.hasAttribute(name) && !hostOwned(name)) current.removeAttribute(name);
     const after = Array.from(next.childNodes);
-    const drawn = new Set(after.map(keyOf).filter((key) => key !== null));
+    const keys = after.map(keyOf);
+    const drawn = new Set(keys.filter((key) => key !== null));
     const kept = (node) => {
       const key = keyOf(node);
       return key !== null && drawn.has(key);
     };
     let index = 0;
-    for (const child of after) {
+    for (const [i, child] of after.entries()) {
+      const key = keys[i];
       let old = current.childNodes[index] || null;
-      if (old && !sameNode(old, child) && keyOf(child) !== null) {
+      let same2 = old !== null && sameNode(old, child, key);
+      if (old && !same2 && key !== null) {
         const between = [];
         let match = old;
-        while (match && !sameNode(match, child)) {
+        while (match && !sameNode(match, child, key)) {
           between.push(match);
           match = match.nextSibling;
         }
         if (match && !between.some(kept)) {
           for (const gone of between) current.removeChild(gone);
           old = match;
+          same2 = true;
         }
       }
-      if (old && sameNode(old, child)) syncSvg(old, child);
-      else if (old && kept(old)) current.insertBefore(child, old);
+      if (same2) {
+        if (!old.isEqualNode(child)) syncSvg(old, child);
+      } else if (old && kept(old)) current.insertBefore(child, old);
       else if (old) current.replaceChild(child, old);
       else current.appendChild(child);
       index++;

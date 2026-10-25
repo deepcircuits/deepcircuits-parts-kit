@@ -12,10 +12,7 @@ let cache = null;
 let cacheAt = 0;
 let mode = 'values';
 let prefix = '';
-const COLOR = {};
-COLOR_TOKENS.forEach(k => {
-  COLOR[k] = true;
-});
+const COLOR = new Set(COLOR_TOKENS);
 /**
  * How tokens() resolves colours. 'values' (the default) always uses the light values from tokens.json, so a page's own
  * custom properties never recolour a part. 'vars' writes every colour as var(--token, value): artwork drawn once then
@@ -49,43 +46,10 @@ export function tokens() {
     }
   for (const k in FALLBACK) {
     const v = css ? css.getPropertyValue(`--${prefix}${k}`).trim() : '';
-    out[k] = v || (mode === 'vars' && COLOR[k] ? `var(--${prefix}${k}, ${FALLBACK[k]})` : FALLBACK[k]);
+    out[k] = v || (mode === 'vars' && COLOR.has(k) ? `var(--${prefix}${k}, ${FALLBACK[k]})` : FALLBACK[k]);
   }
-  // Metrics as numbers.
-  [
-    'pitch',
-    'pitch-half',
-    'pitch-2',
-    'pitch-3',
-    'pin-margin',
-    'lead-length',
-    'lead-width',
-    'leg-width',
-    'pad-radius',
-    'hole-radius',
-    'mount-hole-radius',
-    'board-inset',
-    'label-rise',
-    'label-drop',
-    'radius-board',
-    'radius-bezel',
-    'radius-chip',
-    'radius-part',
-    'radius-detail',
-    'stroke-outline',
-    'stroke-detail',
-    'stroke-fine',
-    'stroke-symbol',
-    'opacity-lens-off',
-    'opacity-glow',
-    'opacity-segment-dim',
-    'opacity-light',
-    'opacity-shade',
-    'opacity-heat',
-    'opacity-flow',
-  ].forEach(k => {
-    out[k] = num(out[k], num(FALLBACK[k], 0));
-  });
+  // Metrics (every token that is not a colour) as numbers.
+  for (const k in FALLBACK) if (!COLOR.has(k)) out[k] = num(out[k], num(FALLBACK[k], 0));
   cache = out;
   cacheAt = now;
   return out;
@@ -96,15 +60,20 @@ export const PIN_LABEL = 4;
 export const r2 = function (n) {
   return Math.round(n * 100) / 100;
 };
+// Most values have nothing to escape, so they skip the replacements: drawing spends most of its time here.
+const ESCAPED = /[&<>"]/;
 const esc = function (s) {
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  s = String(s);
+  return ESCAPED.test(s)
+    ? s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    : s;
 };
 function attrs(props) {
   let s = '';
   for (const k in props) {
     const v = props[k];
     if (v === undefined || v === null || v === false) continue;
-    s += ` ${k}="${esc(typeof v === 'number' ? r2(v) : v)}"`;
+    s += ` ${k}="${typeof v === 'number' ? r2(v) : esc(v)}"`;
   }
   return s;
 }
@@ -198,55 +167,87 @@ export function bevel(T, x, y, w, h, d, rx) {
  * lens fill never loses it.
  */
 let DEFS = {};
+// Each sheen's id and gradient, built once for each kind and glow colour (a strip draws one glow for every pixel).
+const SHEENS = new Map();
 export function sheen(kind, color) {
+  const key = kind === 'glow' ? `glow ${color}` : kind;
+  let found = SHEENS.get(key);
+  if (!found) {
+    // A long run of changing glow colours starts the cache again instead of growing it.
+    if (SHEENS.size >= 512) SHEENS.clear();
+    found = gradient(kind, color);
+    SHEENS.set(key, found);
+  }
+  DEFS[found.id] = found.def;
+  return `url(#${found.id})`;
+}
+// Each gradient: its element, geometry and stops ([offset, colour, opacity]). Any other kind is metal.
+const GRADIENTS = {
+  hot: [
+    'radialGradient',
+    { cx: '50%', cy: '50%', r: '50%' },
+    [
+      ['0', '#ffffff', 0.95],
+      ['0.4', '#ffffff', 0.45],
+      ['1', '#ffffff', 0],
+    ],
+  ],
+  dome: [
+    'radialGradient',
+    { cx: '38%', cy: '30%', r: '70%' },
+    [
+      ['0', '#ffffff', 0.55],
+      ['0.45', '#ffffff', 0.08],
+      ['1', '#000000', 0.22],
+    ],
+  ],
+  lens: [
+    'radialGradient',
+    { cx: '36%', cy: '32%', r: '65%' },
+    [
+      ['0', '#ffffff', 0.5],
+      ['0.5', '#ffffff', 0.06],
+      ['1', '#000000', 0.18],
+    ],
+  ],
+  metal: [
+    'linearGradient',
+    { x1: '0', y1: '0', x2: '1', y2: '1' },
+    [
+      ['0', '#ffffff', 0.42],
+      ['0.5', '#ffffff', 0.04],
+      ['1', '#000000', 0.2],
+    ],
+  ],
+};
+function gradient(kind, color) {
+  let id;
+  let shape;
   if (kind === 'glow') {
-    const gid = `pk-glow-${String(color)
+    id = `pk-glow-${String(color)
       .replace(/[^0-9a-z]/gi, '')
       .toLowerCase()}`;
-    DEFS[gid] = el(
+    shape = [
       'radialGradient',
-      { id: gid, cx: '50%', cy: '50%', r: '50%' },
-      el('stop', { offset: '0', 'stop-color': color, 'stop-opacity': 0.9 }) +
-        el('stop', { offset: '0.55', 'stop-color': color, 'stop-opacity': 0.55 }) +
-        el('stop', { offset: '1', 'stop-color': color, 'stop-opacity': 0 }),
-    );
-    return `url(#${gid})`;
+      { cx: '50%', cy: '50%', r: '50%' },
+      [
+        ['0', color, 0.9],
+        ['0.55', color, 0.55],
+        ['1', color, 0],
+      ],
+    ];
+  } else {
+    const name = kind === 'hot' || kind === 'dome' || kind === 'lens' ? kind : 'metal';
+    id = `pk-${name}`;
+    shape = GRADIENTS[name];
   }
-  if (kind === 'hot') {
-    DEFS['pk-hot'] = el(
-      'radialGradient',
-      { id: 'pk-hot', cx: '50%', cy: '50%', r: '50%' },
-      el('stop', { offset: '0', 'stop-color': '#ffffff', 'stop-opacity': 0.95 }) +
-        el('stop', { offset: '0.4', 'stop-color': '#ffffff', 'stop-opacity': 0.45 }) +
-        el('stop', { offset: '1', 'stop-color': '#ffffff', 'stop-opacity': 0 }),
-    );
-    return 'url(#pk-hot)';
-  }
-  if (kind === 'dome')
-    DEFS['pk-dome'] = el(
-      'radialGradient',
-      { id: 'pk-dome', cx: '38%', cy: '30%', r: '70%' },
-      el('stop', { offset: '0', 'stop-color': '#ffffff', 'stop-opacity': 0.55 }) +
-        el('stop', { offset: '0.45', 'stop-color': '#ffffff', 'stop-opacity': 0.08 }) +
-        el('stop', { offset: '1', 'stop-color': '#000000', 'stop-opacity': 0.22 }),
-    );
-  else if (kind === 'lens')
-    DEFS['pk-lens'] = el(
-      'radialGradient',
-      { id: 'pk-lens', cx: '36%', cy: '32%', r: '65%' },
-      el('stop', { offset: '0', 'stop-color': '#ffffff', 'stop-opacity': 0.5 }) +
-        el('stop', { offset: '0.5', 'stop-color': '#ffffff', 'stop-opacity': 0.06 }) +
-        el('stop', { offset: '1', 'stop-color': '#000000', 'stop-opacity': 0.18 }),
-    );
-  else
-    DEFS['pk-metal'] = el(
-      'linearGradient',
-      { id: 'pk-metal', x1: '0', y1: '0', x2: '1', y2: '1' },
-      el('stop', { offset: '0', 'stop-color': '#ffffff', 'stop-opacity': 0.42 }) +
-        el('stop', { offset: '0.5', 'stop-color': '#ffffff', 'stop-opacity': 0.04 }) +
-        el('stop', { offset: '1', 'stop-color': '#000000', 'stop-opacity': 0.2 }),
-    );
-  return `url(#pk-${kind === 'dome' ? 'dome' : kind === 'lens' ? 'lens' : 'metal'})`;
+  const [element, geometry, stops] = shape;
+  const def = el(
+    element,
+    { id, ...geometry },
+    stops.map(([offset, c, opacity]) => el('stop', { offset, 'stop-color': c, 'stop-opacity': opacity })).join(''),
+  );
+  return { id, def };
 }
 /**
  * The bevel of any outline: the polygon's edges that face up or left take
