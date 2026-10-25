@@ -6,7 +6,7 @@
 
 **Original electronic part artwork, drawn by code.**
 
-Boards, chips, sensors, displays and modules as SVG generators: every part at true size on the 0.1-inch grid, with its pins and its live state.
+Boards, chips, sensors, displays and modules as SVG, each at true size on the 0.1-inch grid, with its pins and its live state.
 
 [![MIT licence](https://img.shields.io/badge/licence-MIT-0f766e)](LICENSE)
 [![Types included](https://img.shields.io/badge/types-included-3178c6)](src/index.d.ts)
@@ -18,25 +18,25 @@ Boards, chips, sensors, displays and modules as SVG generators: every part at tr
 
 ---
 
-The Parts Kit is the artwork of [DeepCircuits](https://deepcircuits.io), the circuit simulator, published on its own so any editor, simulator, tutorial or diagram can use it. You call a function and get back an SVG and the positions of the part's pins.
+The Parts Kit is the artwork of [DeepCircuits](https://deepcircuits.io), the circuit simulator. It is published on its own so any editor, simulator, tutorial or diagram can use it. Call a function and get back an SVG and the position of every pin.
 
-- **True size, on the grid.** Each part is drawn at its real dimensions, and every pin sits a whole number of 0.1-inch pitches from the first (9.6 px at 96 dpi). Parts line up on a breadboard and wires snap to their legs.
-- **Live state.** LEDs light, screens show text and pictures, servos turn, buttons press. State is an option of the call, and the SVG carries hooks for changing it in place.
-- **Typed options.** Every part's options are data, with their types, ranges and defaults, and TypeScript types are generated from them: a typo such as `angel` fails to compile, and at run time the error names the option you meant.
-- **Themes.** Colours come from design tokens with light and dark values. One mode writes them as CSS custom properties, so a drawing follows your theme.
-- **No framework, no dependencies.** Plain functions that return strings. They run in any framework, in Node, in a worker or on a server, and need no DOM.
-- **Checked on every build.** Nothing overlaps, print stays readable, every option changes the drawing, and pins, legs and line widths meet the published conventions for breadboard part graphics.
-- **Original and MIT licensed.** The code and the artwork it draws are MIT. Nothing is copied from other part libraries, and boards carry no logos.
+- **True size.** Parts are drawn at their real size, and every pin sits on the 0.1-inch grid (9.6 px at 96 dpi), so parts line up on a breadboard and wires snap to their legs.
+- **Live state.** LEDs light, screens show text and pictures, servos turn and buttons press. You set the state as an option, and the SVG can be updated in place.
+- **Typed options.** Each part's options have types, ranges and defaults. A typo such as `angel` fails in TypeScript, and at run time the error names the option you meant.
+- **Themes.** Colours come from design tokens with light and dark values, and can follow your page's theme.
+- **No dependencies.** Plain functions that return strings. They work in any framework, in Node, in a worker or on a server, with no DOM.
+- **Checked on every build.** Nothing overlaps, text stays readable, every option changes the drawing, and pins, legs and line widths follow the published conventions for breadboard part graphics.
+- **Original and MIT licensed.** The code and the artwork are MIT. Nothing is copied from other part libraries, and boards carry no logos.
 
 ## Install
 
-The kit is not published to npm. Install it from its GitHub repository:
+The kit is not on npm. Install it from GitHub:
 
 ```bash
 npm install github:deepcircuits/deepcircuits-parts-kit
 ```
 
-The repository holds the built files, so there is no build step. With no bundler at all, load the classic script from jsDelivr, which serves it from the repository. It defines `window.PartsKit` and the `<parts-kit-part>` element:
+The repository includes the built files, so there is no build step. Without a bundler, load the script from jsDelivr. It defines `window.PartsKit` and the `<parts-kit-part>` element:
 
 ```html
 <script src="https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/project/components/bundle.js"></script>
@@ -46,19 +46,19 @@ The repository holds the built files, so there is no build step. With no bundler
 
 | You want | Use |
 | --- | --- |
-| A picture of a part, for a document, a slide or a design tool | The [picture files](#pictures): every part as an SVG, in its common states |
-| Parts on a web page, without writing code | The [`<parts-kit-part>` element](#on-a-page-parts-kit-part) |
-| Parts in an editor, a simulator or a build step | [`drawPart`](#in-code-drawpart), which returns the SVG and the position of every pin |
+| A picture of a part for a document, a slide or a design tool | The [picture files](#pictures) |
+| Parts on a web page without writing code | The [`<parts-kit-part>` element](#on-a-page-parts-kit-part) |
+| Parts in an editor, a simulator or a build step | [`drawPart`](#in-code-drawpart), which returns the SVG and its pins |
 
 ### Pictures
 
-[`images/`](images/) has every catalog part as an SVG file: at rest, in each of its states (lit, pressed, energised), with its example content, and in each colour it comes in. Its [README](images/README.md) shows them all, and [`manifest.json`](images/manifest.json) lists each part's size, pins and pictures. Copy the files you need, or link to one from jsDelivr:
+[`images/`](images/) has every part as an SVG file: at rest, in each state (lit, pressed, energised), with sample content, and in each colour. Its [README](images/README.md) shows them all, and [`manifest.json`](images/manifest.json) lists each part's size, pins and files. Copy the files you need, or link to them on jsDelivr:
 
 ```html
 <img src="https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/images/led-5-mm--green--on.svg" width="62" alt="A lit green LED">
 ```
 
-Each picture is drawn at its true size, 0.1 inch to 9.6 pixels, so set a width to show a small part larger.
+Pictures are true size (0.1 inch is 9.6 pixels), so set a width to show a small part larger.
 
 ### On a page: `<parts-kit-part>`
 
@@ -70,7 +70,7 @@ Each picture is drawn at its true size, 0.1 inch to 9.6 pixels, so set a width t
 <parts-kit-part type="character-lcd-16x2" lines='["Hello, world", "DeepCircuits"]'></parts-kit-part>
 ```
 
-`type` is the part's catalog id, and every other attribute is one of its options. Change an attribute and the part redraws in place. The parts a person operates work as they do on a bench: a button presses while it is held, a knob turns as it is dragged, a switch flips when it is clicked, and each takes the keyboard once focused. A misspelt option shows its error where the part would be: `servo has no option "angel"; did you mean "angle"?`. With a bundler, `import '@deepcircuits/parts-kit/element'` defines the element, and each part's family loads the first time one of its parts is drawn. [The part element](#the-part-element) has the details.
+`type` is the part's id, and every other attribute is an option. Change an attribute and the part redraws. Buttons press, knobs turn and switches flip with a mouse, a finger or the keyboard. A misspelt option shows an error in place of the part: `servo has no option "angel"; did you mean "angle"?`. With a bundler, `import '@deepcircuits/parts-kit/element'` defines the element and loads each family of parts when it is first used. See [the part element](#the-part-element) for the details.
 
 ### In code: `drawPart`
 
@@ -87,16 +87,16 @@ drawPart('servo', { angel: 30 });
 // JavaScript: Error: servo has no option "angel"; did you mean "angle"? Its options are angle.
 ```
 
-Each part also has a generator of its own, which takes the same options and the ones its preset fixes:
+Each part also has its own generator. It takes the same options, plus any that the catalog entry fixes:
 
 ```js
 import { led, resistor } from '@deepcircuits/parts-kit';
 
 const red = led({ color: 'red', on: true, brightness: 0.6 });
-const r = resistor({ ohms: 4700 }); // the bands are worked out from the resistance
+const r = resistor({ ohms: 4700 }); // the colour bands follow from the resistance
 ```
 
-In React, the drawing is a string of trusted SVG; any text you pass in (a caption, a label, an LCD line) is escaped before it is drawn.
+In React, insert the SVG string directly. Any text you pass in (a caption, a label, an LCD line) is escaped first, so it is safe:
 
 ```jsx
 import { useMemo } from 'react';
@@ -124,17 +124,17 @@ On a plain page:
 
 #### Put a part in a document
 
-Markdown, a wiki or a slide takes the files as they are, and design tools such as Figma and Inkscape open them as vector drawings:
+Markdown, wikis and slides take the files as they are, and Figma and Inkscape open them as vector drawings:
 
 ```markdown
 ![A lit green LED](https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/images/led-5-mm--green--on.svg)
 ```
 
-Markdown shows a picture at its true size; where the page takes HTML, an `<img>` with a `width` shows it larger.
+Markdown shows a picture at true size. Where HTML is allowed, an `<img>` with a `width` shows it larger.
 
 #### Show a state by swapping pictures
 
-Each state is its own file, so a page can show one without any of the kit's code. Click the LED to light it:
+Each state is its own file, so a page can switch states without any of the kit's code. Click the LED to light it:
 
 ```html
 <img id="led" src="https://cdn.jsdelivr.net/gh/deepcircuits/deepcircuits-parts-kit@main/images/led-5-mm.svg" width="62" alt="A red LED">
@@ -152,7 +152,7 @@ Each state is its own file, so a page can show one without any of the kit's code
 
 #### Read a part's pins in any language
 
-`manifest.json` holds every part's size and the position of each pin, for drawing wires or labels over a picture. In Python:
+`manifest.json` has every part's size and pin positions, for drawing wires or labels over a picture. In Python:
 
 ```python
 import json
@@ -168,7 +168,7 @@ for pin in uno['pins'][:3]:
 print([image['file'] for image in uno['images']])  # ['uno-class-board.svg', 'uno-class-board--indicators-lit.svg']
 ```
 
-The positions are from the part's top left. For a picture shown at another size, multiply them by the width it is shown at over the part's `width`.
+Positions are measured from the part's top-left corner. If you show a picture at another size, multiply them by the shown width divided by the part's `width`.
 
 ### With the element
 
@@ -189,7 +189,7 @@ Hold the button down, or focus it and hold Space. Each press and release fires `
 
 #### Dim an LED with a knob
 
-Drag round the knob, or focus it and use the arrow keys:
+Drag the knob around, or focus it and use the arrow keys:
 
 ```html
 <parts-kit-part id="knob" type="potentiometer" scale="2"></parts-kit-part>
@@ -204,7 +204,7 @@ Drag round the knob, or focus it and use the arrow keys:
 
 #### Type on a keypad
 
-Click the keys, or focus the keypad and type. `press` names the key:
+Click the keys, or focus the keypad and type. The `press` event names the key:
 
 ```html
 <parts-kit-part id="keypad" type="keypad-4x4"></parts-kit-part>
@@ -219,7 +219,7 @@ Click the keys, or focus the keypad and type. `press` names the key:
 
 #### Sweep a servo
 
-The element changes only what moved, so it can redraw every frame:
+The element only updates what changed, so it can redraw every frame:
 
 ```html
 <parts-kit-part id="servo" type="servo" scale="2"></parts-kit-part>
@@ -237,7 +237,7 @@ The element changes only what moved, so it can redraw every frame:
 
 #### Show the time on an LCD
 
-Lists are easier to set from code, through the element's `options`:
+Lists are easier to set from code, with the element's `options` property:
 
 ```html
 <parts-kit-part id="lcd" type="character-lcd-16x2"></parts-kit-part>
@@ -253,7 +253,7 @@ Lists are easier to set from code, through the element's `options`:
 
 #### Wire two parts together
 
-Every drawing comes with its pins, so a wire can run from one pin to another. Place each part, then add its offset to its pins:
+Every drawing comes with its pins, so you can draw a wire from one pin to another. Place each part, then add its position to its pins:
 
 ```js
 import { drawPart } from '@deepcircuits/parts-kit';
@@ -275,24 +275,24 @@ bench.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="1
 </svg>`;
 ```
 
-`partPins(id, options)` gives the same pins without drawing, and `rotateArtwork` turns a part with its pins.
+`partPins(id, options)` returns the pins without drawing, and `rotateArtwork` turns a part and its pins.
 
 #### Save parts as files
 
-In Node, or in a build step:
+In Node or a build step:
 
 ```js
 import { writeFileSync } from 'node:fs';
 import { drawPart } from '@deepcircuits/parts-kit';
 
 const chip = drawPart('ne555-timer');
-// On its own, a file has no page colour to take: give the print that faces the canvas (the pin names) an ink.
+// A file has no page colour to inherit, so give the pin names an ink colour.
 writeFileSync('ne555.svg', chip.svg.replace('<svg ', '<svg color="#020817" '));
 ```
 
 ## The catalog
 
-101 parts in ten families. The [gallery](https://deepcircuits.github.io/deepcircuits-parts-kit/) draws every one of them, and every generator's card.
+101 parts in ten families. The [gallery](https://deepcircuits.github.io/deepcircuits-parts-kit/) shows every part and every generator's card.
 
 | Family | Parts |
 | --- | --- |
@@ -307,7 +307,7 @@ writeFileSync('ne555.svg', chip.svg.replace('<svg ', '<svg color="#020817" '));
 | Breadboards (3) | Mini, half and full, in nine colours |
 | Symbols (13) | Eight logic gates, multiplexer, two D flip-flops, clock source, supply |
 
-`CATALOG` lists them for a part picker. Each entry has an `id`, a `name`, a `family`, the generator `fn` and the `preset` options that make the part, the `options` a caller may set, which of those are `state`, and the `aliases` people search for it by.
+`CATALOG` lists every part, for a part picker. Each entry has an `id`, a `name`, a `family`, its generator `fn`, the `preset` options that make the part, the `options` you can set, which of those are `state`, and `aliases` to search by.
 
 ```js
 import { CATALOG, drawPart, searchParts } from '@deepcircuits/parts-kit';
@@ -320,24 +320,36 @@ searchParts('hcsr04'); // [{ id: 'ultrasonic-ranger', name: 'Ultrasonic ranger',
 
 ### Options
 
-Each entry's `options` describe what the part takes, as data:
+Each entry's `options` describe what the part takes:
 
 ```js
 CATALOG.find(p => p.id === 'servo').options;
 // { angle: { type: 'number', label: 'Angle', min: -90, max: 90, step: 1, unit: '°', default: 0, state: true } }
 ```
 
-A host can build its controls from them: the `type` picks the control (`boolean`, `number`, `level`, `enum`, `color`, `text`, `frame`, `list`, `object` and a few more), `min`, `max`, `step` and `choices` fill it in, `when` says which other values an option needs before it does anything (`optionApplies(spec, values)` answers that), and `examples` offer values a control cannot build from the type alone, such as a picture or a glyph. `checkOptions(id, options)` lists what is wrong with a call without drawing it. The types in `project/components/catalog.d.ts` are generated from the same data: `PartId`, `PartOptions<'servo'>` and `PartCall`.
+A host can build its controls from them:
+
+- `type` picks the control: `boolean`, `number`, `level`, `enum`, `color`, `text`, `frame`, `list`, `object` and a few more.
+- `min`, `max`, `step` and `choices` set it up.
+- `when` says which other values an option needs before it has any effect. `optionApplies(spec, values)` checks it.
+- `examples` give values a control can't build from the type alone, such as a picture or a glyph.
+
+`checkOptions(id, options)` lists what is wrong with a call without drawing it. The types in `project/components/catalog.d.ts` (`PartId`, `PartOptions<'servo'>` and `PartCall`) are generated from the same data.
 
 ### Ids and pin names
 
-Ids do not change once published: a stored id keeps drawing the same part. An id is its name in lower case with a hyphen for every run of other characters (`Character LCD, 16×2` is `character-lcd-16x2`). An id that has been renamed keeps working, and `RENAMED_IDS` says what it is now.
+A published id always draws the same part. An id is the part's name in lower case, with a hyphen for each run of other characters (`Character LCD, 16×2` is `character-lcd-16x2`). Renamed ids still work, and `RENAMED_IDS` maps them to their new names.
 
-Pin names come from the part's data sheet or its silk print (`A` and `K` on an LED, `VSS` to `K` on a character LCD). A name that repeats on a part is bare once and `.2`, `.3` after (`GND`, `GND.2`); the silk prints it without the suffix, as the real board does.
+Pin names come from the part's data sheet or the printing on the board (`A` and `K` on an LED, `VSS` to `K` on a character LCD). When a name repeats on a part, the first is bare and the rest get `.2`, `.3` and so on (`GND`, `GND.2`). The printing on the drawing leaves the suffix off, as on the real board.
 
 ### Templates
 
-`@deepcircuits/parts-kit/templates` has the templates the catalog is built from, for parts of your own: `devBoardTemplate` (a board with your pin names), `moduleTemplate` and `sensorModuleTemplate` (a breakout with your chip or element), `chipTemplate` (a DIP, SOIC or TSSOP with any even number of pins) and the rest.
+`@deepcircuits/parts-kit/templates` has the templates the catalog is built from, for making parts of your own:
+
+- `devBoardTemplate`: a board with your pin names.
+- `moduleTemplate` and `sensorModuleTemplate`: a breakout board with your chip or sensor.
+- `chipTemplate`: a DIP, SOIC or TSSOP chip with any even number of pins.
+- and more.
 
 ```js
 import { chipTemplate } from '@deepcircuits/parts-kit/templates';
@@ -349,39 +361,39 @@ const timer = chipTemplate({ label: 'NE555', pins: ['GND', 'TRIG', 'OUT', 'RESET
 
 ### Artwork
 
-Every generator takes one options object and returns an `Artwork`. All of them are typed in [`src/index.d.ts`](src/index.d.ts).
+Every generator takes an options object and returns an `Artwork`. The types are in [`src/index.d.ts`](src/index.d.ts).
 
 | Field | Meaning |
 | --- | --- |
-| `width`, `height` | The part's box in CSS pixels at 96 dpi. |
-| `svg` | The drawing: presentation attributes only (no `<style>`, no `style=""`), an explicit size, its own `<defs>`, `role="img"` and an `aria-label` that names the part. A part whose state is one short phrase says that too (a lit LED, a pressed button, a servo's angle, the text on a character LCD); a board's lamps and a screen's picture are left to the host. |
-| `pins` | Each pin's `name` and position (`x`, `y`) in the part's box. Every pin is a whole number of pitches from the first. |
+| `width`, `height` | The part's size in CSS pixels at 96 dpi. |
+| `svg` | The drawing. It has an explicit size, its own `<defs>`, and presentation attributes only (no `<style>`, no `style=""`). It has `role="img"` and an `aria-label` that names the part and, for simple states, says the state too (a lit LED, a pressed button, a servo's angle, an LCD's text). Board lamps and screen pictures are left for the host to describe. |
+| `pins` | Each pin's `name`, `x` and `y` within the part. Every pin is a whole number of pitches (0.1 inch) from the first. |
 
-`partPins(id, options)` gives a catalog part's `width`, `height` and `pins` without its SVG. It draws the part once for each set of options and keeps the answer.
+`partPins(id, options)` returns a part's `width`, `height` and `pins` without the SVG. It draws the part once for each set of options and remembers the result.
 
 ### State options
 
-A part's state is an option with the same name on every part that has it. `CATALOG` lists each part's own.
+A state option has the same name on every part that has it. `CATALOG` lists each part's own.
 
 | Option | Meaning | Parts |
 | --- | --- | --- |
-| `on`, `brightness` | A single light, lit, and how bright (0 to 1) | `led`, `pulseSensor` |
-| `indicators` | A board's lamps by name (`power`, `user`, `out`, `status`), each lit or a level from 0 to 1 | boards, sensor and relay modules |
+| `on`, `brightness` | A light is on, and how bright (0 to 1) | `led`, `pulseSensor` |
+| `indicators` | A board's lamps by name (`power`, `user`, `out`, `status`), each on or a level from 0 to 1 | boards, sensor and relay modules |
 | `levels` | Each light's level from 0 to 1, in order | `ledBarGraph`, `sevenSegment` |
 | `colors`, `color`, `r` `g` `b` | Pixel colours | `neopixel`, `ledRing`, `neopixelMatrix`, `ledStrip`, `rgbLed` |
-| `lit` | Which lights are on, as rows or channels | `max7219Matrix`, `logicAnalyzer` |
-| `value` | Characters to show | `sevenSegment`, `tm1637Module` |
-| `lines`, `pixels`, `caption` | A character LCD's text; a screen's frame or a line of text | `characterLcd`, the screen modules |
-| `pressed` | A button or key held | `pushbutton`, `joystick`, `rotaryEncoder`, `keypad`, `irRemote` |
-| `position` | Travel from 0 to 1 | `potentiometer`, `slidePotentiometer` |
-| `contact` | The pin a slide switch's middle pin joins: 1 or 3 | `slideSwitch` |
-| `angle`, `detent`, `x` `y` | Turned in degrees, by detents, or pushed (-1 to 1, positive right and up) | `servo`, `stepper`, `rotaryDialer`, `rotaryEncoder`, `joystick` |
-| `energised` | A relay's coil | `relay` |
-| `live` | Current along the legs (`flow`: `true`, or `'reverse'` for the other way), heat and the probe on a pin | `resistor`, `led`, `buzzer` |
+| `lit` | Which lights are on, by row or channel | `max7219Matrix`, `logicAnalyzer` |
+| `value` | The characters shown | `sevenSegment`, `tm1637Module` |
+| `lines`, `pixels`, `caption` | An LCD's text; a screen's picture or line of text | `characterLcd`, the screen modules |
+| `pressed` | A button or key is held down | `pushbutton`, `joystick`, `rotaryEncoder`, `keypad`, `irRemote` |
+| `position` | How far it has moved, from 0 to 1 | `potentiometer`, `slidePotentiometer` |
+| `contact` | Which pin, 1 or 3, a slide switch's middle pin connects to | `slideSwitch` |
+| `angle`, `detent`, `x` `y` | Turned in degrees or by detents, or pushed (-1 to 1, positive is right and up) | `servo`, `stepper`, `rotaryDialer`, `rotaryEncoder`, `joystick` |
+| `energised` | A relay's coil is energised | `relay` |
+| `live` | Current along the legs (`flow`: `true`, or `'reverse'` for the other way), heat, and a probe on a pin | `resistor`, `led`, `buzzer` |
 
 ### Changing state in place
 
-Redrawing is cheap, but replacing the SVG ends a control's focus and pointer capture. `patchSvg(host, artwork)` from `@deepcircuits/parts-kit/dom` shows a redrawn part by changing only what differs, so the element a user is dragging stays where it is:
+Redrawing is cheap, but replacing the SVG loses focus and pointer capture. `patchSvg(host, artwork)` from `@deepcircuits/parts-kit/dom` changes only what differs, so a control that is being dragged stays where it is:
 
 ```js
 import { drawPart } from '@deepcircuits/parts-kit';
@@ -391,54 +403,54 @@ patchSvg(host, drawPart('potentiometer', { position: 0.3 }));
 findHook(host, 'knob').setAttribute('tabindex', '0'); // kept across later patches
 ```
 
-The moving parts carry `data-hook` attributes (`lens`, `glow`, `knob`, `horn`; select them with `[data-hook="lens"]`, never by id, so two parts on one page never clash) and `data-*` attributes (`data-segment`, `data-pressed`, `data-angle` with its pivot in `data-cx` and `data-cy`). Current along a leg is `data-live="flow"`, which `bundle.css` animates. The brand book's *States and hooks* and *The live layer* list every hook.
+Moving parts have `data-hook` attributes (`lens`, `glow`, `knob`, `horn`). Select them with `[data-hook="lens"]`, not by id, so two parts on one page never clash. State is also written to `data-*` attributes (`data-segment`, `data-pressed`, and `data-angle` with its pivot in `data-cx` and `data-cy`). Current along a leg is `data-live="flow"`, which `bundle.css` animates. The brand book's *States and hooks* and *The live layer* list every hook.
 
 ### The part element
 
-`<parts-kit-part>` draws a catalog part in its shadow root, and redraws it in place with `patchSvg` when an attribute or its `options` change. Importing `@deepcircuits/parts-kit/element` in a page defines it, and so does the classic script.
+`<parts-kit-part>` draws a part in its shadow root. When an attribute or its `options` change, it updates the drawing in place with `patchSvg`. Importing `@deepcircuits/parts-kit/element` defines it, and so does the script from jsDelivr.
 
 | Attribute or property | Meaning |
 | --- | --- |
-| `type` | The part's catalog id. A renamed id works too. |
-| An option, such as `color` or `angle` | The option, written as HTML writes it. `on` or `on=""` is true and `on="false"` is false. A camel-case name can be written in kebab case (`pixel-size`), and an object's field after the object (`live-flow="reverse"`). Lists and objects are JSON (`lines='["Hello", "World"]'`). |
-| `scale` | Shows the part at that many times its true size; 1 by default. CSS sizes it too: a width smaller than the part shrinks it to fit. |
-| `static` | Draws the part without its controls, for a picture that only shows a state. |
-| `options` | Options set from code, over the attributes: the easy way to pass a list or a picture. |
+| `type` | The part's id. Renamed ids work too. |
+| An option, such as `color` or `angle` | The option as an HTML attribute. `on` or `on=""` is true, and `on="false"` is false. A camelCase name can be written in kebab-case (`pixel-size`), and an object's field after the object's name (`live-flow="reverse"`). Lists and objects are JSON (`lines='["Hello", "World"]'`). |
+| `scale` | Shows the part at that many times its true size (1 by default). CSS can size it too: a smaller width shrinks it to fit. |
+| `static` | Draws the part without its controls, as a still picture of a state. |
+| `options` | Options set from code, on top of the attributes. The easy way to pass a list or a picture. |
 | `artwork`, `pins` | The last drawing and its pins, in the drawing's pixels before `scale`. |
 | `hook(name)` | A drawn element by its `data-hook`, such as `lens` or `knob`. |
 | `error` | Why the last drawing failed, or null. The element shows the message where the part would be (style it with `::part(error)`) and logs it. |
 
-The element fires `draw` after each drawing, with the artwork in `event.detail.artwork`. The print that faces the canvas takes the element's `color`. Attributes every HTML element has (`id`, `class`, `style`, `aria-*`, `data-*`) are not options. `definePartElement(name)` defines the element under another tag name, and `optionsFromAttributes(id, attributes)` reads attributes as the element does.
+The element fires `draw` after each drawing, with the artwork in `event.detail.artwork`. Pin names and other print on the canvas take the element's `color`. Standard HTML attributes (`id`, `class`, `style`, `aria-*`, `data-*`) are not options. `definePartElement(name)` defines the element under another tag name, and `optionsFromAttributes(id, attributes)` reads attributes the way the element does.
 
-#### Parts a person operates
+#### Parts you can operate
 
-The input parts work by pointer and, once focused (a click or Tab focuses them), by keyboard:
+The input parts work with the pointer and, once focused by a click or Tab, with the keyboard:
 
 | Part | Pointer | Keyboard | Changes |
 | --- | --- | --- | --- |
-| Pushbutton, 6 mm pushbutton | Hold it down | Space or Enter, held | `pressed` |
+| Pushbutton, 6 mm pushbutton | Hold it down | Hold Space or Enter | `pressed` |
 | Slide switch | Click | Space or Enter flips it; Left and Right pick a side | `contact` |
 | DIP switch | Click a lever | 1 to 8 flip that lever | `values` |
-| Potentiometer | Drag round the knob | The arrows step 1%, Page Up and Page Down 10%; Home and End go to the ends | `position` |
-| Slide potentiometer | Drag along the slot | As the potentiometer | `position` |
-| Rotary encoder | Drag round to turn it a detent at a time; click or hold to press the shaft | The arrows turn it; Space or Enter press | `detent`, `pressed` |
-| Joystick | Drag the stick, which springs back; click or hold to press | The arrows push it (with Shift, a quarter of the way); Space or Enter press | `x`, `y`, `pressed` |
-| Keypad | Hold a key, several at once with several fingers | A key's legend: 0 to 9, A to D, * and # | `pressed` |
+| Potentiometer | Drag the knob around | Arrows step 1%, Page Up and Page Down 10%, Home and End go to the ends | `position` |
+| Slide potentiometer | Drag along the slot | Same as the potentiometer | `position` |
+| Rotary encoder | Drag around to turn it one detent at a time; click or hold to press the shaft | Arrows turn it; Space or Enter press it | `detent`, `pressed` |
+| Joystick | Drag the stick, which springs back; click or hold to press | Arrows push it (a quarter of the way with Shift); Space or Enter press it | `x`, `y`, `pressed` |
+| Keypad | Hold a key, or several keys with several fingers | The key's label: 0 to 9, A to D, * and # | `pressed` |
 | IR remote | Hold a key | 0 to 9; Up, Down, Left and Right (previous, next); Space or Enter (play); + and - (volume) | `pressed` |
 | Rotary dialer | Click a finger hole | 0 to 9 | Nothing: the wheel winds round and runs back |
 
-What a person changes is written to the element's attributes, so `button.hasAttribute('pressed')` reads it and CSS can select it; a part back at rest drops the attribute. Changing an attribute from code redraws the part and fires nothing, as with a form control. The element reports its role and state to assistive technology (a button, a switch, a slider), and `static` turns the controls off.
+What a person changes is written to the element's attributes, so `button.hasAttribute('pressed')` reads it and CSS can select it. When the part is back at rest, the attribute is removed. Setting an attribute from code redraws the part but fires no event, as with a form control. The element tells assistive technology its role and state (button, switch, slider). `static` turns the controls off.
 
 | Event | When | `event.detail` |
 | --- | --- | --- |
-| `input` | A person changed options | The options that changed: `{ pressed: true }`, `{ position: 0.42 }` |
-| `change` | A press, drag or key ended with the part somewhere new | The options that differ from when it began |
-| `press`, `release` | A button or key went down or came up | `{ key }` for a keypad's or remote's key, `{}` for a part with one button |
-| `turn` | The encoder turned a detent | `{ steps, detent }`: `steps` is 1 clockwise, -1 back |
+| `input` | A person changed an option | The options that changed: `{ pressed: true }`, `{ position: 0.42 }` |
+| `change` | A press, drag or key ended with the part in a new state | The options that differ from the start |
+| `press`, `release` | A button or key went down or came up | `{ key }` for a keypad or remote key, `{}` for a part with one button |
+| `turn` | The encoder turned one detent | `{ steps, detent }`: `steps` is 1 clockwise, -1 anticlockwise |
 | `dial` | The dialer's wheel ran back from a digit | `{ digit }` |
 | `draw` | After each drawing | `{ artwork }` |
 
-A host that handles the pointer itself, such as an editor where a press on the part also drags it, can work the parts by the same geometry the element uses, from `@deepcircuits/parts-kit/controls`:
+A host that handles the pointer itself, such as an editor where dragging a part also moves it, can use the same geometry as the element, from `@deepcircuits/parts-kit/controls`:
 
 ```js
 import { knobPosition, detentsTurned, dialGeometry, dialDigitAt, dialTravel } from '@deepcircuits/parts-kit/controls';
@@ -452,19 +464,19 @@ const digit = dialDigitAt(wheel, x, y); // the finger hole under (x, y), or unde
 const travel = dialTravel(wheel, digit); // degrees the wheel winds to the finger stop
 ```
 
-Points are in the drawing's pixels and angles in degrees from +x towards +y, so clockwise on screen is positive.
+Points are in the drawing's pixels. Angles are in degrees from +x towards +y, so clockwise on screen is positive.
 
 ### Colours and themes
 
-Colours come from the design tokens in [`project/tokens.json`](project/tokens.json), with light and dark values. `setTokenMode` chooses how the generators write them:
+Colours come from the design tokens in [`project/tokens.json`](project/tokens.json), with light and dark values. `setTokenMode` sets how the generators write them:
 
 | Mode | Writes |
 | --- | --- |
-| `'values'` (default) | The light values, always, so the page's own custom properties never recolour a part. |
-| `'vars'` | `var(--token, value)` for every colour, so the same SVG follows your theme. `{ prefix: 'kit-' }` namespaces the properties. |
-| `'live'` | The page's `--token` (or `--<prefix>token`) custom properties as it draws, otherwise the light values. It reads the page's styles at most every 50 ms. |
+| `'values'` (default) | The light values, so the page's own styles never recolour a part. |
+| `'vars'` | `var(--token, value)` for every colour, so the same SVG follows your theme. `{ prefix: 'kit-' }` adds a prefix to the property names. |
+| `'live'` | The page's `--token` (or `--<prefix>token`) values at the moment it draws, or else the light values. It reads the page's styles at most every 50 ms. |
 
-For `'vars'`, load the stylesheet that defines the properties: [`tokens.css`](tokens.css) (light on `:root`, dark on `[data-theme="dark"]`), or one with your own prefix and selectors:
+For `'vars'`, load a stylesheet that defines the properties. Use [`tokens.css`](tokens.css) (light on `:root`, dark on `[data-theme="dark"]`), or make one with your own prefix and selectors:
 
 ```bash
 npx parts-kit-tokens --prefix kit- --dark '.dark' --out src/kit-tokens.css
@@ -479,20 +491,20 @@ setTokenMode('vars', { prefix: 'kit-' });
 const css = tokensCss(tokens, { prefix: 'kit-', dark: '.dark' }); // the same stylesheet, built at run time
 ```
 
-A part's body is painted in fixed materials and looks the same on any canvas, as a real part does on any bench. Only what stands on the canvas (a chip's pin names, a logic symbol) follows the theme, in `currentColor`.
+A part's body has fixed colours and looks the same on any background, as a real part does on any bench. Only print on the canvas itself (a chip's pin names, a logic symbol) follows the theme, through `currentColor`.
 
 ### Helpers
 
 | Export | Use |
 | --- | --- |
-| `rotateArtwork(artwork, quarterTurns)` | The drawing turned, its pins with it: `1` a quarter clockwise, `-1` anticlockwise, `2` a half. |
-| `flipArtwork(artwork, axis)` | The drawing mirrored, `'horizontal'` or `'vertical'`, its pins with it. |
-| `toDataUrl(artwork, { ink })` | The drawing as a `data:` URL for an `<img>`, a canvas or a CSS background. |
-| `scopeIds(artwork, prefix)` | The drawing with its gradient ids prefixed, for a host that needs every id on the page unique. |
-| `PITCH` | 9.6: 0.1 inch in CSS pixels. |
+| `rotateArtwork(artwork, quarterTurns)` | Turns the drawing and its pins: `1` a quarter turn clockwise, `-1` anticlockwise, `2` a half turn. |
+| `flipArtwork(artwork, axis)` | Mirrors the drawing and its pins, `'horizontal'` or `'vertical'`. |
+| `toDataUrl(artwork, { ink })` | The drawing as a `data:` URL, for an `<img>`, a canvas or a CSS background. |
+| `scopeIds(artwork, prefix)` | Prefixes the drawing's gradient ids, for a page that needs every id to be unique. |
+| `PITCH` | 9.6, which is 0.1 inch in CSS pixels. |
 | `check(artwork)`, from `/check` | The overlap check: labels touching labels or parts, parts touching parts, anything outside the box. Empty when the drawing is clean. |
 | `pinsOnPitch(pins)`, from `/check` | True when every pin is a whole number of pitches from the first. |
-| `mount(target, artwork, options)`, from `/mount` | Draws an artwork into a page over the pitch grid, for previews (`bundle.css` styles it). |
+| `mount(target, artwork, options)`, from `/mount` | Draws an artwork on a page over the pitch grid, for previews (`bundle.css` styles it). |
 | `formatOhms`, `resistorBands`, from `/primitives` | A resistance as text, and its colour bands. |
 
 ```js
@@ -504,7 +516,7 @@ img.src = toDataUrl(drawPart('led-5-mm', { on: true }));
 
 ### Loading less
 
-The package marks its modules free of side effects, so a bundler keeps only what you import: one generator such as `led` comes to about 12 KB minified. `drawPart` can draw any part, so it brings all of them (about 210 KB). `loadPart(id)` loads only the part's family, the first time it is drawn:
+The package is marked free of side effects, so a bundler keeps only what you import. One generator, such as `led`, is about 12 KB minified. `drawPart` can draw any part, so it brings in all of them (about 210 KB). `loadPart(id)` loads only that part's family, the first time it is drawn:
 
 ```js
 import { loadPart } from '@deepcircuits/parts-kit/catalog';
@@ -513,25 +525,25 @@ const drawServo = await loadPart('servo');
 host.innerHTML = drawServo({ angle: 45 }).svg;
 ```
 
-`@deepcircuits/parts-kit/catalog` holds the catalog and its checks without any drawing code.
+`@deepcircuits/parts-kit/catalog` has the catalog and its checks without any drawing code.
 
 ### Package entry points
 
 | Import | What it is |
 | --- | --- |
-| `@deepcircuits/parts-kit` | Every part's generator, `drawPart`, the catalog, the helpers and the colour settings. |
+| `@deepcircuits/parts-kit` | Every generator, `drawPart`, the catalog, the helpers and the colour settings. |
 | `@deepcircuits/parts-kit/boards`, `/displays`, `/sensors`, `/inputs`, `/outputs`, `/modules`, `/chips`, `/passives`, `/breadboards`, `/symbols` | One family's generators. |
 | `@deepcircuits/parts-kit/catalog` | `CATALOG`, `FAMILIES`, `RENAMED_IDS`, `findPart`, `searchParts`, `checkOptions`, `optionApplies` and `loadPart`, without drawing code. |
 | `@deepcircuits/parts-kit/templates` | The templates the parts are built from, for parts of your own. |
-| `@deepcircuits/parts-kit/primitives` | The drawing primitives (pins, headers, boards, lenses, the live layer) for composing a part. |
-| `@deepcircuits/parts-kit/dom` | `patchSvg`, `syncSvg` and `findHook`, for changing a drawn part in place in a page. |
-| `@deepcircuits/parts-kit/element` | Defines `<parts-kit-part>` in a page; `definePartElement` and `optionsFromAttributes`. |
-| `@deepcircuits/parts-kit/controls` | `knobPosition`, `detentsTurned`, `angleBetween`, `dialGeometry`, `dialDigitAt` and `dialTravel`: the geometry the input parts are operated by. |
+| `@deepcircuits/parts-kit/primitives` | The drawing building blocks (pins, headers, boards, lenses, the live layer) for making a part. |
+| `@deepcircuits/parts-kit/dom` | `patchSvg`, `syncSvg` and `findHook`, for updating a drawn part on a page. |
+| `@deepcircuits/parts-kit/element` | Defines `<parts-kit-part>` on a page; also `definePartElement` and `optionsFromAttributes`. |
+| `@deepcircuits/parts-kit/controls` | `knobPosition`, `detentsTurned`, `angleBetween`, `dialGeometry`, `dialDigitAt` and `dialTravel`: the geometry for operating the input parts. |
 | `@deepcircuits/parts-kit/check` | `check` and `pinsOnPitch`. |
 | `@deepcircuits/parts-kit/mount` | `mount`, the preview helper. |
-| `@deepcircuits/parts-kit/bundle.js` | The same kit as one classic script that defines `window.PartsKit` and, in a page, `<parts-kit-part>`. |
+| `@deepcircuits/parts-kit/bundle.js` | The whole kit as one classic script. It defines `window.PartsKit` and, on a page, `<parts-kit-part>`. |
 | `@deepcircuits/parts-kit/bundle.css` | Styles for `mount` previews and the `data-live` animation. |
-| `@deepcircuits/parts-kit/tokens.css` | The tokens as custom properties, light and dark. |
+| `@deepcircuits/parts-kit/tokens.css` | The tokens as CSS custom properties, light and dark. |
 | `@deepcircuits/parts-kit/tokens.json` | The tokens themselves. |
 | `@deepcircuits/parts-kit/tokens-css` | `tokensCss(tokens, options)`, which writes a tokens stylesheet. |
 
@@ -539,15 +551,15 @@ The package is ES modules only, for current browsers and Node.
 
 ### Renamed names
 
-Names that have changed keep working and are marked `@deprecated` in the types: the templates' old names at the root (`devBoard` is `devBoardTemplate` in `/templates`), the primitives and checks at the root (now in `/primitives`, `/check` and `/mount`), `ultrasonicSensor` (`ultrasonicRanger`) and `mfrc522Reader` (`rfidModule`), the old catalog ids (`RENAMED_IDS`), a resistor's `value` (`ohms`) and a slide switch's `position` (`contact`). The [changelog](CHANGELOG.md) lists every one.
+Old names still work and are marked `@deprecated` in the types. The [changelog](CHANGELOG.md) lists each one.
 
 ## The brand book
 
-[`project/README.md`](project/README.md) is the rule book every part follows: the grid, the materials and their tokens, the bench light, how state is shown, the measurements each drawing was taken from, and the checks a part must pass to ship. Each generator has a card in [`project/components/`](project/components) that says what it draws and what it takes.
+[`project/README.md`](project/README.md) has the rules every part follows: the grid, the materials and their colours, the lighting, how state is shown, the measurements behind each drawing, and the checks a part must pass. Each generator has a card in [`project/components/`](project/components) that says what it draws and what it takes.
 
 ## Contributing
 
-Corrections are welcome, above all a photograph of a real part that a drawing gets wrong. [CONTRIBUTING.md](CONTRIBUTING.md) explains how the kit is laid out, how to change a part and how to run the checks. Changes are listed in the [changelog](CHANGELOG.md).
+Corrections are welcome, especially a photo of a real part that a drawing gets wrong. [CONTRIBUTING.md](CONTRIBUTING.md) explains how the kit is laid out, how to change a part and how to run the checks. The [changelog](CHANGELOG.md) lists every change.
 
 ## Licence
 
