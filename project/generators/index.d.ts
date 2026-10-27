@@ -137,8 +137,8 @@ export interface StepperProps { frameSize?: number; biaxial?: boolean; angle?: n
 export interface DcMotorProps { variant?: 'hobby-130' | 'tt-gear'; angle?: number; pins?: readonly string[] }
 /** The mini submersible pump: `running` draws the water leaving its outlet (`flow`); pins to rename (M+, M-). */
 export interface WaterPumpProps { running?: boolean; pins?: readonly string[] }
-/** The push-pull solenoid: `position` from 0 (released, the spring holding the plunger out) to 1 (pulled in) moves the `plunger` hook (data-position); pins to rename (1, 2). */
-export interface SolenoidProps { position?: number; pins?: readonly string[] }
+/** The push-pull solenoid: `position` from 0 (released, the spring holding the plunger out) to 1 (pulled in) moves the `plunger` hook (data-position); `volts` is the coil rating printed on it (12 by default); pins to rename (1, 2). */
+export interface SolenoidProps { position?: number; volts?: number; pins?: readonly string[] }
 /** The symbols drawn in currentColor beside LogicSymbol. */
 export interface MuxSymbolProps { pins?: readonly string[] }
 export interface FlipFlopSymbolProps { set?: boolean; reset?: boolean; /** S and R after Q and NOTQ in the pin list, as the catalog's plain D type now orders them. */ srLast?: boolean }

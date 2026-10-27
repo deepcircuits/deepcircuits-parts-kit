@@ -612,8 +612,9 @@ export function waterPump(props) {
  * 27 x 14 mm frame around the taped coil and the 10 mm stroke plunger out
  * of its right end with the return spring and the end collar. `position`
  * runs from 0, the spring holding it out, to 1, pulled in (plunger,
- * data-position). Two leads from the coil to a header of legs at the bottom
- * edge (1, 2).
+ * data-position). `volts` is the coil rating printed on the tape (12 by
+ * default). Two leads from the coil to a header of legs at the bottom edge
+ * (1, 2).
  */
 export function solenoid(props) {
   props = props || {};
@@ -621,6 +622,7 @@ export function solenoid(props) {
   const p = T.pitch;
   const mm = p / 2.54;
   const position = Math.max(0, Math.min(1, Number(props.position) || 0));
+  const volts = Number(props.volts) > 0 ? Number(props.volts) : 12;
   const names = props.pins || ['1', '2'];
   const fl = 27 * mm;
   const fh = 14 * mm;
@@ -668,7 +670,7 @@ export function solenoid(props) {
     rx: 0.6,
     'fill-opacity': T['opacity-light'] * 0.6,
   });
-  s += text(fx + fl / 2, cy + 1.2 * mm, '12V', PIN_LABEL, T['plastic-black'], { 'font-weight': 600 });
+  s += text(fx + fl / 2, cy + 1.2 * mm, `${String(volts)}V`, PIN_LABEL, T['plastic-black'], { 'font-weight': 600 });
   // The return spring between the frame and the collar, closer wound as the plunger goes in.
   const sx0 = fe + 0.4 * mm;
   const sx1 = fe + out - 1.8 * mm;

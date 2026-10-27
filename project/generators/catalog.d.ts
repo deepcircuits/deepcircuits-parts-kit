@@ -448,6 +448,7 @@ export interface PartOptionsById {
   };
   /** Solenoid: solenoid. */
   "solenoid": {
+    /** Coil rating. 1 to 48 V. Default 12. */ volts?: number;
     /** Plunger travel. 0 to 1. Default 0. */ position?: number;
   };
   /** Relay module: relayModule. */

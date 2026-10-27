@@ -10270,6 +10270,7 @@ var PartsKit = (() => {
     const p = T.pitch;
     const mm = p / 2.54;
     const position = Math.max(0, Math.min(1, Number(props.position) || 0));
+    const volts = Number(props.volts) > 0 ? Number(props.volts) : 12;
     const names = props.pins || ["1", "2"];
     const fl = 27 * mm;
     const fh = 14 * mm;
@@ -10315,7 +10316,7 @@ var PartsKit = (() => {
       rx: 0.6,
       "fill-opacity": T["opacity-light"] * 0.6
     });
-    s += text(fx + fl / 2, cy + 1.2 * mm, "12V", PIN_LABEL, T["plastic-black"], { "font-weight": 600 });
+    s += text(fx + fl / 2, cy + 1.2 * mm, `${String(volts)}V`, PIN_LABEL, T["plastic-black"], { "font-weight": 600 });
     const sx0 = fe + 0.4 * mm;
     const sx1 = fe + out - 1.8 * mm;
     const turns = 6;
@@ -11496,7 +11497,10 @@ var PartsKit = (() => {
     relay: { energised: state(bool("Energised")) },
     dcMotor: { angle: state({ type: "number", label: "Angle", min: 0, max: 360, step: 1, unit: "°", default: 0 }) },
     waterPump: { running: state(bool("Running")) },
-    solenoid: { position: state(unit("Plunger travel", { step: 0.05, default: 0 })) },
+    solenoid: {
+      volts: { type: "number", label: "Coil rating", min: 1, max: 48, step: 1, unit: "V", default: 12 },
+      position: state(unit("Plunger travel", { step: 0.05, default: 0 }))
+    },
     // Modules.
     relayModule: { indicators: lamps2({ power: "Power LED", status: "Status LED" }, ["power"]), finish: finish2("red") },
     multiRelayModule: {
