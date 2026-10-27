@@ -373,6 +373,7 @@ export interface PartOptionsById {
   };
   /** Piezo buzzer: buzzer. */
   "piezo-buzzer": {
+    /** Sealed (active buzzer). Default false. */ sealed?: boolean;
     /** Live layer. */ live?: { /** Current. Default false. */ flow?: false | true | "reverse"; /** Probe on pin. Default "". */ probe?: "" | "+" | "-" };
   };
   /** Active buzzer: buzzer {"sealed":true}. */

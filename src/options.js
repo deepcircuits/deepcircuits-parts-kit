@@ -348,7 +348,10 @@ export const OPTIONS = {
       default: 'square',
     },
   },
-  buzzer: { live: state({ type: 'object', label: 'Live layer', fields: { flow, probe: probe(['+', '-']) } }) },
+  buzzer: {
+    sealed: bool('Sealed (active buzzer)'),
+    live: state({ type: 'object', label: 'Live layer', fields: { flow, probe: probe(['+', '-']) } }),
+  },
   servo: { angle: state({ type: 'number', label: 'Angle', min: -90, max: 90, step: 1, unit: '°', default: 0 }) },
   stepper: {
     angle: state({ type: 'number', label: 'Angle', min: 0, max: 360, step: 1.8, unit: '°', default: 0 }),

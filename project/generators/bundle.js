@@ -10852,7 +10852,10 @@ var PartsKit = (() => {
         default: "square"
       }
     },
-    buzzer: { live: state({ type: "object", label: "Live layer", fields: { flow: flow2, probe: probe2(["+", "-"]) } }) },
+    buzzer: {
+      sealed: bool("Sealed (active buzzer)"),
+      live: state({ type: "object", label: "Live layer", fields: { flow: flow2, probe: probe2(["+", "-"]) } })
+    },
     servo: { angle: state({ type: "number", label: "Angle", min: -90, max: 90, step: 1, unit: "°", default: 0 }) },
     stepper: {
       angle: state({ type: "number", label: "Angle", min: 0, max: 360, step: 1.8, unit: "°", default: 0 }),
