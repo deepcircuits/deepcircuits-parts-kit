@@ -8,7 +8,7 @@ The first public release.
 
 ### Parts
 
-- 111 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
+- 121 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
 - The templates behind them (`devBoardTemplate`, `moduleTemplate`, `sensorModuleTemplate`, `chipTemplate` and others, in `@deepcircuits/parts-kit/templates`) for parts of your own.
 - The Blue Pill, the ESP32-DevKitC V4 and the character LCDs checked against photographs and data sheets: the Blue Pill's rows and parts as the real board has them, the DevKitC V4 at its real length with the module over the rows, the LCD's mount holes and header where the module has them.
 - Every catalog part checked against photographs and data sheets for its pin order, which pins face each other, where its parts sit, its size, its holes and its pin-1 offset. Corrected:
@@ -34,6 +34,8 @@ The first public release.
 - `transistor`, a transistor standing in its package in the chip family: TO-92 (`transistor-to-92`, PN2222A by default) with the TO-92 body the DS18B20 uses, or TO-220 (`transistor-to-220`, IRLZ44N by default) with its tab, hole and shouldered legs. Both draw in one 4 × 8 pitch box with the legs at the same three places, so a host can change the package without moving a pin; `label` prints the part number, `pins` names the legs from the left, and `live.heat` warms the body.
 - `batteryHolder`, a battery holder from above with its red and black leads (`battery-holder`): 2, 4 or 6 AA cells, two 18650 cells or a CR2032 coin cell (`cells`), the leads ending at the same two pins whatever the holder. `transistor` also draws the L7805CV regulator in TO-220 (`voltage-regulator-to-220`, legs IN, GND, OUT).
 - `ams1117Module`, the AMS1117-3.3 regulator module (`regulator-module-3-3-v`: VIN, GND, VOUT), and `mb102Module`, the MB102 breadboard power module (`breadboard-power-module`): its rail pins sit on a breadboard's rails, its output header over the centre channel, and `topRail`, `bottomRail` and `power` place its jumpers and switch.
+- The comparator boards take four more elements: `ir-pair` (the FC-51's infrared LED and photodiode), `tcrt5000` (the line tracker's reflective sensor), and `fork-probe` and `rain-plate`, the soil and rain probes drawn beside the board with their two jumper wires to its + and - pins. They make `soilMoistureSensor` (`soil-moisture-sensor`), `rainSensor` (`rain-sensor`), `obstacleSensor` (`ir-obstacle-sensor`: OUT, GND, VCC) and `lineTracker` (`line-tracking-sensor`).
+- `waterLevelSensor` (`water-level-sensor`: S, +, -), `capacitiveSoilSensor` (`capacitive-soil-moisture-sensor`: GND, VCC, AOUT), `voltageSensorModule` (`voltage-divider-sensor`: the VCC and GND terminal, the S, +, - header) and `acs712Module` (`acs712-current-sensor`: the IP+ and IP- terminal, the VCC, OUT, GND header; `range` prints the 5 A, 20 A or 30 A grade on the chip). `lm35Sensor` and `tmp36Sensor` draw the LM35 and TMP36 in TO-92 (+VS, VOUT, GND). `gasSensor` takes `label` for the MQ-3, MQ-7 and MQ-135 prints.
 
 ### API
 

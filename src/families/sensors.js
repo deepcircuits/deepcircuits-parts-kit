@@ -1,4 +1,4 @@
-/** Sensors: distance, temperature and humidity, pressure, light, flame, sound, tilt, gas, IR, motion, acceleration and pulse. Import a family on its own to load only its parts. */
+/** Sensors: distance, temperature and humidity, pressure, light, flame, sound, tilt, gas, IR, motion, acceleration, pulse, soil, water, rain, obstacle, line, voltage and current. Import a family on its own to load only its parts. */
 export {
   ultrasonicRanger,
   dht22Sensor,
@@ -18,4 +18,14 @@ export {
   bme280Module,
   vl53l0xModule,
   max30102Module,
+  lm35Sensor,
+  tmp36Sensor,
+  soilMoistureSensor,
+  capacitiveSoilSensor,
+  waterLevelSensor,
+  rainSensor,
+  obstacleSensor,
+  lineTracker,
+  voltageSensorModule,
+  acs712Module,
 } from '../sensors.js';

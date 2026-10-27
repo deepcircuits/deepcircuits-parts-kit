@@ -209,7 +209,15 @@ export const OPTIONS = {
   flameSensor: SENSOR_BOARD('blue'),
   soundSensor: { ...SENSOR_BOARD('red'), small: bool('Small board, 6 mm capsule') },
   tiltSwitch: SENSOR_BOARD('blue'),
-  gasSensor: SENSOR_BOARD('blue'),
+  gasSensor: {
+    ...SENSOR_BOARD('blue'),
+    label: {
+      type: 'enum',
+      label: 'Sensor',
+      choices: [choice('MQ-2', 'MQ-2'), choice('MQ-3', 'MQ-3'), choice('MQ-7', 'MQ-7'), choice('MQ-135', 'MQ-135')],
+      default: 'MQ-2',
+    },
+  },
   irReceiver: { finish: finish('black') },
   ntcSensor: { finish: finish('black') },
   pirModule: { finish: finish('green') },
@@ -227,6 +235,25 @@ export const OPTIONS = {
   },
   vl53l0xModule: { finish: finish('purple') },
   max30102Module: { finish: finish('purple') },
+  soilMoistureSensor: SENSOR_BOARD('blue'),
+  rainSensor: SENSOR_BOARD('blue'),
+  obstacleSensor: SENSOR_BOARD('blue'),
+  lineTracker: SENSOR_BOARD('blue'),
+  lm35Sensor: {},
+  tmp36Sensor: {},
+  waterLevelSensor: { indicators: lamps({ power: 'Power LED' }), finish: finish('red') },
+  capacitiveSoilSensor: { finish: finish('black') },
+  voltageSensorModule: { finish: finish('red') },
+  acs712Module: {
+    range: {
+      type: 'enum',
+      label: 'Range',
+      choices: [choice('5A', '5 A'), choice('20A', '20 A'), choice('30A', '30 A')],
+      default: '5A',
+    },
+    indicators: lamps({ power: 'Power LED' }),
+    finish: finish('red'),
+  },
   // Inputs.
   pushbutton: {
     pressed: state(bool('Pressed')),

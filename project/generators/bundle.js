@@ -6882,6 +6882,7 @@ var PartsKit = (() => {
     const p = T.pitch;
     const mm = p / 2.54;
     const element = props.element || "ldr";
+    const probe3 = element === "fork-probe" || element === "rain-plate";
     const layout = element === "cylinder" ? "tilt" : element === "mic" ? "ky037" : "fc";
     const fin = props.finish || (layout === "ky037" ? "red" : "blue");
     const f = finish(T, fin);
@@ -6897,7 +6898,7 @@ var PartsKit = (() => {
     const micLen = (micMm > 8 ? 6.7 : 4.5) * mm;
     const ext = 6 * mm;
     const w = bw;
-    const by = (layout === "tilt" ? 11.5 : layout === "fc" ? 6.5 : micLen / mm + 1) * mm;
+    const by = (probe3 ? 3.5 : layout === "tilt" ? 11.5 : layout === "fc" ? 6.5 : micLen / mm + 1) * mm;
     const h = by + bh + ext;
     const cx = w / 2;
     let s = "";
@@ -7112,11 +7113,53 @@ var PartsKit = (() => {
         rect(cx - micR, mtop, 2 * micR, micLen, T.metal, Object.assign({ rx: 0.8 }, edge(T, T["metal-edge"]))) + rect(cx - micR + 0.4, mtop + 0.2, 2 * micR - 0.8, 0.9 * mm, T.cavity, { rx: 0.5 }) + rect(cx - micR, mtop + 1.1 * mm, 2 * micR, 0.5 * mm, T["metal-edge"], { "fill-opacity": 0.6 })
       );
       s += rect(cx - micR, mtop, 2 * micR, micLen, sheen("metal"), { rx: 0.8, "fill-opacity": 0.7 });
+    } else if (element === "ir-pair") {
+      const lr = 2.5 * mm;
+      const tip = by - 6 * mm;
+      const base = by + 1 * mm;
+      let pair = "";
+      [
+        [-2.9, T["lens-white"], T["plastic-white-edge"]],
+        [2.9, T["plastic-black"], T["plastic-black-edge"]]
+      ].forEach(([k, fill, rim]) => {
+        [E(k - 1.27), E(k + 1.27)].forEach((x) => {
+          s += wire(x, base - 0.6, x, padY);
+        });
+        const dome = `M${E(k - 2.5)} ${r2(base)}V${r2(tip + lr)}A${r2(lr)} ${r2(lr)} 0 0 1 ${E(k + 2.5)} ${r2(tip + lr)}V${r2(base)}Z`;
+        pair += path(dome, fill, edge(T, rim, T["stroke-detail"])) + path(dome, sheen("dome"), { "fill-opacity": 0.6 });
+      });
+      s += tag("element", pair);
+    } else if (element === "tcrt5000") {
+      const tw = 10.2 * mm;
+      const th = 5.8 * mm;
+      const ty0 = by - 5.6 * mm;
+      [-3.81, -1.27, 1.27, 3.81].forEach((k) => {
+        s += wire(E(k), ty0 + th - 0.6, E(k), padY);
+      });
+      s += tag(
+        "element",
+        rect(
+          cx - tw / 2,
+          ty0,
+          tw,
+          th,
+          T["plastic-black"],
+          Object.assign({ rx: 0.8 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
+        ) + bevel(T, cx - tw / 2, ty0, tw, th, 1, 0.8) + circle(E(-2.5), ty0 + th / 2, 1.6 * mm, T["lens-blue"], edge(T, T["plastic-black-edge"], T["stroke-fine"])) + circle(E(2.5), ty0 + th / 2, 1.6 * mm, T.cavity, edge(T, T["plastic-black-edge"], T["stroke-fine"])) + circle(E(-2.5), ty0 + th / 2, 1.6 * mm, sheen("lens"), { "fill-opacity": 0.5 })
+      );
     }
-    [E(-1.27), E(1.27)].forEach((x) => {
-      s += tag("pad", circle(x, r2(padY), 2.2, T.pad) + circle(x, r2(padY), 0.9, T.hole));
-    });
-    s += line(E(-4.4), r2(padY), E(-3.2), r2(padY), f.silk, 0.8) + line(E(-3.8), r2(padY - 0.6 * mm), E(-3.8), r2(padY + 0.6 * mm), f.silk, 0.8) + line(E(3.2), r2(padY), E(4.4), r2(padY), f.silk, 0.8);
+    const link = probe3 ? edgeHeader(T, { names: ["+", "-"], side: "top", at: by, from: E(-1.27), ext: 3 * mm }) : null;
+    if (link) s += link.svg;
+    else if (element === "ir-pair" || element === "tcrt5000")
+      (element === "ir-pair" ? [-4.17, -1.63, 1.63, 4.17] : [-3.81, -1.27, 1.27, 3.81]).forEach((k) => {
+        s += tag("pad", circle(E(k), r2(padY), 2.2, T.pad) + circle(E(k), r2(padY), 0.9, T.hole));
+      });
+    else {
+      [E(-1.27), E(1.27)].forEach((x) => {
+        s += tag("pad", circle(x, r2(padY), 2.2, T.pad) + circle(x, r2(padY), 0.9, T.hole));
+      });
+      s += line(E(-4.4), r2(padY), E(-3.2), r2(padY), f.silk, 0.8) + line(E(-3.8), r2(padY - 0.6 * mm), E(-3.8), r2(padY + 0.6 * mm), f.silk, 0.8) + line(E(3.2), r2(padY), E(4.4), r2(padY), f.silk, 0.8);
+    }
     L.passives.forEach((q) => {
       s += passive(q[0], q[1], q[2], q[3]);
     });
@@ -7205,8 +7248,98 @@ var PartsKit = (() => {
       L.dout[2]
     );
     s += edgePins.svg + hdr.svg;
-    const what = element === "flame" ? "Flame sensor" : element === "ldr" ? "Light sensor (LDR)" : element === "cylinder" ? "Tilt switch" : "Sound sensor";
+    const what = element === "flame" ? "Flame sensor" : element === "ldr" ? "Light sensor (LDR)" : element === "cylinder" ? "Tilt switch" : element === "ir-pair" ? "IR obstacle sensor" : element === "tcrt5000" ? "Line tracking sensor" : element === "fork-probe" ? "Soil moisture sensor" : element === "rain-plate" ? "Rain sensor" : "Sound sensor";
+    if (link)
+      return besideProbe(
+        T,
+        fin,
+        f,
+        element,
+        { w, h, s, pins: edgePins.pins, link: link.pins },
+        props.description || `${what} module`
+      );
     return art(w, h, props.description || `${what} module`, s, edgePins.pins);
+  }
+  function besideProbe(T, fin, f, element, part, label) {
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const plate = element === "rain-plate";
+    const pw = (plate ? 40 : 20) * mm;
+    const ph = (plate ? 54 : 60) * mm;
+    const bx = r2(pw + 4 * mm);
+    const w = bx + part.w;
+    const h = Math.max(ph, part.h);
+    const cx = pw / 2;
+    const M = function(x, y) {
+      return `${r2(x * mm)} ${r2(y * mm)}`;
+    };
+    const plating = { stroke: T.metal, "stroke-width": r2(1.2 * mm), "stroke-linecap": "round", fill: "none" };
+    let s = "";
+    if (plate) {
+      s += board({ width: pw, height: ph, finish: fin, holes: false });
+      s += hole(T, 3.5 * mm, 3.5 * mm, 1.5 * mm) + hole(T, pw - 3.5 * mm, 3.5 * mm, 1.5 * mm);
+      let left = `M${M(3.5, 8)}V${r2(51 * mm)}`;
+      let right = `M${M(36.5, 10.15)}V${r2(48.85 * mm)}`;
+      for (let k = 0; k <= 10; k++) left += `M${M(3.5, 8 + k * 4.3)}H${r2(33.5 * mm)}`;
+      for (let k = 0; k < 10; k++) right += `M${M(36.5, 10.15 + k * 4.3)}H${r2(6.5 * mm)}`;
+      s += tag("element", path(left, "none", plating) + path(right, "none", plating));
+      s += path(`M${M(18.73, 3.6)}L${M(3.5, 7)}`, "none", plating) + path(`M${M(21.27, 3.6)}L${M(36.5, 9)}`, "none", plating);
+    } else {
+      const H = ph / mm;
+      s += tag(
+        "board",
+        path(
+          `M${M(0.5, 0.5)}H${r2(19.5 * mm)}V${r2((H - 5) * mm)}L${M(16.25, H - 0.5)}L${M(13, H - 5)}V${r2(16 * mm)}H${r2(7 * mm)}V${r2((H - 5) * mm)}L${M(3.75, H - 0.5)}L${M(0.5, H - 5)}Z`,
+          f.board,
+          Object.assign({ "stroke-linejoin": "round" }, edge(T, f.edge))
+        )
+      );
+      const prong = function(x0, x1) {
+        const mid = (x0 + x1) / 2;
+        return `M${M(x0, 17)}H${r2(x1 * mm)}V${r2((H - 5.4) * mm)}L${M(mid, H - 1.8)}L${M(x0, H - 5.4)}Z`;
+      };
+      s += tag(
+        "element",
+        path(prong(1.3, 6.2), T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + path(prong(13.8, 18.7), T.metal, edge(T, T["metal-edge"], T["stroke-fine"]))
+      );
+      s += path(`M${M(8.73, 3.6)}L${M(3.75, 16)}M${M(11.27, 3.6)}L${M(16.25, 16)}`, "none", {
+        stroke: T.metal,
+        "stroke-width": r2(0.8 * mm),
+        "stroke-linecap": "round"
+      });
+    }
+    const hy = 1 * mm;
+    const pins = [cx - 1.27 * mm, cx + 1.27 * mm];
+    s += tag(
+      "header",
+      rect(
+        cx - 2.54 * mm,
+        hy,
+        5.08 * mm,
+        2.54 * mm,
+        T["plastic-black"],
+        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
+      ) + pins.map((x) => rect(x - 0.32 * mm, hy + 0.95 * mm, 0.64 * mm, 0.64 * mm, T.lead)).join("")
+    );
+    s += el("g", { transform: `translate(${bx} 0)` }, part.s);
+    [T["band-red"], T["band-black"]].forEach((color, i) => {
+      const x1 = pins[i];
+      const y1 = hy + 1.27 * mm;
+      const x2 = bx + part.link[i].x;
+      const y2 = part.link[i].y;
+      const sag = Math.max(y1, y2) + 9 * mm - i * 1.5 * mm;
+      const d = `M${r2(x1)} ${r2(y1)}C${r2(x1)} ${r2(sag)} ${r2(x2)} ${r2(sag)} ${r2(x2)} ${r2(y2)}`;
+      s += path(d, "none", { stroke: T["plastic-black-edge"], "stroke-width": 2.8, "stroke-linecap": "round" }) + path(d, "none", { stroke: color, "stroke-width": 1.8, "stroke-linecap": "round" });
+    });
+    return art(
+      w,
+      h,
+      label,
+      s,
+      part.pins.map((pin2) => {
+        return { name: pin2.name, x: pin2.x + bx, y: pin2.y };
+      })
+    );
   }
   function smallSensorBoardTemplate(props) {
     const T = tokens();
@@ -8049,9 +8182,248 @@ var PartsKit = (() => {
     return gasModuleTemplate({
       pins: ["VCC", "GND", "DOUT", "AOUT"],
       labels: ["VCC", "GND", "DO", "AO"],
+      label: props && props.label,
       indicators: lamps(props),
       finish: finishOf(props)
     });
+  }
+  function soilMoistureSensor(props) {
+    return comparatorBoardTemplate({
+      element: "fork-probe",
+      pins: ["VCC", "GND", "DO", "AO"],
+      indicators: lamps(props),
+      finish: finishOf(props)
+    });
+  }
+  function rainSensor(props) {
+    return comparatorBoardTemplate({
+      element: "rain-plate",
+      pins: ["VCC", "GND", "DO", "AO"],
+      indicators: lamps(props),
+      finish: finishOf(props)
+    });
+  }
+  function obstacleSensor(props) {
+    return comparatorBoardTemplate({
+      element: "ir-pair",
+      pins: ["OUT", "GND", "VCC"],
+      indicators: lamps(props),
+      finish: finishOf(props)
+    });
+  }
+  function lineTracker(props) {
+    return comparatorBoardTemplate({
+      element: "tcrt5000",
+      pins: ["VCC", "GND", "DO", "AO"],
+      indicators: lamps(props),
+      finish: finishOf(props)
+    });
+  }
+  function lm35Sensor() {
+    return to92Template({ label: "LM35", pins: ["+VS", "VOUT", "GND"] });
+  }
+  function tmp36Sensor() {
+    return to92Template({ label: "TMP36", pins: ["+VS", "VOUT", "GND"] });
+  }
+  function waterLevelSensor(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "red";
+    const f = finish(T, fin);
+    const names = ["S", "+", "-"];
+    const w = 20 * mm;
+    const bh = 62 * mm;
+    const cx = w / 2;
+    const edgePins = edgeHeader(T, { names, side: "bottom", at: bh, from: r2(cx - p) });
+    const h = edgePins.pins[0].y;
+    let s = board({ width: w, height: bh, finish: fin, holes: false });
+    const tx = function(k) {
+      return r2(cx + (k - 4.5) * 1.6 * mm);
+    };
+    let tracks = `M${tx(1)} ${r2(1.6 * mm)}H${tx(9)}M${tx(0)} ${r2(41.6 * mm)}H${tx(8)}`;
+    for (let k = 0; k < 10; k++) tracks += `M${tx(k)} ${r2((k % 2 ? 1.6 : 3.2) * mm)}V${r2((k % 2 ? 40 : 41.6) * mm)}`;
+    s += tag(
+      "element",
+      path(tracks, "none", { stroke: T.metal, "stroke-width": r2(0.9 * mm), "stroke-linecap": "round" })
+    );
+    s += hole(T, 3.2 * mm, 47 * mm, 1.5 * mm);
+    s += sot23(T, 7 * mm, 45 * mm, 3);
+    s += framed(T, f, "resistor", 10.6 * mm, 45 * mm, true) + framed(T, f, "resistor", 10.6 * mm, 48.6 * mm, true);
+    s += silkFrame(T, f, 15.2 * mm, 45 * mm, 0.6 * p, 0.6 * p) + indicator({
+      x: 15.2 * mm,
+      y: 45 * mm,
+      size: 0.6 * p,
+      color: "red",
+      on: !!(props.indicators && props.indicators.power),
+      hook: "power-led",
+      state: "power-led",
+      finish: fin
+    });
+    s += framed(T, f, "resistor", 15 * mm, 49.4 * mm, true);
+    const hdr = header({
+      x: edgePins.pads[0].x,
+      y: edgePins.pads[0].y,
+      labels: names,
+      kind: "print",
+      side: "above",
+      silk: f.silk
+    });
+    s += edgePins.svg + hdr.svg;
+    return art(w, h, "Water level sensor", s, edgePins.pins);
+  }
+  function capacitiveSoilSensor(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "black";
+    const f = finish(T, fin);
+    const names = ["GND", "VCC", "AOUT"];
+    const w = 23 * mm;
+    const top = 6 * mm;
+    const bl = 98 * mm;
+    const h = top + bl;
+    const cx = w / 2;
+    const i = T["board-inset"];
+    const edgePins = edgeHeader(T, { names, side: "top", at: top, from: r2(cx - p) });
+    let s = tag(
+      "board",
+      path(
+        `M${r2(i)} ${r2(top + i)}H${r2(w - i)}V${r2(top + 84 * mm)}L${r2(cx + 1.5 * mm)} ${r2(h - i)}H${r2(cx - 1.5 * mm)}L${r2(i)} ${r2(top + 84 * mm)}Z`,
+        f.board,
+        Object.assign({ "stroke-linejoin": "round" }, edge(T, f.edge))
+      )
+    );
+    const hdr = header({
+      x: edgePins.pads[0].x,
+      y: edgePins.pads[0].y,
+      labels: names,
+      kind: "print",
+      side: "below",
+      silk: f.silk,
+      rotate: true
+    });
+    s += soic(T, 4.2 * mm, top + 17 * mm, 3.9 * mm, 4.9 * mm, 4, "555");
+    s += sot23(T, 15.6 * mm, top + 16.5 * mm, 3, "662K");
+    s += framed(T, f, "resistor", 13.4 * mm, top + 23.5 * mm, true) + framed(T, f, "capacitor", 17.4 * mm, top + 23.5 * mm, true) + framed(T, f, "resistor", 3.2 * mm, top + 25.5 * mm, true) + framed(T, f, "capacitor", 7.2 * mm, top + 25.5 * mm, true);
+    s += line(1.2 * mm, top + 31 * mm, w - 1.2 * mm, top + 31 * mm, f.silk, 1.2, { "stroke-opacity": 0.9 });
+    const ty = top + 58 * mm;
+    s += text(cx, ty, "v1.2 Capacitive Soil Moisture Sensor", 5, f.silk, {
+      "dominant-baseline": "middle",
+      transform: `rotate(-90 ${r2(cx)} ${r2(ty)})`
+    });
+    s += edgePins.svg + hdr.svg;
+    return art(w, h, "Capacitive soil moisture sensor", s, edgePins.pins);
+  }
+  function screwTerminal(T, f, tx, ty, names) {
+    const p = T.pitch;
+    const tw = 2.4 * p;
+    const th = names.length * 2 * p;
+    let s = tag(
+      "terminal",
+      rect(tx - tw / 2, ty - p, tw, th, T["plastic-blue"], Object.assign({ rx: 1 }, edge(T, T["plastic-blue-edge"]))) + bevel(T, tx - tw / 2, ty - p, tw, th, 1.6, 1)
+    );
+    names.forEach((n, i) => {
+      const y = ty + 2 * i * p;
+      s += circle(tx, y, 0.5 * p, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + circle(tx, y, 0.5 * p, sheen("metal"), { "fill-opacity": 0.6 }) + line(tx - 0.3 * p, y - 0.3 * p, tx + 0.3 * p, y + 0.3 * p, T["metal-edge"], 0.9) + line(tx + 0.3 * p, y - 0.3 * p, tx - 0.3 * p, y + 0.3 * p, T["metal-edge"], 0.9);
+      s += text(tx + tw / 2 + 0.35 * p, y + 1.4, n, PIN_LABEL, f.silk, { "text-anchor": "start" });
+    });
+    return {
+      svg: s,
+      pins: names.map((n, i) => {
+        return { name: n, x: tx, y: ty + 2 * i * p };
+      })
+    };
+  }
+  function voltageSensorModule(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "red";
+    const f = finish(T, fin);
+    const w = 11 * p;
+    const h = 5.6 * p;
+    let s = board({ width: w, height: h, finish: fin, holes: false });
+    const terminal = screwTerminal(T, f, 1.5 * p, 1.8 * p, ["VCC", "GND"]);
+    s += terminal.svg;
+    s += framed(T, f, "resistor", 4.6 * p, 1.2 * p, true) + framed(T, f, "resistor", 4.6 * p, 3.8 * p, true);
+    s += text(5.05 * p, 2.6 * p, "303", PIN_LABEL, f.silk) + text(5.05 * p, 3.4 * p, "752", PIN_LABEL, f.silk);
+    s += mountHole(T, f, 7.4 * p, h / 2, 1.5 * mm);
+    const hdr = padRow(
+      T,
+      fin,
+      f,
+      {
+        x: w - 0.5 * p,
+        y: 1.8 * p,
+        axis: "y",
+        labels: ["S", "+", "-"],
+        kind: "pad",
+        side: "left",
+        silk: f.silk,
+        size: PIN_LABEL
+      },
+      -1
+    );
+    s += hdr.svg;
+    return art(w, h, "Voltage sensor module", s, [...terminal.pins, ...hdr.pins]);
+  }
+  function acs712Module(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "red";
+    const f = finish(T, fin);
+    const w = 12 * p;
+    const h = 5.6 * p;
+    let s = board({ width: w, height: h, finish: fin, holes: false });
+    const terminal = screwTerminal(T, f, 1.5 * p, 1.8 * p, ["IP+", "IP-"]);
+    s += terminal.svg;
+    const chw = 4.9 * mm;
+    const chh = 3.9 * mm;
+    const chx = 4.4 * p;
+    const chy = h / 2 - chh / 2;
+    let chip = "";
+    for (let k = 0; k < 4; k++) {
+      const lx = chx + chw / 2 + (k - 1.5) * 1.27 * mm - 0.8;
+      chip += rect(lx, chy - 3.6, 1.6, 3.6, T.lead, { rx: 0.2 }) + rect(lx, chy + chh, 1.6, 3.6, T.lead, { rx: 0.2 });
+    }
+    chip += rect(chx, chy, chw, chh, T.chip, Object.assign({ rx: 0.5 }, edge(T, T["chip-edge"], T["stroke-detail"]))) + bevel(T, chx, chy, chw, chh, 1, 0.5) + circle(chx + 1.8, chy + chh - 1.8, 0.6, T["chip-print"]) + text(chx + chw / 2, chy + chh / 2 - 0.4, "ACS712", 4, T["chip-print"]) + text(chx + chw / 2, chy + chh / 2 + 4.4, ACS712_PRINT[props.range] || ACS712_PRINT["5A"], 4, T["chip-print"]);
+    s += tag("chip", chip);
+    s += framed(T, f, "capacitor", 7.2 * p, 1 * p, false) + framed(T, f, "capacitor", 7.2 * p, 3.5 * p, false);
+    s += silkFrame(T, f, 8.5 * p, 0.8 * p, 0.6 * p, 0.6 * p) + indicator({
+      x: 8.5 * p,
+      y: 0.8 * p,
+      size: 0.6 * p,
+      color: "red",
+      on: !!(props.indicators && props.indicators.power),
+      hook: "power-led",
+      state: "power-led",
+      finish: fin
+    }) + text(8.8 * p, 2.1 * p, "PWR", PIN_LABEL, f.silk);
+    s += framed(T, f, "resistor", 8.3 * p, 3.5 * p, false);
+    const hdr = padRow(
+      T,
+      fin,
+      f,
+      {
+        x: w - 0.5 * p,
+        y: 1.8 * p,
+        axis: "y",
+        labels: ["VCC", "OUT", "GND"],
+        kind: "pad",
+        side: "left",
+        silk: f.silk,
+        size: PIN_LABEL
+      },
+      -1
+    );
+    s += hdr.svg;
+    return art(w, h, "ACS712 current sensor module", s, [...terminal.pins, ...hdr.pins]);
   }
   function ds18b20Sensor() {
     return to92Template({ label: "DS18B20", pins: ["GND", "DQ", "VDD"] });
@@ -8100,19 +8472,23 @@ var PartsKit = (() => {
       finish: finishOf(props, "purple")
     });
   }
+  var ACS712_PRINT;
   var init_sensors = __esm({
     "src/sensors.js"() {
       init_core();
       init_pieces();
       init_modules();
+      ACS712_PRINT = { "5A": "ELC-05B", "20A": "ELC-20A", "30A": "ELC-30A" };
     }
   });
 
   // src/families/sensors.js
   var sensors_exports = {};
   __export(sensors_exports, {
+    acs712Module: () => acs712Module,
     bme280Module: () => bme280Module,
     bmp180Board: () => bmp180Board,
+    capacitiveSoilSensor: () => capacitiveSoilSensor,
     dht11Module: () => dht11Module,
     dht22Sensor: () => dht22Sensor,
     ds18b20Sensor: () => ds18b20Sensor,
@@ -8120,15 +8496,23 @@ var PartsKit = (() => {
     gasSensor: () => gasSensor,
     irReceiver: () => irReceiver,
     lightSensor: () => lightSensor,
+    lineTracker: () => lineTracker,
+    lm35Sensor: () => lm35Sensor,
     max30102Module: () => max30102Module,
     mpu6050Imu: () => mpu6050Imu,
     ntcSensor: () => ntcSensor,
+    obstacleSensor: () => obstacleSensor,
     pirModule: () => pirModule,
     pulseSensor: () => pulseSensor,
+    rainSensor: () => rainSensor,
+    soilMoistureSensor: () => soilMoistureSensor,
     soundSensor: () => soundSensor,
     tiltSwitch: () => tiltSwitch,
+    tmp36Sensor: () => tmp36Sensor,
     ultrasonicRanger: () => ultrasonicRanger,
-    vl53l0xModule: () => vl53l0xModule
+    vl53l0xModule: () => vl53l0xModule,
+    voltageSensorModule: () => voltageSensorModule,
+    waterLevelSensor: () => waterLevelSensor
   });
   var init_sensors2 = __esm({
     "src/families/sensors.js"() {
@@ -9832,6 +10216,7 @@ var PartsKit = (() => {
     FINISHES: () => FINISHES,
     LED_STRIP_MAX_PIXELS: () => LED_STRIP_MAX_PIXELS,
     PITCH: () => PITCH,
+    acs712Module: () => acs712Module,
     ams1117Module: () => ams1117Module,
     angleBetween: () => angleBetween,
     attiny85: () => attiny85,
@@ -9848,6 +10233,7 @@ var PartsKit = (() => {
     buzzer: () => buzzer,
     callOf: () => callOf,
     capTop: () => capTop,
+    capacitiveSoilSensor: () => capacitiveSoilSensor,
     capacitor: () => capacitor,
     characterLcd: () => characterLcd,
     check: () => check,
@@ -9906,6 +10292,8 @@ var PartsKit = (() => {
     lens: () => lens,
     lensColor: () => lensColor,
     lightSensor: () => lightSensor,
+    lineTracker: () => lineTracker,
+    lm35Sensor: () => lm35Sensor,
     loadPart: () => loadPart,
     logicAnalyzer: () => logicAnalyzer,
     logicSymbol: () => logicSymbol,
@@ -9933,6 +10321,7 @@ var PartsKit = (() => {
     ntcSensor: () => ntcSensor,
     nucleo32BoardTemplate: () => nucleo32BoardTemplate,
     nucleo64BoardTemplate: () => nucleo64BoardTemplate,
+    obstacleSensor: () => obstacleSensor,
     oledBreakout: () => oledBreakout,
     oledSquare: () => oledSquare,
     optionApplies: () => optionApplies,
@@ -9948,6 +10337,7 @@ var PartsKit = (() => {
     probe: () => probe,
     pulseSensor: () => pulseSensor,
     pushbutton: () => pushbutton,
+    rainSensor: () => rainSensor,
     relay: () => relay,
     relayModule: () => relayModule,
     resistor: () => resistor,
@@ -9971,6 +10361,7 @@ var PartsKit = (() => {
     slidePotentiometer: () => slidePotentiometer,
     slideSwitch: () => slideSwitch,
     smallSensorBoardTemplate: () => smallSensorBoardTemplate,
+    soilMoistureSensor: () => soilMoistureSensor,
     soundSensor: () => soundSensor,
     ssd1306Module: () => ssd1306Module,
     stepper: () => stepper,
@@ -9982,6 +10373,7 @@ var PartsKit = (() => {
     tftModule: () => tftModule,
     tiltSwitch: () => tiltSwitch,
     tm1637Module: () => tm1637Module,
+    tmp36Sensor: () => tmp36Sensor,
     to92Template: () => to92Template,
     toDataUrl: () => toDataUrl,
     tokenMode: () => tokenMode,
@@ -9994,6 +10386,8 @@ var PartsKit = (() => {
     usbPort: () => usbPort,
     via: () => via,
     vl53l0xModule: () => vl53l0xModule,
+    voltageSensorModule: () => voltageSensorModule,
+    waterLevelSensor: () => waterLevelSensor,
     wire: () => wire
   });
 
@@ -10189,7 +10583,15 @@ var PartsKit = (() => {
     flameSensor: SENSOR_BOARD("blue"),
     soundSensor: { ...SENSOR_BOARD("red"), small: bool("Small board, 6 mm capsule") },
     tiltSwitch: SENSOR_BOARD("blue"),
-    gasSensor: SENSOR_BOARD("blue"),
+    gasSensor: {
+      ...SENSOR_BOARD("blue"),
+      label: {
+        type: "enum",
+        label: "Sensor",
+        choices: [choice("MQ-2", "MQ-2"), choice("MQ-3", "MQ-3"), choice("MQ-7", "MQ-7"), choice("MQ-135", "MQ-135")],
+        default: "MQ-2"
+      }
+    },
     irReceiver: { finish: finish2("black") },
     ntcSensor: { finish: finish2("black") },
     pirModule: { finish: finish2("green") },
@@ -10207,6 +10609,25 @@ var PartsKit = (() => {
     },
     vl53l0xModule: { finish: finish2("purple") },
     max30102Module: { finish: finish2("purple") },
+    soilMoistureSensor: SENSOR_BOARD("blue"),
+    rainSensor: SENSOR_BOARD("blue"),
+    obstacleSensor: SENSOR_BOARD("blue"),
+    lineTracker: SENSOR_BOARD("blue"),
+    lm35Sensor: {},
+    tmp36Sensor: {},
+    waterLevelSensor: { indicators: lamps2({ power: "Power LED" }), finish: finish2("red") },
+    capacitiveSoilSensor: { finish: finish2("black") },
+    voltageSensorModule: { finish: finish2("red") },
+    acs712Module: {
+      range: {
+        type: "enum",
+        label: "Range",
+        choices: [choice("5A", "5 A"), choice("20A", "20 A"), choice("30A", "30 A")],
+        default: "5A"
+      },
+      indicators: lamps2({ power: "Power LED" }),
+      finish: finish2("red")
+    },
     // Inputs.
     pushbutton: {
       pressed: state(bool("Pressed")),
@@ -10630,7 +11051,7 @@ var PartsKit = (() => {
     ["flame-sensor", "Flame sensor", "sensor", "flameSensor", null, ["infrared"]],
     ["sound-sensor", "Sound sensor", "sensor", "soundSensor", null, ["microphone", "KY-037", "KY-038"]],
     ["tilt-switch", "Tilt switch", "sensor", "tiltSwitch", null, ["SW-520D"]],
-    ["gas-sensor", "Gas sensor", "sensor", "gasSensor", null, ["MQ-2", "MQ-135"]],
+    ["gas-sensor", "Gas sensor", "sensor", "gasSensor", null, ["MQ-2", "MQ-3", "MQ-7", "MQ-135"]],
     ["ir-receiver", "IR receiver", "sensor", "irReceiver", null, ["KY-022", "infrared", "VS1838B"]],
     ["ntc-thermistor", "NTC thermistor", "sensor", "ntcSensor", null, ["KY-013", "temperature"]],
     ["pir-motion-sensor", "PIR motion sensor", "sensor", "pirModule", null, ["HC-SR501"]],
@@ -10647,6 +11068,37 @@ var PartsKit = (() => {
       ["VL53L0X", "GY-530", "distance"]
     ],
     ["pulse-oximeter", "Pulse oximeter", "sensor", "max30102Module", null, ["MAX30102", "heart rate", "SpO2"]],
+    ["lm35-temperature-sensor", "LM35 temperature sensor", "sensor", "lm35Sensor", null, ["analog", "TO-92"]],
+    ["tmp36-temperature-sensor", "TMP36 temperature sensor", "sensor", "tmp36Sensor", null, ["analog", "TO-92"]],
+    [
+      "soil-moisture-sensor",
+      "Soil moisture sensor",
+      "sensor",
+      "soilMoistureSensor",
+      null,
+      ["FC-28", "YL-69", "hygrometer"]
+    ],
+    [
+      "capacitive-soil-moisture-sensor",
+      "Capacitive soil moisture sensor",
+      "sensor",
+      "capacitiveSoilSensor",
+      null,
+      ["v1.2", "hygrometer"]
+    ],
+    ["water-level-sensor", "Water level sensor", "sensor", "waterLevelSensor", null, ["water sensor", "liquid level"]],
+    ["rain-sensor", "Rain sensor", "sensor", "rainSensor", null, ["FC-37", "YL-83", "raindrop"]],
+    ["ir-obstacle-sensor", "IR obstacle sensor", "sensor", "obstacleSensor", null, ["FC-51", "infrared", "avoidance"]],
+    ["line-tracking-sensor", "Line tracking sensor", "sensor", "lineTracker", null, ["TCRT5000", "line follower"]],
+    [
+      "voltage-divider-sensor",
+      "Voltage divider sensor",
+      "sensor",
+      "voltageSensorModule",
+      null,
+      ["0-25V", "voltage divider"]
+    ],
+    ["acs712-current-sensor", "ACS712 current sensor", "sensor", "acs712Module", null, ["ACS712", "hall effect"]],
     ["pushbutton", "Pushbutton", "input", "pushbutton", { size: 12 }, ["button", "tactile switch"]],
     ["pushbutton-6-mm", "Pushbutton, 6 mm", "input", "pushbutton", { size: 6 }, ["button", "tactile switch"]],
     ["potentiometer", "Potentiometer", "input", "potentiometer", null, ["knob", "pot"]],

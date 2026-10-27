@@ -23,7 +23,19 @@ import {
   tokens,
   trace,
 } from './core.js';
-import { edgeHeader, framed, mountHole, padRow, silkFrame, smd, soicAcross, to92Package, wire } from './pieces.js';
+import {
+  edgeHeader,
+  framed,
+  mountHole,
+  padRow,
+  silkFrame,
+  smd,
+  soic,
+  soicAcross,
+  sot23,
+  to92Package,
+  wire,
+} from './pieces.js';
 import { moduleTemplate } from './modules.js';
 
 /**
@@ -51,6 +63,13 @@ import { moduleTemplate } from './modules.js';
  *   small one), its legs bent down to the pads, four resistors under it,
  *   the LM393 and the tall blue 3296 trimmer with its brass screw, the
  *   lamps flanking the hole by the header.
+ * - 'ir-pair': the FC-51 obstacle board, the FC layout with the clear
+ *   infrared LED and the black photodiode lying side by side past the end.
+ * - 'tcrt5000': the line-tracking board, the FC layout with the TCRT5000
+ *   (its blue emitter and black detector windows) across the end.
+ * - 'fork-probe' and 'rain-plate': the FC board of the soil and rain
+ *   sensors, a two-pin header at the end where the element would be,
+ *   with its probe beside it (besideProbe).
  * Each board comes with a right-angle header: the spacer on the board at
  * the end away from the element, the pins standing 6 mm past it, the names on the silk
  * above the pads (labels; DOUT and AOUT print as DO and AO, as the boards
@@ -62,6 +81,7 @@ export function comparatorBoardTemplate(props) {
   const p = T.pitch;
   const mm = p / 2.54;
   const element = props.element || 'ldr';
+  const probe = element === 'fork-probe' || element === 'rain-plate';
   const layout = element === 'cylinder' ? 'tilt' : element === 'mic' ? 'ky037' : 'fc';
   const fin = props.finish || (layout === 'ky037' ? 'red' : 'blue');
   const f = finish(T, fin);
@@ -80,7 +100,7 @@ export function comparatorBoardTemplate(props) {
   const micLen = (micMm > 8 ? 6.7 : 4.5) * mm;
   const ext = 6 * mm;
   const w = bw;
-  const by = (layout === 'tilt' ? 11.5 : layout === 'fc' ? 6.5 : micLen / mm + 1.0) * mm;
+  const by = (probe ? 3.5 : layout === 'tilt' ? 11.5 : layout === 'fc' ? 6.5 : micLen / mm + 1.0) * mm;
   const h = by + bh + ext;
   const cx = w / 2;
   let s = '';
@@ -320,14 +340,63 @@ export function comparatorBoardTemplate(props) {
         rect(cx - micR, mtop + 1.1 * mm, 2 * micR, 0.5 * mm, T['metal-edge'], { 'fill-opacity': 0.6 }),
     );
     s += rect(cx - micR, mtop, 2 * micR, micLen, sheen('metal'), { rx: 0.8, 'fill-opacity': 0.7 });
+  } else if (element === 'ir-pair') {
+    // The water-clear infrared LED and the black photodiode lying side by side along the board, domes past the end, each on its two legs.
+    const lr = 2.5 * mm;
+    const tip = by - 6.0 * mm;
+    const base = by + 1.0 * mm;
+    let pair = '';
+    [
+      [-2.9, T['lens-white'], T['plastic-white-edge']],
+      [2.9, T['plastic-black'], T['plastic-black-edge']],
+    ].forEach(([k, fill, rim]) => {
+      [E(k - 1.27), E(k + 1.27)].forEach(x => {
+        s += wire(x, base - 0.6, x, padY);
+      });
+      const dome = `M${E(k - 2.5)} ${r2(base)}V${r2(tip + lr)}A${r2(lr)} ${r2(lr)} 0 0 1 ${E(k + 2.5)} ${r2(tip + lr)}V${r2(base)}Z`;
+      pair += path(dome, fill, edge(T, rim, T['stroke-detail'])) + path(dome, sheen('dome'), { 'fill-opacity': 0.6 });
+    });
+    s += tag('element', pair);
+  } else if (element === 'tcrt5000') {
+    // The TCRT5000 across the end, looking down past it: the black body with the blue emitter and the black detector, four legs to the pads.
+    const tw = 10.2 * mm;
+    const th = 5.8 * mm;
+    const ty0 = by - 5.6 * mm;
+    [-3.81, -1.27, 1.27, 3.81].forEach(k => {
+      s += wire(E(k), ty0 + th - 0.6, E(k), padY);
+    });
+    s += tag(
+      'element',
+      rect(
+        cx - tw / 2,
+        ty0,
+        tw,
+        th,
+        T['plastic-black'],
+        Object.assign({ rx: 0.8 }, edge(T, T['plastic-black-edge'], T['stroke-detail'])),
+      ) +
+        bevel(T, cx - tw / 2, ty0, tw, th, 1.0, 0.8) +
+        circle(E(-2.5), ty0 + th / 2, 1.6 * mm, T['lens-blue'], edge(T, T['plastic-black-edge'], T['stroke-fine'])) +
+        circle(E(2.5), ty0 + th / 2, 1.6 * mm, T.cavity, edge(T, T['plastic-black-edge'], T['stroke-fine'])) +
+        circle(E(-2.5), ty0 + th / 2, 1.6 * mm, sheen('lens'), { 'fill-opacity': 0.5 }),
+    );
   }
-  [E(-1.27), E(1.27)].forEach(x => {
-    s += tag('pad', circle(x, r2(padY), 2.2, T.pad) + circle(x, r2(padY), 0.9, T.hole));
-  });
-  s +=
-    line(E(-4.4), r2(padY), E(-3.2), r2(padY), f.silk, 0.8) +
-    line(E(-3.8), r2(padY - 0.6 * mm), E(-3.8), r2(padY + 0.6 * mm), f.silk, 0.8) +
-    line(E(3.2), r2(padY), E(4.4), r2(padY), f.silk, 0.8);
+  // The probe boards take their probe's wires on a two-pin header at the end; the four-leg elements have a pad a leg.
+  const link = probe ? edgeHeader(T, { names: ['+', '-'], side: 'top', at: by, from: E(-1.27), ext: 3 * mm }) : null;
+  if (link) s += link.svg;
+  else if (element === 'ir-pair' || element === 'tcrt5000')
+    (element === 'ir-pair' ? [-4.17, -1.63, 1.63, 4.17] : [-3.81, -1.27, 1.27, 3.81]).forEach(k => {
+      s += tag('pad', circle(E(k), r2(padY), 2.2, T.pad) + circle(E(k), r2(padY), 0.9, T.hole));
+    });
+  else {
+    [E(-1.27), E(1.27)].forEach(x => {
+      s += tag('pad', circle(x, r2(padY), 2.2, T.pad) + circle(x, r2(padY), 0.9, T.hole));
+    });
+    s +=
+      line(E(-4.4), r2(padY), E(-3.2), r2(padY), f.silk, 0.8) +
+      line(E(-3.8), r2(padY - 0.6 * mm), E(-3.8), r2(padY + 0.6 * mm), f.silk, 0.8) +
+      line(E(3.2), r2(padY), E(4.4), r2(padY), f.silk, 0.8);
+  }
   L.passives.forEach(q => {
     s += passive(q[0], q[1], q[2], q[3]);
   });
@@ -442,8 +511,121 @@ export function comparatorBoardTemplate(props) {
         ? 'Light sensor (LDR)'
         : element === 'cylinder'
           ? 'Tilt switch'
-          : 'Sound sensor';
+          : element === 'ir-pair'
+            ? 'IR obstacle sensor'
+            : element === 'tcrt5000'
+              ? 'Line tracking sensor'
+              : element === 'fork-probe'
+                ? 'Soil moisture sensor'
+                : element === 'rain-plate'
+                  ? 'Rain sensor'
+                  : 'Sound sensor';
+  if (link)
+    return besideProbe(
+      T,
+      fin,
+      f,
+      element,
+      { w, h, s, pins: edgePins.pins, link: link.pins },
+      props.description || `${what} module`,
+    );
   return art(w, h, props.description || `${what} module`, s, edgePins.pins);
+}
+
+/**
+ * A probe board with its probe to its left, as both are sold: the fork probe ('fork-probe', 20 x 60 mm, two prongs
+ * plated along their length) or the rain plate ('rain-plate', 40 x 54 mm of interleaved tracks), each with its
+ * two-pin header at the top, joined to the board's header by a red and a black jumper wire. The pins are the board's.
+ */
+function besideProbe(T, fin, f, element, part, label) {
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const plate = element === 'rain-plate';
+  const pw = (plate ? 40 : 20) * mm;
+  const ph = (plate ? 54 : 60) * mm;
+  const bx = r2(pw + 4 * mm);
+  const w = bx + part.w;
+  const h = Math.max(ph, part.h);
+  const cx = pw / 2;
+  const M = function (x, y) {
+    return `${r2(x * mm)} ${r2(y * mm)}`;
+  };
+  const plating = { stroke: T.metal, 'stroke-width': r2(1.2 * mm), 'stroke-linecap': 'round', fill: 'none' };
+  let s = '';
+  if (plate) {
+    s += board({ width: pw, height: ph, finish: fin, holes: false });
+    s += hole(T, 3.5 * mm, 3.5 * mm, 1.5 * mm) + hole(T, pw - 3.5 * mm, 3.5 * mm, 1.5 * mm);
+    // Two combs of tracks, their fingers interleaved: one from the left spine, one from the right.
+    let left = `M${M(3.5, 8)}V${r2(51 * mm)}`;
+    let right = `M${M(36.5, 10.15)}V${r2(48.85 * mm)}`;
+    for (let k = 0; k <= 10; k++) left += `M${M(3.5, 8 + k * 4.3)}H${r2(33.5 * mm)}`;
+    for (let k = 0; k < 10; k++) right += `M${M(36.5, 10.15 + k * 4.3)}H${r2(6.5 * mm)}`;
+    s += tag('element', path(left, 'none', plating) + path(right, 'none', plating));
+    s +=
+      path(`M${M(18.73, 3.6)}L${M(3.5, 7)}`, 'none', plating) +
+      path(`M${M(21.27, 3.6)}L${M(36.5, 9)}`, 'none', plating);
+  } else {
+    // The fork: a head with the header, two prongs with pointed tips, each plated along its length.
+    const H = ph / mm;
+    s += tag(
+      'board',
+      path(
+        `M${M(0.5, 0.5)}H${r2(19.5 * mm)}V${r2((H - 5) * mm)}L${M(16.25, H - 0.5)}L${M(13, H - 5)}V${r2(16 * mm)}H${r2(7 * mm)}V${r2((H - 5) * mm)}L${M(3.75, H - 0.5)}L${M(0.5, H - 5)}Z`,
+        f.board,
+        Object.assign({ 'stroke-linejoin': 'round' }, edge(T, f.edge)),
+      ),
+    );
+    const prong = function (x0, x1) {
+      const mid = (x0 + x1) / 2;
+      return `M${M(x0, 17)}H${r2(x1 * mm)}V${r2((H - 5.4) * mm)}L${M(mid, H - 1.8)}L${M(x0, H - 5.4)}Z`;
+    };
+    s += tag(
+      'element',
+      path(prong(1.3, 6.2), T.metal, edge(T, T['metal-edge'], T['stroke-fine'])) +
+        path(prong(13.8, 18.7), T.metal, edge(T, T['metal-edge'], T['stroke-fine'])),
+    );
+    s += path(`M${M(8.73, 3.6)}L${M(3.75, 16)}M${M(11.27, 3.6)}L${M(16.25, 16)}`, 'none', {
+      stroke: T.metal,
+      'stroke-width': r2(0.8 * mm),
+      'stroke-linecap': 'round',
+    });
+  }
+  // The probe's header: a two-pin spacer on the board, the pins seen end on.
+  const hy = 1.0 * mm;
+  const pins = [cx - 1.27 * mm, cx + 1.27 * mm];
+  s += tag(
+    'header',
+    rect(
+      cx - 2.54 * mm,
+      hy,
+      5.08 * mm,
+      2.54 * mm,
+      T['plastic-black'],
+      Object.assign({ rx: 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
+    ) + pins.map(x => rect(x - 0.32 * mm, hy + 0.95 * mm, 0.64 * mm, 0.64 * mm, T.lead)).join(''),
+  );
+  s += el('g', { transform: `translate(${bx} 0)` }, part.s);
+  // The jumper wires, red to the board's + and black to its -, sagging between the headers.
+  [T['band-red'], T['band-black']].forEach((color, i) => {
+    const x1 = pins[i];
+    const y1 = hy + 1.27 * mm;
+    const x2 = bx + part.link[i].x;
+    const y2 = part.link[i].y;
+    const sag = Math.max(y1, y2) + 9 * mm - i * 1.5 * mm;
+    const d = `M${r2(x1)} ${r2(y1)}C${r2(x1)} ${r2(sag)} ${r2(x2)} ${r2(sag)} ${r2(x2)} ${r2(y2)}`;
+    s +=
+      path(d, 'none', { stroke: T['plastic-black-edge'], 'stroke-width': 2.8, 'stroke-linecap': 'round' }) +
+      path(d, 'none', { stroke: color, 'stroke-width': 1.8, 'stroke-linecap': 'round' });
+  });
+  return art(
+    w,
+    h,
+    label,
+    s,
+    part.pins.map(pin => {
+      return { name: pin.name, x: pin.x + bx, y: pin.y };
+    }),
+  );
 }
 
 /**
@@ -1456,14 +1638,322 @@ export function ntcSensor(props) {
 export function irReceiver(props) {
   return sensorModuleTemplate({ element: 'ir', pins: ['GND', 'VCC', 'DAT'], label: 'KY-022', finish: finishOf(props) });
 }
-/** The MQ gas sensor module, its header as the board prints it. */
+/** The MQ gas sensor module, its header as the board prints it; `label` is the sensor's print (MQ-2 by default). */
 export function gasSensor(props) {
   return gasModuleTemplate({
     pins: ['VCC', 'GND', 'DOUT', 'AOUT'],
     labels: ['VCC', 'GND', 'DO', 'AO'],
+    label: props && props.label,
     indicators: lamps(props),
     finish: finishOf(props),
   });
+}
+/** The resistive soil moisture sensor: the fork probe beside its four-pin comparator board. */
+export function soilMoistureSensor(props) {
+  return comparatorBoardTemplate({
+    element: 'fork-probe',
+    pins: ['VCC', 'GND', 'DO', 'AO'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The rain sensor: the plate of interleaved tracks beside its four-pin comparator board. */
+export function rainSensor(props) {
+  return comparatorBoardTemplate({
+    element: 'rain-plate',
+    pins: ['VCC', 'GND', 'DO', 'AO'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The infrared obstacle sensor: the LED and photodiode on the three-pin comparator board, OUT GND VCC as it prints them. */
+export function obstacleSensor(props) {
+  return comparatorBoardTemplate({
+    element: 'ir-pair',
+    pins: ['OUT', 'GND', 'VCC'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The line tracking sensor: the TCRT5000 on the four-pin comparator board. */
+export function lineTracker(props) {
+  return comparatorBoardTemplate({
+    element: 'tcrt5000',
+    pins: ['VCC', 'GND', 'DO', 'AO'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The LM35 analog temperature sensor in its TO-92 package, flat face forward: +VS, VOUT, GND. */
+export function lm35Sensor() {
+  return to92Template({ label: 'LM35', pins: ['+VS', 'VOUT', 'GND'] });
+}
+/** The TMP36 analog temperature sensor in its TO-92 package, flat face forward: +VS, VOUT, GND. */
+export function tmp36Sensor() {
+  return to92Template({ label: 'TMP36', pins: ['+VS', 'VOUT', 'GND'] });
+}
+
+/**
+ * The water level sensor as photographed: a red 20 x 62 mm board, ten
+ * tracks lengthwise over its far 40 mm (every other one joined at the top,
+ * the rest at the bottom), the transistor, its resistors and the power LED
+ * under them, and the three pins on the right-angle header standing past
+ * the near end, S, + and - printed above the joints. The box is the
+ * board's width, its height running to the pins' tips.
+ */
+export function waterLevelSensor(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const fin = props.finish || 'red';
+  const f = finish(T, fin);
+  const names = ['S', '+', '-'];
+  const w = 20 * mm;
+  const bh = 62 * mm;
+  const cx = w / 2;
+  const edgePins = edgeHeader(T, { names, side: 'bottom', at: bh, from: r2(cx - p) });
+  const h = edgePins.pins[0].y;
+  let s = board({ width: w, height: bh, finish: fin, holes: false });
+  // The tracks, 1.6 mm apart: the odd ones join along the top, the even ones along the bottom.
+  const tx = function (k) {
+    return r2(cx + (k - 4.5) * 1.6 * mm);
+  };
+  let tracks = `M${tx(1)} ${r2(1.6 * mm)}H${tx(9)}M${tx(0)} ${r2(41.6 * mm)}H${tx(8)}`;
+  for (let k = 0; k < 10; k++) tracks += `M${tx(k)} ${r2((k % 2 ? 1.6 : 3.2) * mm)}V${r2((k % 2 ? 40 : 41.6) * mm)}`;
+  s += tag(
+    'element',
+    path(tracks, 'none', { stroke: T.metal, 'stroke-width': r2(0.9 * mm), 'stroke-linecap': 'round' }),
+  );
+  s += hole(T, 3.2 * mm, 47 * mm, 1.5 * mm);
+  // The emitter follower: the transistor and its two resistors; the power LED and its resistor at the right.
+  s += sot23(T, 7 * mm, 45 * mm, 3);
+  s += framed(T, f, 'resistor', 10.6 * mm, 45 * mm, true) + framed(T, f, 'resistor', 10.6 * mm, 48.6 * mm, true);
+  s +=
+    silkFrame(T, f, 15.2 * mm, 45 * mm, 0.6 * p, 0.6 * p) +
+    indicator({
+      x: 15.2 * mm,
+      y: 45 * mm,
+      size: 0.6 * p,
+      color: 'red',
+      on: !!(props.indicators && props.indicators.power),
+      hook: 'power-led',
+      state: 'power-led',
+      finish: fin,
+    });
+  s += framed(T, f, 'resistor', 15.0 * mm, 49.4 * mm, true);
+  const hdr = header({
+    x: edgePins.pads[0].x,
+    y: edgePins.pads[0].y,
+    labels: names,
+    kind: 'print',
+    side: 'above',
+    silk: f.silk,
+  });
+  s += edgePins.svg + hdr.svg;
+  return art(w, h, 'Water level sensor', s, edgePins.pins);
+}
+
+/**
+ * The capacitive soil moisture sensor v1.2 as photographed: a black 23 x
+ * 98 mm board ending in a point, the 555 timer, the 3.3 V regulator and
+ * their passives at the top, the white line a probe is pushed in no deeper
+ * than, its name along the sensing blade, and the three pins (GND, VCC,
+ * AOUT) standing past the top edge where its cable plugs in. The box is the
+ * board's width, its height running from the pins' tips to the point.
+ */
+export function capacitiveSoilSensor(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const fin = props.finish || 'black';
+  const f = finish(T, fin);
+  const names = ['GND', 'VCC', 'AOUT'];
+  const w = 23 * mm;
+  const top = 6 * mm;
+  const bl = 98 * mm;
+  const h = top + bl;
+  const cx = w / 2;
+  const i = T['board-inset'];
+  const edgePins = edgeHeader(T, { names, side: 'top', at: top, from: r2(cx - p) });
+  let s = tag(
+    'board',
+    path(
+      `M${r2(i)} ${r2(top + i)}H${r2(w - i)}V${r2(top + 84 * mm)}L${r2(cx + 1.5 * mm)} ${r2(h - i)}H${r2(cx - 1.5 * mm)}L${r2(i)} ${r2(top + 84 * mm)}Z`,
+      f.board,
+      Object.assign({ 'stroke-linejoin': 'round' }, edge(T, f.edge)),
+    ),
+  );
+  const hdr = header({
+    x: edgePins.pads[0].x,
+    y: edgePins.pads[0].y,
+    labels: names,
+    kind: 'print',
+    side: 'below',
+    silk: f.silk,
+    rotate: true,
+  });
+  // The oscillator and the regulator with their passives.
+  s += soic(T, 4.2 * mm, top + 17 * mm, 3.9 * mm, 4.9 * mm, 4, '555');
+  s += sot23(T, 15.6 * mm, top + 16.5 * mm, 3, '662K');
+  s +=
+    framed(T, f, 'resistor', 13.4 * mm, top + 23.5 * mm, true) +
+    framed(T, f, 'capacitor', 17.4 * mm, top + 23.5 * mm, true) +
+    framed(T, f, 'resistor', 3.2 * mm, top + 25.5 * mm, true) +
+    framed(T, f, 'capacitor', 7.2 * mm, top + 25.5 * mm, true);
+  // The depth line, and the name along the blade.
+  s += line(1.2 * mm, top + 31 * mm, w - 1.2 * mm, top + 31 * mm, f.silk, 1.2, { 'stroke-opacity': 0.9 });
+  const ty = top + 58 * mm;
+  s += text(cx, ty, 'v1.2 Capacitive Soil Moisture Sensor', 5, f.silk, {
+    'dominant-baseline': 'middle',
+    transform: `rotate(-90 ${r2(cx)} ${r2(ty)})`,
+  });
+  s += edgePins.svg + hdr.svg;
+  return art(w, h, 'Capacitive soil moisture sensor', s, edgePins.pins);
+}
+
+/** A two-way screw terminal on the grid, its screws two pitches apart down x = tx from y = ty, each name beside it. */
+function screwTerminal(T, f, tx, ty, names) {
+  const p = T.pitch;
+  const tw = 2.4 * p;
+  const th = names.length * 2 * p;
+  let s = tag(
+    'terminal',
+    rect(tx - tw / 2, ty - p, tw, th, T['plastic-blue'], Object.assign({ rx: 1 }, edge(T, T['plastic-blue-edge']))) +
+      bevel(T, tx - tw / 2, ty - p, tw, th, 1.6, 1),
+  );
+  names.forEach((n, i) => {
+    const y = ty + 2 * i * p;
+    s +=
+      circle(tx, y, 0.5 * p, T.metal, edge(T, T['metal-edge'], T['stroke-fine'])) +
+      circle(tx, y, 0.5 * p, sheen('metal'), { 'fill-opacity': 0.6 }) +
+      line(tx - 0.3 * p, y - 0.3 * p, tx + 0.3 * p, y + 0.3 * p, T['metal-edge'], 0.9) +
+      line(tx + 0.3 * p, y - 0.3 * p, tx - 0.3 * p, y + 0.3 * p, T['metal-edge'], 0.9);
+    s += text(tx + tw / 2 + 0.35 * p, y + 1.4, n, PIN_LABEL, f.silk, { 'text-anchor': 'start' });
+  });
+  return {
+    svg: s,
+    pins: names.map((n, i) => {
+      return { name: n, x: tx, y: ty + 2 * i * p };
+    }),
+  };
+}
+
+/**
+ * The 0-25 V voltage sensor module as photographed: a red 28 x 14 mm
+ * board, the two-way screw terminal for the measured voltage (VCC, GND) at
+ * the left, the 30 kΩ and 7.5 kΩ divider resistors and the hole in the
+ * middle, and the header (S, +, -) down the right edge. The box is 11 x
+ * 5.6 pitches.
+ */
+export function voltageSensorModule(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const fin = props.finish || 'red';
+  const f = finish(T, fin);
+  const w = 11 * p;
+  const h = 5.6 * p;
+  let s = board({ width: w, height: h, finish: fin, holes: false });
+  const terminal = screwTerminal(T, f, 1.5 * p, 1.8 * p, ['VCC', 'GND']);
+  s += terminal.svg;
+  s += framed(T, f, 'resistor', 4.6 * p, 1.2 * p, true) + framed(T, f, 'resistor', 4.6 * p, 3.8 * p, true);
+  s += text(5.05 * p, 2.6 * p, '303', PIN_LABEL, f.silk) + text(5.05 * p, 3.4 * p, '752', PIN_LABEL, f.silk);
+  s += mountHole(T, f, 7.4 * p, h / 2, 1.5 * mm);
+  const hdr = padRow(
+    T,
+    fin,
+    f,
+    {
+      x: w - 0.5 * p,
+      y: 1.8 * p,
+      axis: 'y',
+      labels: ['S', '+', '-'],
+      kind: 'pad',
+      side: 'left',
+      silk: f.silk,
+      size: PIN_LABEL,
+    },
+    -1,
+  );
+  s += hdr.svg;
+  return art(w, h, 'Voltage sensor module', s, [...terminal.pins, ...hdr.pins]);
+}
+
+/** The ACS712 grades the module is sold in, by range, as the chip prints them. */
+const ACS712_PRINT = { '5A': 'ELC-05B', '20A': 'ELC-20A', '30A': 'ELC-30A' };
+
+/**
+ * The ACS712 current sensor module as photographed: a red 31 x 14 mm
+ * board, the two-way screw terminal the measured current runs through
+ * (IP+, IP-) at the left, the ACS712 in SOIC-8 with its grade (`range`:
+ * 5A, 20A or 30A), its capacitors, the power LED and its resistor, and the
+ * header (VCC, OUT, GND) down the right edge. The box is 12 x 5.6 pitches.
+ */
+export function acs712Module(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const fin = props.finish || 'red';
+  const f = finish(T, fin);
+  const w = 12 * p;
+  const h = 5.6 * p;
+  let s = board({ width: w, height: h, finish: fin, holes: false });
+  const terminal = screwTerminal(T, f, 1.5 * p, 1.8 * p, ['IP+', 'IP-']);
+  s += terminal.svg;
+  // The chip lying along x, its two lines of print.
+  const chw = 4.9 * mm;
+  const chh = 3.9 * mm;
+  const chx = 4.4 * p;
+  const chy = h / 2 - chh / 2;
+  let chip = '';
+  for (let k = 0; k < 4; k++) {
+    const lx = chx + chw / 2 + (k - 1.5) * 1.27 * mm - 0.8;
+    chip += rect(lx, chy - 3.6, 1.6, 3.6, T.lead, { rx: 0.2 }) + rect(lx, chy + chh, 1.6, 3.6, T.lead, { rx: 0.2 });
+  }
+  chip +=
+    rect(chx, chy, chw, chh, T.chip, Object.assign({ rx: 0.5 }, edge(T, T['chip-edge'], T['stroke-detail']))) +
+    bevel(T, chx, chy, chw, chh, 1.0, 0.5) +
+    circle(chx + 1.8, chy + chh - 1.8, 0.6, T['chip-print']) +
+    text(chx + chw / 2, chy + chh / 2 - 0.4, 'ACS712', 4, T['chip-print']) +
+    text(chx + chw / 2, chy + chh / 2 + 4.4, ACS712_PRINT[props.range] || ACS712_PRINT['5A'], 4, T['chip-print']);
+  s += tag('chip', chip);
+  s += framed(T, f, 'capacitor', 7.2 * p, 1.0 * p, false) + framed(T, f, 'capacitor', 7.2 * p, 3.5 * p, false);
+  s +=
+    silkFrame(T, f, 8.5 * p, 0.8 * p, 0.6 * p, 0.6 * p) +
+    indicator({
+      x: 8.5 * p,
+      y: 0.8 * p,
+      size: 0.6 * p,
+      color: 'red',
+      on: !!(props.indicators && props.indicators.power),
+      hook: 'power-led',
+      state: 'power-led',
+      finish: fin,
+    }) +
+    text(8.8 * p, 2.1 * p, 'PWR', PIN_LABEL, f.silk);
+  s += framed(T, f, 'resistor', 8.3 * p, 3.5 * p, false);
+  const hdr = padRow(
+    T,
+    fin,
+    f,
+    {
+      x: w - 0.5 * p,
+      y: 1.8 * p,
+      axis: 'y',
+      labels: ['VCC', 'OUT', 'GND'],
+      kind: 'pad',
+      side: 'left',
+      silk: f.silk,
+      size: PIN_LABEL,
+    },
+    -1,
+  );
+  s += hdr.svg;
+  return art(w, h, 'ACS712 current sensor module', s, [...terminal.pins, ...hdr.pins]);
 }
 /** The DS18B20 1-Wire temperature sensor in its TO-92 package, flat face forward: GND, DQ, VDD. */
 export function ds18b20Sensor() {

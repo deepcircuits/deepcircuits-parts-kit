@@ -1,0 +1,12 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>VoltageSensor — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.voltageSensorModule(), { pins: true, scale: 3, caption: "voltage sensor, 0-25 V" });
+</script>
+</body>
+</html>

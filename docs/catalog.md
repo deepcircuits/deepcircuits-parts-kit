@@ -2,13 +2,13 @@
 
 [Parts Kit](../README.md) › The catalog
 
-111 parts in ten families. The [gallery](https://deepcircuits.io/parts) shows every part and every generator's card.
+121 parts in ten families. The [gallery](https://deepcircuits.io/parts) shows every part and every generator's card.
 
 | Family | Parts |
 | --- | --- |
 | Boards (17) | Uno-, Nano- and Mega-class boards, Pico-class and RP2040 Nano-class boards, eight ESP32 dev boards (30- and 38-pin, C3, C5, C6, H2, S2, S3), two STM32 boards, the Blue Pill, Franzininho DIY |
 | Displays (16) | 16×2 and 20×4 character LCDs, three OLEDs, two TFTs, an 84×48 LCD, a 2.9″ e-paper, seven-segment and clock displays, 8×8 LED matrices and a chain of four, an 8×8 RGB matrix, a 16-LED ring |
-| Sensors (19) | Ultrasonic ranger, temperature and humidity, two pressure boards, an environment sensor (BME280 or BMP280), a time-of-flight sensor, a pulse oximeter, light, flame, sound, tilt and gas boards, IR receiver, NTC thermistor, PIR motion, accelerometer and gyro, pulse, DS18B20 |
+| Sensors (29) | Ultrasonic ranger, temperature and humidity, two pressure boards, an environment sensor (BME280 or BMP280), a time-of-flight sensor, a pulse oximeter, light, flame, sound, tilt and gas boards, IR receiver, NTC thermistor, PIR motion, accelerometer and gyro, pulse, DS18B20, LM35 and TMP36, resistive and capacitive soil moisture, water level, rain, IR obstacle and line tracking boards, voltage and current sensors |
 | Inputs (11) | Two pushbuttons, rotary and slide potentiometers, slide switch, rotary encoder, joystick, 4×4 keypad, 8-way DIP switch, IR remote, rotary dialer |
 | Outputs (10) | 5 mm LED, RGB LED, LED bar graph, addressable LED and strip, piezo buzzer, servo, stepper and biaxial stepper, DPDT relay |
 | Modules (8) | Relay module, load cell amplifier, microSD card, real-time clock, precision real-time clock, RFID reader, logic analyzer, pixel meter |
