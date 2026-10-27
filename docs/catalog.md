@@ -2,7 +2,7 @@
 
 [Parts Kit](../README.md) › The catalog
 
-133 parts in ten families. The [gallery](https://deepcircuits.io/parts) shows every part and every generator's card.
+137 parts in ten families. The [gallery](https://deepcircuits.io/parts) shows every part and every generator's card.
 
 | Family | Parts |
 | --- | --- |
@@ -10,7 +10,7 @@
 | Displays (16) | 16×2 and 20×4 character LCDs, three OLEDs, two TFTs, an 84×48 LCD, a 2.9″ e-paper, seven-segment and clock displays, 8×8 LED matrices and a chain of four, an 8×8 RGB matrix, a 16-LED ring |
 | Sensors (37) | Ultrasonic ranger, temperature and humidity, two pressure boards, an environment sensor (BME280 or BMP280), a time-of-flight sensor, a pulse oximeter, light, flame, sound, tilt and gas boards, IR receiver, NTC thermistor, PIR motion, accelerometer and gyro, pulse, DS18B20, LM35 and TMP36, resistive and capacitive soil moisture, water level, rain, IR obstacle and line tracking boards, voltage and current sensors, hall and linear hall, touch, vibration, digital temperature, photo interrupter and knock boards, a reed switch |
 | Inputs (11) | Two pushbuttons, rotary and slide potentiometers, slide switch, rotary encoder, joystick, 4×4 keypad, 8-way DIP switch, IR remote, rotary dialer |
-| Outputs (11) | 5 mm LED, RGB LED, LED bar graph, addressable LED and strip, piezo and active buzzers, servo, stepper and biaxial stepper, DPDT relay |
+| Outputs (15) | 5 mm LED, RGB LED, LED bar graph, addressable LED and strip, piezo and active buzzers, servo, stepper and biaxial stepper, DPDT relay, DC motor and TT gear motor, water pump, push-pull solenoid |
 | Modules (13) | Relay module, 2-, 4- and 8-channel relay modules, 3.3 V regulator module, breadboard power module, load cell amplifier, microSD card, real-time clock, precision real-time clock, RFID reader, logic analyzer, pixel meter |
 | Chips (7) | NE555, 74HC595, 74HC165, NLSF595, ATtiny85, each in DIP, SOIC or TSSOP; transistors in TO-92 and TO-220 |
 | Passives (3) | Resistor, electrolytic and ceramic capacitors |

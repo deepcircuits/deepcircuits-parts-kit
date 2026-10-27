@@ -20800,6 +20800,123 @@
       ]
     },
     {
+      "id": "dc-motor",
+      "name": "DC motor",
+      "family": "output",
+      "aliases": [
+        "130 motor",
+        "hobby motor",
+        "brushed"
+      ],
+      "width": 124.8,
+      "height": 146.86,
+      "pins": [
+        { "name": "M+", "x": 57.6, "y": 141.1 },
+        { "name": "M-", "x": 67.2, "y": 141.1 }
+      ],
+      "hooks": [
+        "rotor"
+      ],
+      "images": [
+        {
+          "file": "dc-motor.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": "dc-gear-motor",
+      "name": "DC gear motor",
+      "family": "output",
+      "aliases": [
+        "TT motor",
+        "gearbox",
+        "robot wheel"
+      ],
+      "width": 268.8,
+      "height": 115.76,
+      "pins": [
+        { "name": "M+", "x": 9.6, "y": 110 },
+        { "name": "M-", "x": 19.2, "y": 110 }
+      ],
+      "hooks": [
+        "rotor"
+      ],
+      "images": [
+        {
+          "file": "dc-gear-motor.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": "water-pump",
+      "name": "Water pump",
+      "family": "output",
+      "aliases": [
+        "submersible pump",
+        "mini pump"
+      ],
+      "width": 153.6,
+      "height": 166.55,
+      "pins": [
+        { "name": "M+", "x": 9.6, "y": 160.79 },
+        { "name": "M-", "x": 19.2, "y": 160.79 }
+      ],
+      "hooks": [
+        "pump"
+      ],
+      "images": [
+        {
+          "file": "water-pump.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "water-pump--running.svg",
+          "label": "Running",
+          "options": {
+            "running": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "solenoid",
+      "name": "Solenoid",
+      "family": "output",
+      "aliases": [
+        "push-pull",
+        "JF-0530B",
+        "plunger"
+      ],
+      "width": 182.4,
+      "height": 83.63,
+      "pins": [
+        { "name": "1", "x": 9.6, "y": 77.87 },
+        { "name": "2", "x": 19.2, "y": 77.87 }
+      ],
+      "hooks": [
+        "plunger"
+      ],
+      "images": [
+        {
+          "file": "solenoid.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "solenoid--position-1.svg",
+          "label": "Plunger travel: 1",
+          "options": {
+            "position": 1
+          }
+        }
+      ]
+    },
+    {
       "id": "relay-module",
       "name": "Relay module",
       "family": "module",
