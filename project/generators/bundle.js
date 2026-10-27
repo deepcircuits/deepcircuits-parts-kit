@@ -6252,6 +6252,67 @@ var PartsKit = (() => {
     s += hdr.svg;
     return art(w, h, "DS1307 real-time clock module", s, hdr.pins);
   }
+  function ds3231Module(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const bw = 38 * mm;
+    const h = 22 * mm;
+    const names = props.pins || ["32K", "SQW", "SCL", "SDA", "VCC", "GND"];
+    const prints = props.labels || names;
+    let s = "";
+    s += board({ width: bw, height: h, finish: fin, holes: false, mark: { x: 13.2 * mm, y: 17.6 * mm, size: 0.6 * p } });
+    [
+      [2.6 * mm, 2.6 * mm],
+      [2.6 * mm, h - 2.6 * mm]
+    ].forEach((c) => {
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
+    });
+    s += header({
+      x: 2.6 * mm,
+      y: h / 2 - 1.5 * p,
+      axis: "y",
+      labels: ["SCL", "SDA", "VCC", "GND"],
+      kind: "pad",
+      side: "right",
+      silk: f.silk
+    }).svg;
+    s += text(17 * mm, 2.9 * mm, props.label || "ZS-042", 4.4, f.silk, { "font-weight": 600 });
+    s += soicAcross(T, 7.6 * mm, 7 * mm, 10.3 * mm, 7.5 * mm, 8, "DS3231");
+    s += soicAcross(T, 22.4 * mm, 4.6 * mm, 4.9 * mm, 3.9 * mm, 4, "24C32");
+    s += framed(T, f, "resistor", 21.4 * mm, 12.4 * mm, true) + text(21.4 * mm + 0.45 * p, 12.4 * mm + 0.55 * p + 4.2, "472", 4, f.silk) + framed(T, f, "resistor", 21.4 * mm, 17 * mm, true) + framed(T, f, "capacitor", 8.4 * mm, 18.6 * mm, true);
+    s += rect(27.4 * mm - 1.2, 15.6 * mm - 1.2, 0.55 * p + 2.4, 0.55 * p + 2.4, "none", {
+      stroke: f.silk,
+      "stroke-width": T["stroke-fine"],
+      "stroke-opacity": 0.85,
+      rx: 0.4
+    }) + indicator({
+      x: 27.4 * mm,
+      y: 15.6 * mm,
+      size: 0.55 * p,
+      color: "red",
+      on: !!(props.indicators && props.indicators.power),
+      hook: "power-led",
+      state: "power",
+      finish: fin
+    });
+    s += framed(T, f, "resistor", 27 * mm, 10 * mm, false);
+    const edgePins = edgeHeader(T, { names, side: "right", at: bw, from: r2(h / 2 - (names.length - 1) * p / 2) });
+    const prs = header({
+      x: edgePins.pads[0].x,
+      y: edgePins.pads[0].y,
+      axis: "y",
+      labels: prints,
+      kind: "print",
+      side: "left",
+      silk: f.silk
+    });
+    s += edgePins.svg + prs.svg;
+    return art(edgePins.pins[0].x, h, "DS3231 real-time clock module", s, edgePins.pins);
+  }
   function rfidModule(props) {
     props = props || {};
     const T = tokens();
@@ -8851,6 +8912,7 @@ var PartsKit = (() => {
   // src/families/modules.js
   var modules_exports = {};
   __export(modules_exports, {
+    ds3231Module: () => ds3231Module,
     hx711Board: () => hx711Board,
     logicAnalyzer: () => logicAnalyzer,
     microsdModule: () => microsdModule,
@@ -9441,6 +9503,7 @@ var PartsKit = (() => {
     dipSwitch: () => dipSwitch,
     drawPart: () => drawPart,
     ds18b20Sensor: () => ds18b20Sensor,
+    ds3231Module: () => ds3231Module,
     epaperModule: () => epaperModule,
     esp32C3DevKit: () => esp32C3DevKit,
     esp32C5DevKit: () => esp32C5DevKit,
@@ -9881,6 +9944,7 @@ var PartsKit = (() => {
     hx711Board: { finish: finish2("red") },
     microsdModule: { finish: finish2("blue") },
     rtcModule: { finish: finish2("blue") },
+    ds3231Module: { indicators: lamps2({ power: "Power LED" }), finish: finish2("blue") },
     rfidModule: { indicators: lamps2({ power: "Power LED" }), finish: finish2("blue") },
     logicAnalyzer: {
       state: state({
@@ -10197,7 +10261,15 @@ var PartsKit = (() => {
     ["relay-module", "Relay module", "module", "relayModule", null, ["relay", "SRD-05VDC"]],
     ["load-cell-amplifier", "Load cell amplifier", "module", "hx711Board", null, ["HX711", "scale"]],
     ["microsd-card-module", "microSD card module", "module", "microsdModule", null, ["SD card"]],
-    ["real-time-clock", "Real-time clock", "module", "rtcModule", null, ["DS1307", "DS3231", "RTC"]],
+    ["real-time-clock", "Real-time clock", "module", "rtcModule", null, ["DS1307", "RTC"]],
+    [
+      "precision-real-time-clock",
+      "Precision real-time clock",
+      "module",
+      "ds3231Module",
+      null,
+      ["DS3231", "ZS-042", "RTC"]
+    ],
     ["rfid-reader", "RFID reader", "module", "rfidModule", null, ["MFRC522", "RC522", "NFC"]],
     ["logic-analyzer", "Logic analyzer", "module", "logicAnalyzer", null, ["8 channels"]],
     ["pixel-meter", "Pixel meter", "module", "neopixelMeter", null, ["NeoPixel", "current meter"]],

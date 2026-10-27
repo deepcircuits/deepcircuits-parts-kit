@@ -352,6 +352,11 @@ export interface PartOptionsById {
   "real-time-clock": {
     /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
   };
+  /** Precision real-time clock: ds3231Module. */
+  "precision-real-time-clock": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
   /** RFID reader: rfidModule. */
   "rfid-reader": {
     /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };

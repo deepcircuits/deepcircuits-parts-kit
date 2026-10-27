@@ -158,6 +158,8 @@ export interface GasModuleProps { label?: string; pins?: readonly string[]; /** 
 export interface Hx711BoardProps { pins?: readonly string[]; /** The load-cell pads down the left edge. */ cellPads?: readonly string[]; finish?: Finish }
 export interface MicrosdModuleProps { pins?: readonly string[]; finish?: Finish }
 export interface RtcModuleProps { pins?: readonly string[]; label?: string; finish?: Finish }
+/** The DS3231 module (ZS-042 layout): six pins on the right-angle header, the pass-through pads drawn but not pins. */
+export interface Ds3231ModuleProps { pins?: readonly string[]; /** The print beside the pins, in pin order; pins by default. */ labels?: readonly string[]; /** The board's silk title; ZS-042 by default. */ label?: string; finish?: Finish; indicators?: { power?: boolean } }
 export interface OledSquareProps extends ScreenPicture { finish?: Finish; pins?: readonly string[]; columns?: number; rows?: number; label?: string }
 /** chain 1 to 32 faces; lit[face] lists eight rows of '0'/'1'; face 0 is the rightmost, nearest DIN. */
 /** chain 1 is the green single module (header out of the top, output pins out of the bottom); 2 to 32 the blue FC-16 chain with the header at the right end. */
@@ -504,6 +506,7 @@ export interface PartsKit {
   hx711Board(props?: Hx711BoardProps): Artwork;
   microsdModule(props?: MicrosdModuleProps): Artwork;
   rtcModule(props?: RtcModuleProps): Artwork;
+  ds3231Module(props?: Ds3231ModuleProps): Artwork;
   oledSquare(props?: OledSquareProps): Artwork;
   max7219Matrix(props?: Max7219MatrixProps): Artwork;
   tm1637Module(props?: Tm1637ModuleProps): Artwork;

@@ -19574,7 +19574,6 @@
       "family": "module",
       "aliases": [
         "DS1307",
-        "DS3231",
         "RTC"
       ],
       "width": 144,
@@ -19630,6 +19629,87 @@
         },
         {
           "file": "real-time-clock--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "precision-real-time-clock",
+      "name": "Precision real-time clock",
+      "family": "module",
+      "aliases": [
+        "DS3231",
+        "ZS-042",
+        "RTC"
+      ],
+      "width": 166.3,
+      "height": 83.15,
+      "pins": [
+        { "name": "32K", "x": 166.3, "y": 17.57 },
+        { "name": "SQW", "x": 166.3, "y": 27.17 },
+        { "name": "SCL", "x": 166.3, "y": 36.77 },
+        { "name": "SDA", "x": 166.3, "y": 46.37 },
+        { "name": "VCC", "x": 166.3, "y": 55.97 },
+        { "name": "GND", "x": 166.3, "y": 65.57 }
+      ],
+      "hooks": [
+        "power-led"
+      ],
+      "images": [
+        {
+          "file": "precision-real-time-clock.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "precision-real-time-clock--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true
+            }
+          }
+        },
+        {
+          "file": "precision-real-time-clock--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "precision-real-time-clock--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "precision-real-time-clock--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "precision-real-time-clock--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "precision-real-time-clock--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "precision-real-time-clock--red.svg",
           "label": "Red",
           "options": {
             "finish": "red"

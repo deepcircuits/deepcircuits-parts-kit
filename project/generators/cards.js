@@ -272,6 +272,7 @@ export const CARDS = [
       K.mount(root, K.hx711Board(), { scale: 1.5, caption: "hx711Board" });
       K.mount(root, K.microsdModule(), { scale: 1.5, caption: "microsdModule" });
       K.mount(root, K.rtcModule(), { scale: 1.5, caption: "rtcModule" });
+      K.mount(root, K.ds3231Module({ indicators: { power: true } }), { scale: 1.5, caption: "ds3231Module, ZS-042" });
     },
   },
   {
