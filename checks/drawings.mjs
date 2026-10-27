@@ -109,6 +109,7 @@ export function suite(K) {
   'chip 165': K.chipTemplate({pins:['PL','CP','D4','D5','D6','D7','Q7_N','GND','Q7','DS','D0','D1','D2','D3','CE','VCC'],label:'74HC165'}),
   'chip nlsf595': K.chipTemplate({pins:['QB','QC','QD','QE','QF','QG','QH','GND','SQH','SCLR','SCK','RCK','OE','SI','QA','VCC'],label:'NLSF595'}),
   'chip attiny85': K.chipTemplate({pins:['PB5','PB3','PB4','GND','PB0','PB1','PB2','VCC'],label:'ATTINY85'}),
+  'chip labels': K.chipTemplate({pins:['B','C','LT','BI','LE','D','A','VSS','SEG_E','SEG_D','SEG_C','SEG_B','SEG_A','SEG_G','SEG_F','VDD'],labels:['B','C','LT','BI','LE','D','A','VSS','e','d','c','b','a','g','f','VDD'],label:'CD4511'}),
   'mod bmp180 5': K.bmp180Board(),
   'cat uno': K.unoClassBoard({indicators:{power:true,user:1}}), 'cat nano': K.nanoClassBoard(), 'cat mega': K.megaClassBoard({indicators:{power:true}}), 'cat nano rp2040': K.nanoRp2040Board(), 'cat pico': K.picoClassBoard({indicators:{power:true,user:0.5}}),
   'cat esp v1': K.esp32DevKitV1({indicators:{power:true,user:true}}), 'cat esp v4': K.esp32DevKitCV4(), 'cat esp c3': K.esp32C3DevKit(), 'cat esp s2': K.esp32S2DevKit(), 'cat esp s3': K.esp32S3DevKit({indicators:{power:true}}), 'cat esp c5': K.esp32C5DevKit(), 'cat esp c6': K.esp32C6DevKit(), 'cat esp h2': K.esp32H2DevKit(),

@@ -52,6 +52,7 @@ The first public release.
 - `espDevKitTemplate({ layout: 'devkitc' })`, the ESP32-DevKitC V4's own layout.
 - `espDevKitTemplate({ layout: 'devkit-1' })`, the DevKitM-1 and DevKitC-1 layout.
 - `moduleTemplate({ width, height })`, a breakout's board at its true size in millimetres.
+- `chipTemplate({ labels })` prints other text than the pin names, one per pin (a CD4511's segment outputs `SEG_A` ... printed `a` ... `g`).
 - `bmp180Board({ variant })` takes `'five-pin'` (the default) or `'gy68'`.
 - `tftModule({ pins })` takes `null` for a header place with no pin, drawn as a bare pad.
 - `nanoConnectTemplate({ indicators: { rgb } })` lights the Connect's RGB LED (the `rgb-led` hook).

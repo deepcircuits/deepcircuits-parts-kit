@@ -553,7 +553,9 @@ const ROW_PITCHES = { dip: 3, soic: 2, tssop: 2 };
 /**
  * A chip package, top view, pin 1 at the top left with the notch, numbered
  * anticlockwise as on the data sheet. Pin names sit outside the leads in
- * currentColor; a DIP body also carries pin numbers.
+ * currentColor; a DIP body also carries pin numbers. `labels` prints other
+ * text than the pin names, one per pin (a CD4511's segment outputs SEG_A ...
+ * printed a ... g as the data sheet has them).
  */
 export function chipTemplate(props) {
   const T = tokens();
@@ -562,6 +564,9 @@ export function chipTemplate(props) {
   const kind = props.package || 'dip';
   if (!names || names.length < 4 || names.length > 64 || names.length % 2)
     throw new Error(`A ${kind.toUpperCase()} needs an even pin count from 4 to 64.`);
+  if (props.labels && props.labels.length !== names.length)
+    throw new Error(`A chip's labels need one per pin (${names.length}).`);
+  const printed = props.labels || names;
   const half = names.length / 2;
   const p = T.pitch;
   const span = ROW_PITCHES[kind] * p;
@@ -569,7 +574,7 @@ export function chipTemplate(props) {
   const LEAD = T['lead-length'];
   const longest = Math.max.apply(
     null,
-    names.map(n => {
+    printed.map(n => {
       return n.length;
     }),
   );
@@ -618,7 +623,7 @@ export function chipTemplate(props) {
       T.lead,
       Object.assign({ rx: 0.3 }, edge(T, T['lead-edge'], 0.4)),
     );
-    s += text(left ? pn.x - 2.2 : pn.x + 2.2, pn.y + NAME * 0.36, pn.name, NAME, 'currentColor', {
+    s += text(left ? pn.x - 2.2 : pn.x + 2.2, pn.y + NAME * 0.36, printed[index], NAME, 'currentColor', {
       'text-anchor': left ? 'end' : 'start',
     });
     if (kind === 'dip')

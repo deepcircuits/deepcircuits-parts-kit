@@ -60,7 +60,7 @@ Pin names come from the part's data sheet or the printing on the board (`A` and 
 
 - `devBoardTemplate`: a board with your pin names.
 - `moduleTemplate` and `sensorModuleTemplate`: a breakout board with your chip or sensor.
-- `chipTemplate`: a DIP, SOIC or TSSOP chip with any even number of pins.
+- `chipTemplate`: a DIP, SOIC or TSSOP chip with any even number of pins; `labels` prints other text than the pin names.
 - and more.
 
 ```js
