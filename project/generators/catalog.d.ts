@@ -451,6 +451,10 @@ export interface PartOptionsById {
     /** Coil rating. 1 to 48 V. Default 12. */ volts?: number;
     /** Plunger travel. 0 to 1. Default 0. */ position?: number;
   };
+  /** Geared stepper: gearedStepper. */
+  "geared-stepper": {
+    /** Angle. 0 to 360 °. Default 0. */ angle?: number;
+  };
   /** Relay module: relayModule. */
   "relay-module": {
     /** Lamps. */ indicators?: { /** Power LED. Default true. */ power?: boolean; /** Status LED. Default false. */ status?: boolean };
@@ -504,6 +508,11 @@ export interface PartOptionsById {
     /** 5V-EN jumper fitted. Default true. */ regulatorJumper?: boolean;
     /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
     /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Stepper driver board: uln2003Board. */
+  "stepper-driver-board": {
+    /** Channel LEDs lit (A to D). */ status?: readonly (boolean)[];
+    /** Board colour. Default "green". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
   };
   /** Real-time clock: rtcModule. */
   "real-time-clock": {

@@ -381,6 +381,7 @@ export const OPTIONS = {
     volts: { type: 'number', label: 'Coil rating', min: 1, max: 48, step: 1, unit: 'V', default: 12 },
     position: state(unit('Plunger travel', { step: 0.05, default: 0 })),
   },
+  gearedStepper: { angle: state({ type: 'number', label: 'Angle', min: 0, max: 360, step: 1, unit: '°', default: 0 }) },
   // Modules.
   relayModule: { indicators: lamps({ power: 'Power LED', status: 'Status LED' }, ['power']), finish: finish('red') },
   multiRelayModule: {
@@ -408,6 +409,10 @@ export const OPTIONS = {
     regulatorJumper: bool('5V-EN jumper fitted', { default: true }),
     indicators: lamps({ power: 'Power LED' }),
     finish: finish('red'),
+  },
+  uln2003Board: {
+    status: state({ type: 'list', label: 'Channel LEDs lit (A to D)', items: { type: 'boolean' } }),
+    finish: finish('green'),
   },
   logicAnalyzer: {
     state: state({

@@ -20917,6 +20917,35 @@
       ]
     },
     {
+      "id": "geared-stepper",
+      "name": "Geared stepper",
+      "family": "output",
+      "aliases": [
+        "28BYJ-48",
+        "unipolar stepper",
+        "5V stepper"
+      ],
+      "width": 172.8,
+      "height": 160.37,
+      "pins": [
+        { "name": "ORANGE", "x": 96, "y": 154.61 },
+        { "name": "YELLOW", "x": 86.4, "y": 154.61 },
+        { "name": "PINK", "x": 76.8, "y": 154.61 },
+        { "name": "BLUE", "x": 67.2, "y": 154.61 },
+        { "name": "RED", "x": 105.6, "y": 154.61 }
+      ],
+      "hooks": [
+        "rotor"
+      ],
+      "images": [
+        {
+          "file": "geared-stepper.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
       "id": "relay-module",
       "name": "Relay module",
       "family": "module",
@@ -21689,6 +21718,86 @@
           "label": "White",
           "options": {
             "finish": "white"
+          }
+        }
+      ]
+    },
+    {
+      "id": "stepper-driver-board",
+      "name": "Stepper driver board",
+      "family": "module",
+      "aliases": [
+        "ULN2003",
+        "Darlington array",
+        "28BYJ-48 driver"
+      ],
+      "width": 134.4,
+      "height": 124.8,
+      "pins": [
+        { "name": "IN1", "x": 19.2, "y": 115.2 },
+        { "name": "IN2", "x": 28.8, "y": 115.2 },
+        { "name": "IN3", "x": 38.4, "y": 115.2 },
+        { "name": "IN4", "x": 48, "y": 115.2 },
+        { "name": "VCC", "x": 86.4, "y": 115.2 },
+        { "name": "GND", "x": 76.8, "y": 115.2 },
+        { "name": "A", "x": 48, "y": 19.2 },
+        { "name": "B", "x": 38.4, "y": 19.2 },
+        { "name": "C", "x": 28.8, "y": 19.2 },
+        { "name": "D", "x": 19.2, "y": 19.2 },
+        { "name": "COM", "x": 57.6, "y": 19.2 }
+      ],
+      "hooks": [
+        "led-a",
+        "led-b",
+        "led-c",
+        "led-d"
+      ],
+      "images": [
+        {
+          "file": "stepper-driver-board.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "stepper-driver-board--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "stepper-driver-board--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "stepper-driver-board--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "stepper-driver-board--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "stepper-driver-board--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "stepper-driver-board--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
           }
         }
       ]

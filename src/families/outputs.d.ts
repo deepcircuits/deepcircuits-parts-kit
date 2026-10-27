@@ -2,6 +2,7 @@
 import type { PartsKit } from '../../project/generators/index.d.ts';
 export declare const buzzer: PartsKit['buzzer'];
 export declare const dcMotor: PartsKit['dcMotor'];
+export declare const gearedStepper: PartsKit['gearedStepper'];
 export declare const led: PartsKit['led'];
 export declare const ledBarGraph: PartsKit['ledBarGraph'];
 export declare const ledStrip: PartsKit['ledStrip'];

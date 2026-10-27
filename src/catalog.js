@@ -229,6 +229,7 @@ const PARTS = [
   ],
   ['water-pump', 'Water pump', 'output', 'waterPump', null, ['submersible pump', 'mini pump']],
   ['solenoid', 'Solenoid', 'output', 'solenoid', null, ['push-pull', 'JF-0530B', 'plunger']],
+  ['geared-stepper', 'Geared stepper', 'output', 'gearedStepper', null, ['28BYJ-48', 'unipolar stepper', '5V stepper']],
   ['relay-module', 'Relay module', 'module', 'relayModule', null, ['relay', 'SRD-05VDC']],
   [
     'relay-module-2-channel',
@@ -272,6 +273,14 @@ const PARTS = [
     'l298nModule',
     null,
     ['L298N', 'H-bridge', 'dual motor driver'],
+  ],
+  [
+    'stepper-driver-board',
+    'Stepper driver board',
+    'module',
+    'uln2003Board',
+    null,
+    ['ULN2003', 'Darlington array', '28BYJ-48 driver'],
   ],
   ['real-time-clock', 'Real-time clock', 'module', 'rtcModule', null, ['DS1307', 'RTC']],
   [

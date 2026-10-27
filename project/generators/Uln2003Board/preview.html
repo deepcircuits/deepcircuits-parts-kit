@@ -1,0 +1,14 @@
+<!-- @dsCard group="Templates" height=320 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Uln2003Board — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.uln2003Board(), { pins: true, scale: 2, caption: "ULN2003 board" });
+K.mount(root, K.uln2003Board({ status: [true, true, false, false] }), { scale: 2, caption: "A and B sinking" });
+</script>
+</body>
+</html>

@@ -251,6 +251,11 @@ var CARDS = [
     K.mount(root, K.franzininho({label: 'FRANZININHO DIY', indicators: {power: true, user: true}}), { pins: true, scale: 1.4, caption: "powered, PB1 high" });
     K.mount(root, K.franzininho({ label: "FRANZININHO DIY", indicators: { power: false } }), { scale: 1.4, caption: "off" });
   } },
+  { name: "GearedStepper", intro: "<code>gearedStepper</code>: the 28BYJ-48 5 V geared unipolar stepper seen from its shaft side", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.gearedStepper(), { pins: true, scale: 1.4, caption: "28BYJ-48" });
+    K.mount(root, K.gearedStepper({ angle: 90 }), { scale: 1.4, caption: "the shaft at 90°" });
+  } },
   { name: "Header", intro: "A row of pins one <code>pitch</code> apart along x or y, with labels on one side", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");
     var T = K.tokens(), p = T.pitch;
@@ -587,6 +592,11 @@ var CARDS = [
     K.mount(root, K.transistor({ label: "2N7000", pins: ["S", "G", "D"] }), { scale: 3, caption: "2N7000" });
     K.mount(root, K.transistor({ package: "to-220" }), { pins: true, scale: 3, caption: "IRLZ44N, TO-220" });
     K.mount(root, K.transistor({ package: "to-220", label: "NDP6020P", live: { heat: 0.7 } }), { scale: 3, caption: "live: warm" });
+  } },
+  { name: "Uln2003Board", intro: "<code>uln2003Board</code>: the ULN2003 stepper driver board sold with the 28BYJ-48, 35 × 32 mm on a <code>pcb-green</code> board", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.uln2003Board(), { pins: true, scale: 2, caption: "ULN2003 board" });
+    K.mount(root, K.uln2003Board({ status: [true, true, false, false] }), { scale: 2, caption: "A and B sinking" });
   } },
   { name: "VoltageSensor", intro: "<code>voltageSensorModule</code>", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");

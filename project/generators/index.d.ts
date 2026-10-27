@@ -133,6 +133,8 @@ export interface TftModuleProps extends ScreenPicture { /** J2's places from the
 export interface ServoProps { angle?: number }
 /** The stepper: frameSize in mm (NEMA 17 is 42.3), biaxial for the two-rotor clock motor (angle2 turns the `rotor-2` hook), pins to rename. */
 export interface StepperProps { frameSize?: number; biaxial?: boolean; angle?: number; angle2?: number; pins?: readonly string[] }
+/** The 28BYJ-48 geared stepper from its shaft side; angle in degrees turns the `rotor` hook (data-angle), the output shaft. Pins in drive order: ORANGE, YELLOW, PINK, BLUE, RED (the centre tap). */
+export interface GearedStepperProps { angle?: number }
 /** The brushed DC motor: 'hobby-130' (the default) is the 130 can end on, 'tt-gear' the TT gear motor lying flat; angle in degrees turns the `rotor` hook (data-angle); pins to rename (M+, M-). */
 export interface DcMotorProps { variant?: 'hobby-130' | 'tt-gear'; angle?: number; pins?: readonly string[] }
 /** The mini submersible pump: `running` draws the water leaving its outlet (`flow`); pins to rename (M+, M-). */
@@ -165,6 +167,8 @@ export interface Mb102ModuleProps { power?: 'on' | 'off'; topRail?: '5' | '3.3' 
 /** The CD74HC4067 16-channel analog multiplexer breakout: SIG, S3, S2, S1, S0, EN, VCC, GND along the bottom edge and C0 … C15 along the top. */
 export interface MuxBreakoutProps { finish?: Finish }
 /** The L298N dual H-bridge module: pins ENA, IN1 … IN4, ENB (the logic header), 12V, GND, 5V (the power terminal), OUT1 … OUT4 (the motor terminals). `enableJumpers` (fitted by default) draws the caps joining ENA and ENB to the 5V pins behind them; `regulatorJumper` (fitted by default) the 5V-EN cap; `indicators.power` lights the power LED. */
+/** The ULN2003 stepper driver board: pins IN1 … IN4 (the input header), VCC and GND (printed + and -), A … D (the channel outputs) and COM (the motor connector's +, joined to VCC through the ON/OFF jumper). `status` lights the channel LEDs A to D (`led-a` … `led-d`). */
+export interface Uln2003BoardProps { status?: readonly boolean[]; finish?: Finish }
 export interface L298nModuleProps { enableJumpers?: boolean; regulatorJumper?: boolean; finish?: Finish; indicators?: { power?: boolean } }
 export interface PicoBoardProps { label?: string; chipLabel?: string; finish?: Finish; left?: readonly string[]; right?: readonly string[]; indicators?: { power?: Lit; user?: Lit }; /** false draws the debug pads without returning them as pins. */ debugPins?: boolean; description?: string }
 export interface Nucleo32BoardProps { label?: string; chipLabel?: string; finish?: Finish; left?: readonly string[]; right?: readonly string[]; extraPads?: readonly { name: string; dx: number; dy: number }[]; indicators?: { power?: Lit; user?: Lit }; description?: string }
@@ -466,6 +470,8 @@ export interface PartsKit {
   dcMotor(props?: DcMotorProps): Artwork;
   waterPump(props?: WaterPumpProps): Artwork;
   solenoid(props?: SolenoidProps): Artwork;
+  /** The 28BYJ-48 geared unipolar stepper, its output shaft turned to `angle`. */
+  gearedStepper(props?: GearedStepperProps): Artwork;
   megaBoardTemplate(props?: MegaBoardProps): Artwork;
   franzininho(props?: FranzininhoProps): Artwork;
   espDevKitTemplate(props?: EspDevKitProps): Artwork;
@@ -589,6 +595,8 @@ export interface PartsKit {
   muxBreakout(props?: MuxBreakoutProps): Artwork;
   /** The L298N dual H-bridge motor driver module, its jumpers drawn as fitted. */
   l298nModule(props?: L298nModuleProps): Artwork;
+  /** The ULN2003 stepper driver board, its channel LEDs lit by `status`. */
+  uln2003Board(props?: Uln2003BoardProps): Artwork;
   oledSquare(props?: OledSquareProps): Artwork;
   max7219Matrix(props?: Max7219MatrixProps): Artwork;
   tm1637Module(props?: Tm1637ModuleProps): Artwork;
