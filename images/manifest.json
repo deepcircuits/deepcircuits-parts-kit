@@ -18687,8 +18687,8 @@
       ]
     },
     {
-      "id": "voltage-sensor",
-      "name": "Voltage sensor",
+      "id": "voltage-divider-sensor",
+      "name": "Voltage divider sensor",
       "family": "sensor",
       "aliases": [
         "0-25V",
@@ -18706,47 +18706,47 @@
       "hooks": [],
       "images": [
         {
-          "file": "voltage-sensor.svg",
+          "file": "voltage-divider-sensor.svg",
           "label": "At rest",
           "options": {}
         },
         {
-          "file": "voltage-sensor--blue.svg",
+          "file": "voltage-divider-sensor--blue.svg",
           "label": "Blue",
           "options": {
             "finish": "blue"
           }
         },
         {
-          "file": "voltage-sensor--green.svg",
+          "file": "voltage-divider-sensor--green.svg",
           "label": "Green",
           "options": {
             "finish": "green"
           }
         },
         {
-          "file": "voltage-sensor--teal.svg",
+          "file": "voltage-divider-sensor--teal.svg",
           "label": "Teal",
           "options": {
             "finish": "teal"
           }
         },
         {
-          "file": "voltage-sensor--black.svg",
+          "file": "voltage-divider-sensor--black.svg",
           "label": "Black",
           "options": {
             "finish": "black"
           }
         },
         {
-          "file": "voltage-sensor--purple.svg",
+          "file": "voltage-divider-sensor--purple.svg",
           "label": "Purple",
           "options": {
             "finish": "purple"
           }
         },
         {
-          "file": "voltage-sensor--white.svg",
+          "file": "voltage-divider-sensor--white.svg",
           "label": "White",
           "options": {
             "finish": "white"
@@ -18755,8 +18755,8 @@
       ]
     },
     {
-      "id": "current-sensor",
-      "name": "Current sensor",
+      "id": "acs712-current-sensor",
+      "name": "ACS712 current sensor",
       "family": "sensor",
       "aliases": [
         "ACS712",
@@ -18776,12 +18776,12 @@
       ],
       "images": [
         {
-          "file": "current-sensor.svg",
+          "file": "acs712-current-sensor.svg",
           "label": "At rest",
           "options": {}
         },
         {
-          "file": "current-sensor--indicators-lit.svg",
+          "file": "acs712-current-sensor--indicators-lit.svg",
           "label": "Lamps, lit",
           "options": {
             "indicators": {
@@ -18790,42 +18790,42 @@
           }
         },
         {
-          "file": "current-sensor--blue.svg",
+          "file": "acs712-current-sensor--blue.svg",
           "label": "Blue",
           "options": {
             "finish": "blue"
           }
         },
         {
-          "file": "current-sensor--green.svg",
+          "file": "acs712-current-sensor--green.svg",
           "label": "Green",
           "options": {
             "finish": "green"
           }
         },
         {
-          "file": "current-sensor--teal.svg",
+          "file": "acs712-current-sensor--teal.svg",
           "label": "Teal",
           "options": {
             "finish": "teal"
           }
         },
         {
-          "file": "current-sensor--black.svg",
+          "file": "acs712-current-sensor--black.svg",
           "label": "Black",
           "options": {
             "finish": "black"
           }
         },
         {
-          "file": "current-sensor--purple.svg",
+          "file": "acs712-current-sensor--purple.svg",
           "label": "Purple",
           "options": {
             "finish": "purple"
           }
         },
         {
-          "file": "current-sensor--white.svg",
+          "file": "acs712-current-sensor--white.svg",
           "label": "White",
           "options": {
             "finish": "white"

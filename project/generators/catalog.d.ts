@@ -278,12 +278,12 @@ export interface PartOptionsById {
     /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** Output LED. Default false. */ out?: boolean };
     /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
   };
-  /** Voltage sensor: voltageSensorModule. */
-  "voltage-sensor": {
+  /** Voltage divider sensor: voltageSensorModule. */
+  "voltage-divider-sensor": {
     /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
   };
-  /** Current sensor: acs712Module. */
-  "current-sensor": {
+  /** ACS712 current sensor: acs712Module. */
+  "acs712-current-sensor": {
     /** Range. Default "5A". */ range?: "5A" | "20A" | "30A";
     /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
     /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
