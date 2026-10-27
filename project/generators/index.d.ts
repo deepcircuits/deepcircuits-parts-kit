@@ -472,6 +472,10 @@ export interface PartsKit {
   irReceiver(state?: CatalogModuleState): Artwork;
   gasSensor(state?: CatalogSensorState): Artwork;
   mpu6050Imu(state?: CatalogModuleState): Artwork;
+  /** `chip`: BMP280 prints the pressure-only chip on the same board. */
+  bme280Module(state?: CatalogModuleState & { chip?: 'BME280' | 'BMP280' }): Artwork;
+  vl53l0xModule(state?: CatalogModuleState): Artwork;
+  max30102Module(state?: CatalogModuleState): Artwork;
   ne555Timer(state?: CatalogChipState): Artwork;
   shiftRegister595(state?: CatalogChipState): Artwork;
   shiftRegister165(state?: CatalogChipState): Artwork;

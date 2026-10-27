@@ -8067,6 +8067,39 @@ var PartsKit = (() => {
       finish: finishOf(props, "blue")
     });
   }
+  function bme280Module(props) {
+    return moduleTemplate({
+      label: props && props.chip === "BMP280" ? "BMP280" : "BME280",
+      pins: ["VCC", "GND", "SCL", "SDA"],
+      part: "chip",
+      ic: "lga",
+      width: 13,
+      height: 11,
+      finish: finishOf(props, "purple")
+    });
+  }
+  function vl53l0xModule(props) {
+    return moduleTemplate({
+      label: "VL53L0X",
+      pins: ["VCC", "GND", "SCL", "SDA", "GPIO1", "XSHUT"],
+      part: "chip",
+      ic: "qfn",
+      width: 25,
+      height: 15,
+      finish: finishOf(props, "purple")
+    });
+  }
+  function max30102Module(props) {
+    return moduleTemplate({
+      label: "MAX30102",
+      pins: ["VCC", "GND", "SCL", "SDA", "INT"],
+      part: "chip",
+      ic: "lga",
+      width: 20,
+      height: 15,
+      finish: finishOf(props, "purple")
+    });
+  }
   var init_sensors = __esm({
     "src/sensors.js"() {
       init_core();
@@ -8078,6 +8111,7 @@ var PartsKit = (() => {
   // src/families/sensors.js
   var sensors_exports = {};
   __export(sensors_exports, {
+    bme280Module: () => bme280Module,
     bmp180Board: () => bmp180Board,
     dht11Module: () => dht11Module,
     dht22Sensor: () => dht22Sensor,
@@ -8086,13 +8120,15 @@ var PartsKit = (() => {
     gasSensor: () => gasSensor,
     irReceiver: () => irReceiver,
     lightSensor: () => lightSensor,
+    max30102Module: () => max30102Module,
     mpu6050Imu: () => mpu6050Imu,
     ntcSensor: () => ntcSensor,
     pirModule: () => pirModule,
     pulseSensor: () => pulseSensor,
     soundSensor: () => soundSensor,
     tiltSwitch: () => tiltSwitch,
-    ultrasonicRanger: () => ultrasonicRanger
+    ultrasonicRanger: () => ultrasonicRanger,
+    vl53l0xModule: () => vl53l0xModule
   });
   var init_sensors2 = __esm({
     "src/families/sensors.js"() {
@@ -9803,6 +9839,7 @@ var PartsKit = (() => {
     bevel: () => bevel,
     bevelPoly: () => bevelPoly,
     bluePillBoard: () => bluePillBoard,
+    bme280Module: () => bme280Module,
     bmp180Board: () => bmp180Board,
     board: () => board,
     breadboard: () => breadboard,
@@ -9873,6 +9910,7 @@ var PartsKit = (() => {
     logicAnalyzer: () => logicAnalyzer,
     logicSymbol: () => logicSymbol,
     lotCode: () => lotCode,
+    max30102Module: () => max30102Module,
     max7219Matrix: () => max7219Matrix,
     mb102Module: () => mb102Module,
     megaBoardTemplate: () => megaBoardTemplate,
@@ -9955,6 +9993,7 @@ var PartsKit = (() => {
     usbC: () => usbC,
     usbPort: () => usbPort,
     via: () => via,
+    vl53l0xModule: () => vl53l0xModule,
     wire: () => wire
   });
 
@@ -10157,6 +10196,17 @@ var PartsKit = (() => {
     mpu6050Imu: { finish: finish2("blue") },
     pulseSensor: { on: state(bool("Beat LED")) },
     ds18b20Sensor: {},
+    bme280Module: {
+      chip: {
+        type: "enum",
+        label: "Chip",
+        choices: [choice("BME280", "BME280"), choice("BMP280", "BMP280")],
+        default: "BME280"
+      },
+      finish: finish2("purple")
+    },
+    vl53l0xModule: { finish: finish2("purple") },
+    max30102Module: { finish: finish2("purple") },
     // Inputs.
     pushbutton: {
       pressed: state(bool("Pressed")),
@@ -10587,6 +10637,16 @@ var PartsKit = (() => {
     ["accelerometer-and-gyro", "Accelerometer and gyro", "sensor", "mpu6050Imu", null, ["MPU6050", "IMU", "GY-521"]],
     ["pulse-sensor", "Pulse sensor", "sensor", "pulseSensor", null, ["heart rate"]],
     ["ds18b20-temperature-sensor", "DS18B20 temperature sensor", "sensor", "ds18b20Sensor", null, ["1-Wire", "TO-92"]],
+    ["environment-sensor", "Environment sensor", "sensor", "bme280Module", null, ["BME280", "BMP280", "GY-BME280"]],
+    [
+      "time-of-flight-sensor",
+      "Time-of-flight sensor",
+      "sensor",
+      "vl53l0xModule",
+      null,
+      ["VL53L0X", "GY-530", "distance"]
+    ],
+    ["pulse-oximeter", "Pulse oximeter", "sensor", "max30102Module", null, ["MAX30102", "heart rate", "SpO2"]],
     ["pushbutton", "Pushbutton", "input", "pushbutton", { size: 12 }, ["button", "tactile switch"]],
     ["pushbutton-6-mm", "Pushbutton, 6 mm", "input", "pushbutton", { size: 6 }, ["button", "tactile switch"]],
     ["potentiometer", "Potentiometer", "input", "potentiometer", null, ["knob", "pot"]],

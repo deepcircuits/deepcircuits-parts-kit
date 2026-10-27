@@ -17965,6 +17965,213 @@
       ]
     },
     {
+      "id": "environment-sensor",
+      "name": "Environment sensor",
+      "family": "sensor",
+      "aliases": [
+        "BME280",
+        "BMP280",
+        "GY-BME280"
+      ],
+      "width": 49.13,
+      "height": 41.57,
+      "pins": [
+        { "name": "VCC", "x": 10.17, "y": 35.81 },
+        { "name": "GND", "x": 19.77, "y": 35.81 },
+        { "name": "SCL", "x": 29.37, "y": 35.81 },
+        { "name": "SDA", "x": 38.97, "y": 35.81 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "environment-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "environment-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "environment-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "environment-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "environment-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "environment-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "environment-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "time-of-flight-sensor",
+      "name": "Time-of-flight sensor",
+      "family": "sensor",
+      "aliases": [
+        "VL53L0X",
+        "GY-530",
+        "distance"
+      ],
+      "width": 94.49,
+      "height": 56.69,
+      "pins": [
+        { "name": "VCC", "x": 23.24, "y": 50.93 },
+        { "name": "GND", "x": 32.84, "y": 50.93 },
+        { "name": "SCL", "x": 42.44, "y": 50.93 },
+        { "name": "SDA", "x": 52.04, "y": 50.93 },
+        { "name": "GPIO1", "x": 61.64, "y": 50.93 },
+        { "name": "XSHUT", "x": 71.24, "y": 50.93 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "time-of-flight-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "time-of-flight-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "time-of-flight-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "time-of-flight-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "time-of-flight-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "time-of-flight-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "time-of-flight-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "pulse-oximeter",
+      "name": "Pulse oximeter",
+      "family": "sensor",
+      "aliases": [
+        "MAX30102",
+        "heart rate",
+        "SpO2"
+      ],
+      "width": 75.59,
+      "height": 56.69,
+      "pins": [
+        { "name": "VCC", "x": 18.6, "y": 50.93 },
+        { "name": "GND", "x": 28.2, "y": 50.93 },
+        { "name": "SCL", "x": 37.8, "y": 50.93 },
+        { "name": "SDA", "x": 47.4, "y": 50.93 },
+        { "name": "INT", "x": 57, "y": 50.93 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "pulse-oximeter.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "pulse-oximeter--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "pulse-oximeter--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "pulse-oximeter--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "pulse-oximeter--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "pulse-oximeter--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "pulse-oximeter--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
       "id": "pushbutton",
       "name": "Pushbutton",
       "family": "input",

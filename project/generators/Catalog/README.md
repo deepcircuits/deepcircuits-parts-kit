@@ -7,7 +7,7 @@ The library's parts that the templates draw, each as its own function: call it w
 | Boards | `unoClassBoard`, `nanoClassBoard`, `megaClassBoard`, `nanoRp2040Board`, `picoClassBoard` |
 | ESP32 | `esp32DevKitV1`, `esp32DevKitCV4`, `esp32C3DevKit`, `esp32S2DevKit`, `esp32S3DevKit`, `esp32C5DevKit`, `esp32C6DevKit`, `esp32H2DevKit` |
 | STM32 | `stm32L031K6Board`, `stm32C031C6Board` |
-| Sensors | `lightSensor`, `flameSensor`, `tiltSwitch`, `soundSensor`, `ntcSensor`, `irReceiver`, `gasSensor`, `mpu6050Imu`, `ds18b20Sensor` |
+| Sensors | `lightSensor`, `flameSensor`, `tiltSwitch`, `soundSensor`, `ntcSensor`, `irReceiver`, `gasSensor`, `mpu6050Imu`, `ds18b20Sensor`, `bme280Module`, `vl53l0xModule`, `max30102Module` |
 | Chips | `ne555Timer`, `shiftRegister595`, `shiftRegister165`, `ledDriver595`, `attiny85` |
 | Modules | `ssd1306Module`, `sh1107Module`, `ili9341TouchDisplay` |
 

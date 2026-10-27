@@ -231,6 +231,19 @@ export interface PartOptionsById {
   };
   /** DS18B20 temperature sensor: ds18b20Sensor. */
   "ds18b20-temperature-sensor": Record<string, never>;
+  /** Environment sensor: bme280Module. */
+  "environment-sensor": {
+    /** Chip. Default "BME280". */ chip?: "BME280" | "BMP280";
+    /** Board colour. Default "purple". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Time-of-flight sensor: vl53l0xModule. */
+  "time-of-flight-sensor": {
+    /** Board colour. Default "purple". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Pulse oximeter: max30102Module. */
+  "pulse-oximeter": {
+    /** Board colour. Default "purple". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
   /** Pushbutton: pushbutton {"size":12}. */
   "pushbutton": {
     /** Pressed. Default false. */ pressed?: boolean;

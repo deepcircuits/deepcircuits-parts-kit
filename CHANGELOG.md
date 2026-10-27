@@ -8,7 +8,7 @@ The first public release.
 
 ### Parts
 
-- 108 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
+- 111 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
 - The templates behind them (`devBoardTemplate`, `moduleTemplate`, `sensorModuleTemplate`, `chipTemplate` and others, in `@deepcircuits/parts-kit/templates`) for parts of your own.
 - The Blue Pill, the ESP32-DevKitC V4 and the character LCDs checked against photographs and data sheets: the Blue Pill's rows and parts as the real board has them, the DevKitC V4 at its real length with the module over the rows, the LCD's mount holes and header where the module has them.
 - Every catalog part checked against photographs and data sheets for its pin order, which pins face each other, where its parts sit, its size, its holes and its pin-1 offset. Corrected:
@@ -30,6 +30,7 @@ The first public release.
 - Every catalog part's pin names follow its data sheet or silk print, and a name that repeats is bare once and `.2`, `.3` after.
 - The DS18B20 has its own generator, `ds18b20Sensor`, with the data sheet's pin names GND, DQ, VDD.
 - `ds3231Module`, the DS3231 clock module in the ZS-042 layout (`precision-real-time-clock`): the six main pins (32K, SQW, SCL, SDA, VCC, GND) on the right-angle header past the right edge, the pass-through pads drawn on the left but not pins, the DS3231 and the 24C32 EEPROM, the resistor pack and a power LED (`indicators.power`). The `real-time-clock` row no longer carries the DS3231 tag.
+- `bme280Module`, `vl53l0xModule` and `max30102Module`, three I²C sensor breakouts in the sensor family: the four-pin GY-BME280 (`environment-sensor`, VCC GND SCL SDA; `chip: 'BMP280'` prints the pressure-only chip), the GY-530 time-of-flight board (`time-of-flight-sensor`, VCC GND SCL SDA GPIO1 XSHUT) and the MAX30102 pulse oximeter (`pulse-oximeter`, VCC GND SCL SDA INT).
 - `transistor`, a transistor standing in its package in the chip family: TO-92 (`transistor-to-92`, PN2222A by default) with the TO-92 body the DS18B20 uses, or TO-220 (`transistor-to-220`, IRLZ44N by default) with its tab, hole and shouldered legs. Both draw in one 4 × 8 pitch box with the legs at the same three places, so a host can change the package without moving a pin; `label` prints the part number, `pins` names the legs from the left, and `live.heat` warms the body.
 - `batteryHolder`, a battery holder from above with its red and black leads (`battery-holder`): 2, 4 or 6 AA cells, two 18650 cells or a CR2032 coin cell (`cells`), the leads ending at the same two pins whatever the holder. `transistor` also draws the L7805CV regulator in TO-220 (`voltage-regulator-to-220`, legs IN, GND, OUT).
 - `ams1117Module`, the AMS1117-3.3 regulator module (`regulator-module-3-3-v`: VIN, GND, VOUT), and `mb102Module`, the MB102 breadboard power module (`breadboard-power-module`): its rail pins sit on a breadboard's rails, its output header over the centre channel, and `topRail`, `bottomRail` and `power` place its jumpers and switch.
