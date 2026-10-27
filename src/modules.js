@@ -1117,3 +1117,243 @@ export function relayModule(props) {
   s += hdr.svg;
   return art(w, h, 'Relay module with an SPDT changeover contact', s, pins);
 }
+
+/**
+ * A SOT-223 regulator from above, its body's top-left at (x, y): the 6.5 x 3.5 mm black body, the wide tab above it
+ * and three leads below, and the part number in two lines.
+ */
+function sot223(T, x, y, lines) {
+  const mm = T.pitch / 2.54;
+  const bw = 6.5 * mm;
+  const bh = 3.5 * mm;
+  let s = '';
+  s += rect(
+    x + (bw - 3 * mm) / 2,
+    y - 1.6 * mm,
+    3 * mm,
+    1.8 * mm,
+    T.lead,
+    Object.assign({ rx: 0.3 }, edge(T, T['lead-edge'], T['stroke-detail'])),
+  );
+  for (let i = 0; i < 3; i++)
+    s += rect(
+      x + bw / 2 + (i - 1) * 2.3 * mm - 0.35 * mm,
+      y + bh - 0.2,
+      0.7 * mm,
+      1.8 * mm,
+      T.lead,
+      Object.assign({ rx: 0.2 }, edge(T, T['lead-edge'], T['stroke-detail'])),
+    );
+  s +=
+    rect(x, y, bw, bh, T.chip, Object.assign({ rx: 0.5 }, edge(T, T['chip-edge'], T['stroke-detail']))) +
+    bevel(T, x, y, bw, bh, 1.0, 0.5);
+  s += text(x + bw / 2, y + bh * 0.42, lines[0], PIN_LABEL, T['chip-print'], { 'font-weight': 600 });
+  s += text(x + bw / 2, y + bh * 0.42 + 4.4, lines[1], PIN_LABEL, T['chip-print'], { 'fill-opacity': 0.85 });
+  return tag('chip', s);
+}
+
+/**
+ * The AMS1117-3.3 regulator module: a blue 25 x 11.5 mm board with the three pads down its left edge (VIN, GND,
+ * VOUT), the regulator in SOT-223, its input and output capacitors, and the power LED with its resistor at the right.
+ * The box is 10 x 4.6 pitches.
+ */
+export function ams1117Module(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const fin = props.finish || 'blue';
+  const f = finish(T, fin);
+  const w = 10 * p;
+  const h = 4.6 * p;
+  const ind = { power: false, ...props.indicators };
+  let s = '';
+  s += board({ width: w, height: h, finish: fin, holes: false });
+  const hdr = padRow(
+    T,
+    fin,
+    f,
+    {
+      x: 0.9 * p,
+      y: 1.3 * p,
+      axis: 'y',
+      labels: ['VIN', 'GND', 'VOUT'],
+      kind: 'pad',
+      side: 'right',
+      silk: f.silk,
+      size: PIN_LABEL,
+    },
+    1,
+  );
+  s += sot223(T, 3.9 * p, 1.75 * p, ['AMS1117', '3.3V']);
+  s += framed(T, f, 'capacitor', 7.1 * p, 0.6 * p, false) + framed(T, f, 'capacitor', 7.1 * p, 2.9 * p, false);
+  s +=
+    silkFrame(T, f, 8.5 * p, 0.7 * p, 0.7 * p, 0.7 * p) +
+    indicator({
+      x: 8.5 * p,
+      y: 0.7 * p,
+      size: 0.7 * p,
+      color: 'red',
+      on: !!ind.power,
+      hook: 'power-led',
+      state: 'power-led',
+      finish: fin,
+    }) +
+    text(8.85 * p, 2.3 * p, 'PWR', PIN_LABEL, f.silk);
+  s += framed(T, f, 'resistor', 8.4 * p, 3.2 * p, true);
+  s += hdr.svg;
+  return art(w, h, 'AMS1117-3.3 regulator module', s, hdr.pins);
+}
+
+/** Where the jumper cap sits on a rail's three pins (5V, the rail, 3.3V): from the first or the second pin, or off. */
+const RAIL_JUMPER = { 5: 0, 3.3: 1, off: null };
+
+/**
+ * The MB102 breadboard power module as photographed, at its 33 x 53 mm size: the barrel jack and the USB-A
+ * receptacle along the left edge, the power switch and its LED between them, the two regulators in SOT-223 with
+ * their capacitors, a three-pin jumper for each rail (5V, the rail, 3.3V), the output header (5V, 3V3, GND) and the
+ * four rail pins down the right edge. The rail pins sit where a breadboard's rails are: + and - one pitch apart at
+ * the top, and 18 and 19 pitches below the top + at the bottom, so the module drops onto the end of a full or half
+ * breadboard; the output header lies over the centre channel, nine pitches below the top +, where the board has no
+ * holes. `topRail` and `bottomRail` ('5', '3.3' or 'off') place each jumper; `power` ('on' or 'off') sets the switch.
+ * The box is 13 x 21 pitches.
+ */
+export function mb102Module(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const fin = props.finish || 'red';
+  const f = finish(T, fin);
+  const w = 13 * p;
+  const h = 21 * p;
+  const ind = { power: false, ...props.indicators };
+  const on = props.power !== 'off';
+  let s = '';
+  s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 6.6 * p, y: 19.4 * p, size: 0.8 * p } });
+  s += text(3.2 * p, 1.4 * p, 'MB102', 5, f.silk, { 'font-weight': 600 });
+  // The rail pins, + over -, at the top and the bottom of the right edge, each with its rail's colour beside it.
+  const rails = (y, names) =>
+    header({
+      x: 11.5 * p,
+      y: y * p,
+      axis: 'y',
+      labels: ['+', '−'],
+      names,
+      kind: 'pad',
+      side: 'left',
+      silk: f.silk,
+    });
+  const top = rails(1, ['TOP+', 'TOP-']);
+  const bottom = rails(19, ['BOT+', 'BOT-']);
+  [1, 19].forEach(y => {
+    s += rect(12.3 * p, (y - 0.3) * p, 0.25 * p, 0.6 * p, T['rail-plus'], { rx: 0.4 });
+    s += rect(12.3 * p, (y + 0.7) * p, 0.25 * p, 0.6 * p, T['rail-minus'], { rx: 0.4 });
+  });
+  // The barrel jack: a black block with its round mouth at the left edge.
+  const jy = 2.2 * p;
+  const jh = 3.8 * p;
+  s += tag(
+    'jack',
+    rect(0.3 * p, jy, 5.2 * p, jh, T['plastic-black'], Object.assign({ rx: 1 }, edge(T, T['plastic-black-edge']))) +
+      bevel(T, 0.3 * p, jy, 5.2 * p, jh, 1.6, 1) +
+      rect(0.3 * p, jy + 0.6 * p, 1.1 * p, jh - 1.2 * p, T.cavity, { rx: 0.6 }) +
+      rect(0.3 * p, jy + jh / 2 - 0.6, 1.0 * p, 1.2, T.metal, { rx: 0.4 }),
+  );
+  s += text(2.9 * p, 7.0 * p, 'DC 6.5-12V', PIN_LABEL, f.silk);
+  // The USB-A receptacle: the metal shell, its mouth at the left edge with the tongue inside.
+  const uy = 13.6 * p;
+  const uh = 13 * mm;
+  s += tag(
+    'usb',
+    rect(0.3 * p, uy, 14 * mm, uh, T.metal, Object.assign({ rx: 0.8 }, edge(T, T['metal-edge']))) +
+      rect(0.3 * p, uy, 14 * mm, uh, sheen('metal'), { rx: 0.8, 'fill-opacity': 0.75 }) +
+      rect(0.3 * p, uy + 1.6 * mm, 1.0 * p, uh - 3.2 * mm, T.cavity, { rx: 0.4 }) +
+      rect(0.3 * p, uy + uh / 2 - 1.0 * mm, 0.9 * p, 2.0 * mm, T['plastic-white'], { rx: 0.3 }) +
+      line(0.3 * p + 9 * mm, uy + 1.2, 0.3 * p + 9 * mm, uy + uh - 1.2, T['metal-edge'], T['stroke-fine']),
+  );
+  s += text(2.9 * p, 13.1 * p, 'USB', PIN_LABEL, f.silk);
+  // The latching power switch: its button pressed in while on.
+  const sx = 1.2 * p;
+  const sy = 8.2 * p;
+  const sw = 6 * mm;
+  s += tag(
+    'switch',
+    rect(sx, sy, sw, sw, T['plastic-black'], Object.assign({ rx: 0.8 }, edge(T, T['plastic-black-edge']))) +
+      circle(
+        sx + sw / 2,
+        sy + sw / 2,
+        on ? 1.6 * mm : 2.1 * mm,
+        on ? T['plastic-grey'] : T['plastic-white'],
+        edge(T, on ? T['plastic-grey-edge'] : T['plastic-white-edge'], T['stroke-detail']),
+      ),
+    { 'data-hook': 'switch', 'data-on': on ? 'true' : 'false' },
+  );
+  s += text(sx + sw / 2, 11.5 * p, on ? 'ON' : 'OFF', PIN_LABEL, f.silk);
+  // The power LED and its resistor.
+  s +=
+    silkFrame(T, f, 4.4 * p, 8.4 * p, 0.7 * p, 0.7 * p) +
+    indicator({
+      x: 4.4 * p,
+      y: 8.4 * p,
+      size: 0.7 * p,
+      color: 'red',
+      on: !!ind.power,
+      hook: 'power-led',
+      state: 'power-led',
+      finish: fin,
+    }) +
+    text(4.75 * p, 10.0 * p, 'PWR', PIN_LABEL, f.silk);
+  s += framed(T, f, 'resistor', 4.3 * p, 11.0 * p, true);
+  // The regulators: 5 V above, 3.3 V below, each with its output capacitor.
+  s += sot223(T, 6.0 * p, 5.6 * p, ['AMS1117', '5.0V']) + text(7.3 * p, 4.4 * p, '5V', PIN_LABEL, f.silk);
+  s += sot223(T, 6.0 * p, 14.0 * p, ['AMS1117', '3.3V']) + text(7.3 * p, 12.8 * p, '3.3V', PIN_LABEL, f.silk);
+  [6.6, 13.5].forEach(y => {
+    const cx = 9.9 * p;
+    const cy = y * p;
+    s += tag(
+      'cap',
+      circle(cx, cy, 1.2 * p, T['cap-electrolytic'], edge(T, T['plastic-black-edge'])) +
+        circle(cx, cy, 0.9 * p, T.metal, { 'fill-opacity': 0.85 }) +
+        path(`M${r2(cx - 0.6 * p)} ${r2(cy)}h${r2(1.2 * p)}M${r2(cx)} ${r2(cy - 0.6 * p)}v${r2(1.2 * p)}`, 'none', {
+          stroke: T['metal-edge'],
+          'stroke-width': 0.7,
+        }),
+    );
+  });
+  // The rail jumpers: three pins each, and the cap across the rail pin and the chosen voltage's.
+  const jumper = (y, value, below) => {
+    let j = '';
+    [8.5, 9.5, 10.5].forEach(x => {
+      j +=
+        circle(x * p, y, T['pad-radius'], T.pad) +
+        circle(x * p, y, T['hole-radius'], T.hole, edge(T, T['metal-edge'], 0.5));
+    });
+    const ty = below ? y + 0.45 * p + 4.6 : y - 0.45 * p - 1.4;
+    j += text(8.5 * p, ty, '5V', PIN_LABEL, f.silk) + text(10.5 * p, ty, '3.3V', PIN_LABEL, f.silk);
+    const at = RAIL_JUMPER[value] === undefined ? 0 : RAIL_JUMPER[value];
+    if (at !== null)
+      j += tag(
+        'jumper',
+        rect(
+          (8.5 + at) * p - 0.5 * p,
+          y - 0.45 * p,
+          2 * p,
+          0.9 * p,
+          T['plastic-black'],
+          Object.assign({ rx: 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
+        ) +
+          rect((8.5 + at) * p - 0.35 * p, y - 0.3 * p, 1.7 * p, 0.25 * p, '#ffffff', {
+            rx: 0.2,
+            'fill-opacity': T['opacity-light'],
+          }),
+        { 'data-rail': below ? 'bottom' : 'top', 'data-volts': String(value) },
+      );
+    return j;
+  };
+  s += jumper(3.6 * p, props.topRail === undefined ? '5' : String(props.topRail), true);
+  s += jumper(17.4 * p, props.bottomRail === undefined ? '5' : String(props.bottomRail), false);
+  // The output header, over the breadboard's centre channel.
+  const out = header({ x: 8.5 * p, y: 10 * p, labels: ['5V', '3V3', 'GND'], kind: 'pad', side: 'above', silk: f.silk });
+  s += top.svg + bottom.svg + out.svg;
+  return art(w, h, 'MB102 breadboard power module', s, [...top.pins, ...bottom.pins, ...out.pins]);
+}

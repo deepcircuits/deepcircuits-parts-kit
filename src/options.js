@@ -57,6 +57,8 @@ const lamps = (fields, lit = []) => {
 };
 const BOARD = { indicators: lamps({ power: 'Power LED', user: 'User LED' }) };
 const POWER_BOARD = { indicators: lamps({ power: 'Power LED' }) };
+/** A breadboard power module's rail jumper: 5 V, 3.3 V or off. */
+const RAIL_CHOICES = [choice('5', '5 V'), choice('3.3', '3.3 V'), choice('off', 'Off')];
 const SENSOR_BOARD = def => ({ indicators: lamps({ power: 'Power LED', out: 'Output LED' }), finish: finish(def) });
 
 // A sine wave across a 64 x 32 picture, offered for every screen.
@@ -331,6 +333,14 @@ export const OPTIONS = {
   rtcModule: { finish: finish('blue') },
   ds3231Module: { indicators: lamps({ power: 'Power LED' }), finish: finish('blue') },
   rfidModule: { indicators: lamps({ power: 'Power LED' }), finish: finish('blue') },
+  ams1117Module: { indicators: lamps({ power: 'Power LED' }), finish: finish('blue') },
+  mb102Module: {
+    power: { type: 'enum', label: 'Power switch', choices: [choice('on', 'On'), choice('off', 'Off')], default: 'on' },
+    topRail: { type: 'enum', label: 'Top rail', choices: RAIL_CHOICES, default: '5' },
+    bottomRail: { type: 'enum', label: 'Bottom rail', choices: RAIL_CHOICES, default: '5' },
+    indicators: lamps({ power: 'Power LED' }),
+    finish: finish('red'),
+  },
   logicAnalyzer: {
     state: state({
       type: 'enum',
@@ -448,6 +458,20 @@ export const OPTIONS = {
       label: 'Live layer',
       fields: { flow, heat: unit('Heat'), probe: probe(['1', '2']) },
     }),
+  },
+  batteryHolder: {
+    cells: {
+      type: 'enum',
+      label: 'Cells',
+      choices: [
+        choice('2xAA', '2 × AA'),
+        choice('4xAA', '4 × AA'),
+        choice('6xAA', '6 × AA'),
+        choice('2x18650', '2 × 18650'),
+        choice('CR2032', 'CR2032'),
+      ],
+      default: '4xAA',
+    },
   },
   capacitor: {
     code: {

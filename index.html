@@ -133,6 +133,13 @@ lcd.pins;                <span class="c">// [{ name, x, y }, …]</span></pre>
 <script src="project/generators/bundle.js"></script>
 <script>
 var CARDS = [
+  { name: "BatteryHolder", intro: "A battery holder seen from above at its true size, with a red and a black lead leaving its top edge", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.batteryHolder({ cells: "2xAA" }), { pins: true, scale: 1.5, caption: "2 × AA" });
+    K.mount(root, K.batteryHolder(), { scale: 1.5, caption: "4 × AA" });
+    K.mount(root, K.batteryHolder({ cells: "2x18650" }), { scale: 1.5, caption: "2 × 18650" });
+    K.mount(root, K.batteryHolder({ cells: "CR2032" }), { pins: true, scale: 2, caption: "CR2032" });
+  } },
   { name: "BluePill", intro: "The STM32F103C8 &quot;Blue Pill&quot; from photographs of the board, its micro USB at the left", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");
     K.mount(root, K.bluePillBoard({ indicators: { power: true, user: true } }), { pins: true, scale: 1.6, caption: "powered, PC13 lit" });
@@ -151,6 +158,12 @@ var CARDS = [
     K.mount(root, K.breadboard(), { scale: 0.75, caption: "full, 63 columns" });
     K.mount(root, K.breadboard({ variant: "breadboard-half" }), { scale: 0.75, caption: "half" });
     K.mount(root, K.breadboard({ variant: "breadboard-mini" }), { scale: 0.75, caption: "mini" });
+  } },
+  { name: "BreadboardPowerModule", intro: "<code>mb102Module</code>: the MB102 breadboard power module, 33 × 53 mm, drawn to drop onto the end of a full or half breadboard", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.mb102Module(), { pins: true, scale: 2, caption: "MB102, both rails 5 V" });
+    K.mount(root, K.mb102Module({ topRail: "3.3", bottomRail: "off", indicators: { power: true } }), { scale: 2, caption: "3.3 V on top, bottom off, powered" });
+    K.mount(root, K.mb102Module({ power: "off" }), { scale: 2, caption: "switched off" });
   } },
   { name: "Buzzer", intro: "A 12 mm piezo buzzer from above at the real size", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");
@@ -397,6 +410,11 @@ var CARDS = [
     K.mount(root, K.pushbutton({ size: 6 }), { caption: "6 mm" });
     K.mount(root, K.pushbutton({ size: 6, pressed: true }), { caption: "6 mm, pressed" });
     ["red", "green", "blue", "yellow", "white"].forEach(function (c) { K.mount(root, K.pushbutton({ cap: c }), { caption: c + " cap" }); });
+  } },
+  { name: "RegulatorModule", intro: "<code>ams1117Module</code>: the small blue AMS1117-3.3 board, 25 × 11.5 mm", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.ams1117Module(), { pins: true, scale: 3, caption: "AMS1117-3.3" });
+    K.mount(root, K.ams1117Module({ indicators: { power: true } }), { scale: 3, caption: "powered" });
   } },
   { name: "Relay", intro: "The KS2E-class DPDT relay in its <code>plastic-amber</code> can, as photographed, 20.5 × 10 mm, with the part print and lot code on the lid and eight pins in two rows three pitches apart, so the can straddles the gutter of a breadboard", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");

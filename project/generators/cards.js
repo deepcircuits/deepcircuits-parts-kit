@@ -2,6 +2,16 @@
 // that shows the gallery. Do not edit.
 export const CARDS = [
   {
+    name: "BatteryHolder",
+    intro: "A battery holder seen from above at its true size, with a red and a black lead leaving its top edge",
+    draw(K, root) {
+      K.mount(root, K.batteryHolder({ cells: "2xAA" }), { pins: true, scale: 1.5, caption: "2 × AA" });
+      K.mount(root, K.batteryHolder(), { scale: 1.5, caption: "4 × AA" });
+      K.mount(root, K.batteryHolder({ cells: "2x18650" }), { scale: 1.5, caption: "2 × 18650" });
+      K.mount(root, K.batteryHolder({ cells: "CR2032" }), { pins: true, scale: 2, caption: "CR2032" });
+    },
+  },
+  {
     name: "BluePill",
     intro: "The STM32F103C8 \"Blue Pill\" from photographs of the board, its micro USB at the left",
     draw(K, root) {
@@ -27,6 +37,15 @@ export const CARDS = [
       K.mount(root, K.breadboard(), { scale: 0.75, caption: "full, 63 columns" });
       K.mount(root, K.breadboard({ variant: "breadboard-half" }), { scale: 0.75, caption: "half" });
       K.mount(root, K.breadboard({ variant: "breadboard-mini" }), { scale: 0.75, caption: "mini" });
+    },
+  },
+  {
+    name: "BreadboardPowerModule",
+    intro: "`mb102Module`: the MB102 breadboard power module, 33 × 53 mm, drawn to drop onto the end of a full or half breadboard",
+    draw(K, root) {
+      K.mount(root, K.mb102Module(), { pins: true, scale: 2, caption: "MB102, both rails 5 V" });
+      K.mount(root, K.mb102Module({ topRail: "3.3", bottomRail: "off", indicators: { power: true } }), { scale: 2, caption: "3.3 V on top, bottom off, powered" });
+      K.mount(root, K.mb102Module({ power: "off" }), { scale: 2, caption: "switched off" });
     },
   },
   {
@@ -385,6 +404,14 @@ export const CARDS = [
       K.mount(root, K.pushbutton({ size: 6 }), { caption: "6 mm" });
       K.mount(root, K.pushbutton({ size: 6, pressed: true }), { caption: "6 mm, pressed" });
       ["red", "green", "blue", "yellow", "white"].forEach(function (c) { K.mount(root, K.pushbutton({ cap: c }), { caption: c + " cap" }); });
+    },
+  },
+  {
+    name: "RegulatorModule",
+    intro: "`ams1117Module`: the small blue AMS1117-3.3 board, 25 × 11.5 mm",
+    draw(K, root) {
+      K.mount(root, K.ams1117Module(), { pins: true, scale: 3, caption: "AMS1117-3.3" });
+      K.mount(root, K.ams1117Module({ indicators: { power: true } }), { scale: 3, caption: "powered" });
     },
   },
   {
