@@ -18916,8 +18916,8 @@
       "name": "Linear hall sensor",
       "family": "sensor",
       "aliases": [
-        "KY-024",
         "49E",
+        "LM393",
         "magnet"
       ],
       "width": 52.91,

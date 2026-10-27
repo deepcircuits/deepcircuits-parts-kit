@@ -182,7 +182,7 @@ const PARTS = [
   ],
   ['acs712-current-sensor', 'ACS712 current sensor', 'sensor', 'acs712Module', null, ['ACS712', 'hall effect']],
   ['hall-sensor', 'Hall sensor', 'sensor', 'hallSensor', null, ['KY-003', 'A3144', 'magnet']],
-  ['linear-hall-sensor', 'Linear hall sensor', 'sensor', 'linearHallSensor', null, ['KY-024', '49E', 'magnet']],
+  ['linear-hall-sensor', 'Linear hall sensor', 'sensor', 'linearHallSensor', null, ['49E', 'LM393', 'magnet']],
   ['touch-sensor', 'Touch sensor', 'sensor', 'touchSensor', null, ['TTP223', 'capacitive touch']],
   ['vibration-sensor', 'Vibration sensor', 'sensor', 'vibrationSensor', null, ['SW-420', 'shake']],
   ['reed-switch', 'Reed switch', 'sensor', 'reedSwitch', null, ['magnet', 'KY-021', 'KY-025']],
