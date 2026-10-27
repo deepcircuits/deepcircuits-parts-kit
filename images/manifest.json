@@ -19569,6 +19569,167 @@
       ]
     },
     {
+      "id": "regulator-module-3-3-v",
+      "name": "Regulator module, 3.3 V",
+      "family": "module",
+      "aliases": [
+        "AMS1117",
+        "LDO"
+      ],
+      "width": 96,
+      "height": 44.16,
+      "pins": [
+        { "name": "VIN", "x": 8.64, "y": 12.48 },
+        { "name": "GND", "x": 8.64, "y": 22.08 },
+        { "name": "VOUT", "x": 8.64, "y": 31.68 }
+      ],
+      "hooks": [
+        "power-led"
+      ],
+      "images": [
+        {
+          "file": "regulator-module-3-3-v.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "regulator-module-3-3-v--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true
+            }
+          }
+        },
+        {
+          "file": "regulator-module-3-3-v--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "regulator-module-3-3-v--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "regulator-module-3-3-v--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "regulator-module-3-3-v--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "regulator-module-3-3-v--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "regulator-module-3-3-v--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "breadboard-power-module",
+      "name": "Breadboard power module",
+      "family": "module",
+      "aliases": [
+        "MB102",
+        "power supply",
+        "5V",
+        "3.3V"
+      ],
+      "width": 124.8,
+      "height": 201.6,
+      "pins": [
+        { "name": "TOP+", "x": 110.4, "y": 9.6 },
+        { "name": "TOP-", "x": 110.4, "y": 19.2 },
+        { "name": "BOT+", "x": 110.4, "y": 182.4 },
+        { "name": "BOT-", "x": 110.4, "y": 192 },
+        { "name": "5V", "x": 81.6, "y": 96 },
+        { "name": "3V3", "x": 91.2, "y": 96 },
+        { "name": "GND", "x": 100.8, "y": 96 }
+      ],
+      "hooks": [
+        "switch",
+        "power-led"
+      ],
+      "images": [
+        {
+          "file": "breadboard-power-module.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "breadboard-power-module--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true
+            }
+          }
+        },
+        {
+          "file": "breadboard-power-module--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "breadboard-power-module--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "breadboard-power-module--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "breadboard-power-module--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "breadboard-power-module--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "breadboard-power-module--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        }
+      ]
+    },
+    {
       "id": "real-time-clock",
       "name": "Real-time clock",
       "family": "module",
@@ -20086,6 +20247,34 @@
       ]
     },
     {
+      "id": "voltage-regulator-to-220",
+      "name": "Voltage regulator, TO-220",
+      "family": "chip",
+      "aliases": [
+        "7805",
+        "LM7805",
+        "L7805",
+        "5V regulator"
+      ],
+      "width": 38.4,
+      "height": 76.8,
+      "pins": [
+        { "name": "IN", "x": 9.6, "y": 76.8 },
+        { "name": "GND", "x": 19.2, "y": 76.8 },
+        { "name": "OUT", "x": 28.8, "y": 76.8 }
+      ],
+      "hooks": [
+        "heat"
+      ],
+      "images": [
+        {
+          "file": "voltage-regulator-to-220.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
       "id": "resistor",
       "name": "Resistor",
       "family": "passive",
@@ -20129,6 +20318,31 @@
           "options": {
             "ohms": 100000
           }
+        }
+      ]
+    },
+    {
+      "id": "battery-holder",
+      "name": "Battery holder",
+      "family": "passive",
+      "aliases": [
+        "battery",
+        "AA",
+        "18650",
+        "CR2032"
+      ],
+      "width": 243.4,
+      "height": 262,
+      "pins": [
+        { "name": "+", "x": 9.6, "y": 0 },
+        { "name": "-", "x": 19.2, "y": 0 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "battery-holder.svg",
+          "label": "At rest",
+          "options": {}
         }
       ]
     },

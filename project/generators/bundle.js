@@ -962,13 +962,13 @@ var PartsKit = (() => {
   }
   function qfp(T, x, y, w, h, nSide, label) {
     let s = "";
-    const lead = 1.5;
+    const lead2 = 1.5;
     const lw = Math.min(1.2, (w - 4) / nSide * 0.55);
     for (let i = 0; i < nSide; i++) {
       const ox = 2 + (i + 0.5) * (w - 4) / nSide - lw / 2;
       const oy = 2 + (i + 0.5) * (h - 4) / nSide - lw / 2;
-      s += rect(x - lead, y + oy, lead, lw, T.lead, { rx: 0.2 }) + rect(x + w, y + oy, lead, lw, T.lead, { rx: 0.2 });
-      s += rect(x + ox, y - lead, lw, lead, T.lead, { rx: 0.2 }) + rect(x + ox, y + h, lw, lead, T.lead, { rx: 0.2 });
+      s += rect(x - lead2, y + oy, lead2, lw, T.lead, { rx: 0.2 }) + rect(x + w, y + oy, lead2, lw, T.lead, { rx: 0.2 });
+      s += rect(x + ox, y - lead2, lw, lead2, T.lead, { rx: 0.2 }) + rect(x + ox, y + h, lw, lead2, T.lead, { rx: 0.2 });
     }
     s += rect(x, y, w, h, T.chip, Object.assign({ rx: T["radius-chip"] }, edge(T, T["chip-edge"])));
     s += rect(x + 0.6, y + 0.6, w - 1.2, 1.1, "#ffffff", { rx: 0.5, "fill-opacity": T["opacity-light"] * 0.4 });
@@ -1464,7 +1464,134 @@ var PartsKit = (() => {
       })
     );
   }
-  var BANDS;
+  function cylinderCell(T, x, y, w, h, up, wrap) {
+    const nub = Math.min(w * 0.4, 5.5 * (T.pitch / 2.54));
+    const nubH = 1.2 * (T.pitch / 2.54);
+    const top = up ? y + nubH : y;
+    const bodyH = h - nubH;
+    let s = "";
+    s += rect(
+      x + (w - nub) / 2,
+      up ? y : y + h - nubH - 0.5,
+      nub,
+      nubH + 0.5,
+      T.metal,
+      edge(T, T["metal-edge"], T["stroke-fine"])
+    );
+    s += rect(x, top, w, bodyH, T[wrap], Object.assign({ rx: w * 0.12 }, edge(T, T["plastic-black-edge"])));
+    s += rect(x + 0.4, top + bodyH * 0.3, w - 0.8, bodyH * 0.4, T["plastic-black"], { "fill-opacity": 0.35 });
+    s += rect(x + 0.4, up ? top + 0.4 : top + bodyH - 2.2, w - 0.8, 1.8, T.metal, { rx: 0.6, "fill-opacity": 0.8 });
+    s += rect(x + w * 0.14, top + 1.2, w * 0.16, bodyH - 2.4, "#ffffff", {
+      rx: w * 0.08,
+      "fill-opacity": T["opacity-light"]
+    });
+    s += rect(x + w * 0.72, top + 1.2, w * 0.18, bodyH - 2.4, "#000000", {
+      rx: w * 0.09,
+      "fill-opacity": T["opacity-shade"]
+    });
+    s += text(x + w / 2, up ? top + bodyH * 0.2 + 2 : top + bodyH * 0.8 + 2, up ? "+" : "−", 5.6, T["chip-print"], {
+      "font-weight": 700
+    });
+    return s;
+  }
+  function lead(T, x, y0, y1, colour) {
+    const tin = y1 + 0.9 * T.pitch;
+    return line(x, y0, x, tin, T[`${colour}-edge`], T["leg-width"] + 1.4) + line(x, y0, x, tin, T[colour], T["leg-width"] + 0.4) + wire(x, tin, x, y1);
+  }
+  function batteryHolder(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const kind = HOLDERS[props.cells] ? props.cells : "4xAA";
+    const spec = HOLDERS[kind];
+    const trayTop = 3 * p;
+    let s = "";
+    let w;
+    let h;
+    if (kind === "CR2032") {
+      const r = 12 * mm;
+      w = Math.max(3 * p, 2 * r + 2 * p);
+      h = trayTop + 2 * r + 0.6 * p;
+      const cx = w / 2;
+      const cy = trayTop + r;
+      s += tag(
+        "body",
+        circle(cx, cy, r, T["plastic-black"], edge(T, T["plastic-black-edge"])) + rect(
+          cx - r * 0.35,
+          trayTop - 0.2 * p,
+          r * 0.7,
+          0.9 * p,
+          T["plastic-black"],
+          Object.assign({ rx: 1 }, edge(T, T["plastic-black-edge"]))
+        )
+      );
+      s += circle(cx, cy, spec.d / 2 * mm, T.metal, edge(T, T["metal-edge"]));
+      s += circle(cx, cy, spec.d / 2 * mm, sheen("metal"), { "fill-opacity": 0.6 });
+      s += circle(cx, cy, (spec.d / 2 - 1.2) * mm, "none", { stroke: T["metal-edge"], "stroke-width": T["stroke-fine"] });
+      s += text(cx, cy - 1, "CR2032", 5, T["plastic-grey"], { "font-weight": 600 });
+      s += text(cx, cy + 6, "3V  +", 4.4, T["plastic-grey"]);
+      s += rect(
+        cx - 2 * mm,
+        trayTop - 0.2 * p,
+        4 * mm,
+        r * 0.75,
+        T.metal,
+        Object.assign({ rx: 0.6, "fill-opacity": 0.9 }, edge(T, T["metal-edge"], T["stroke-fine"]))
+      );
+    } else {
+      const wall = 1.6 * mm;
+      const pitch = (spec.d + 0.8) * mm;
+      const cellW = spec.d * mm;
+      const contact = 4 * mm;
+      w = spec.cells * pitch + 2 * wall;
+      const trayH = spec.l * mm + 2 * contact + 2 * wall;
+      h = trayTop + trayH;
+      s += tag(
+        "body",
+        rect(
+          0.4,
+          trayTop,
+          w - 0.8,
+          trayH,
+          T["plastic-black"],
+          Object.assign({ rx: 1.6 * mm }, edge(T, T["plastic-black-edge"]))
+        )
+      );
+      s += bevel(T, 0.4, trayTop, w - 0.8, trayH, 1.6, 1.6 * mm);
+      const wrap = spec.d > 15 ? "plastic-blue" : "pcb-teal";
+      for (let i = 0; i < spec.cells; i++) {
+        const x = wall + i * pitch + 0.4 * mm;
+        const y = trayTop + wall + contact;
+        const up = i % 2 === 0;
+        s += rect(x - 0.2 * mm, trayTop + wall, cellW + 0.4 * mm, trayH - 2 * wall, "#000000", {
+          rx: 1,
+          "fill-opacity": 0.3
+        });
+        const springY = up ? y + spec.l * mm : trayTop + wall;
+        for (let k = 0; k < 4; k++)
+          s += line(
+            x + cellW * 0.25,
+            springY + (k + 0.5) * (contact / 4),
+            x + cellW * 0.75,
+            springY + (k + 0.9) * (contact / 4),
+            T.metal,
+            0.8
+          );
+        const plateY = up ? trayTop + wall + contact - 1.2 : y + spec.l * mm + 0.2;
+        s += rect(x + cellW * 0.2, plateY, cellW * 0.6, 1, T.metal, { rx: 0.3 });
+        s += cylinderCell(T, x, y, cellW, spec.l * mm, up, wrap);
+      }
+      s += text(w / 2, h - wall - 0.8, spec.label, 4.4, T["plastic-grey"]);
+    }
+    s += tag("leg", lead(T, p, trayTop + 1.5, 0, "plastic-red"));
+    s += tag("leg", lead(T, 2 * p, trayTop + 1.5, 0, "plastic-black"));
+    return art(w, h, `Battery holder, ${spec.label}`, s, [
+      { name: "+", x: p, y: 0 },
+      { name: "-", x: 2 * p, y: 0 }
+    ]);
+  }
+  var BANDS, HOLDERS;
   var init_passives = __esm({
     "src/passives.js"() {
       init_core();
@@ -1481,6 +1608,13 @@ var PartsKit = (() => {
         "band-grey",
         "band-white"
       ];
+      HOLDERS = {
+        "2xAA": { cells: 2, d: 14.5, l: 50.5, label: "2 × AA  3V" },
+        "4xAA": { cells: 4, d: 14.5, l: 50.5, label: "4 × AA  6V" },
+        "6xAA": { cells: 6, d: 14.5, l: 50.5, label: "6 × AA  9V" },
+        "2x18650": { cells: 2, d: 18.6, l: 65, label: "2 × 18650  7.4V" },
+        CR2032: { cells: 1, d: 20, l: 3.2, label: "CR2032  3V" }
+      };
     }
   });
 
@@ -6548,10 +6682,197 @@ var PartsKit = (() => {
     s += hdr.svg;
     return art(w, h, "Relay module with an SPDT changeover contact", s, pins);
   }
+  function sot2232(T, x, y, lines) {
+    const mm = T.pitch / 2.54;
+    const bw = 6.5 * mm;
+    const bh = 3.5 * mm;
+    let s = "";
+    s += rect(
+      x + (bw - 3 * mm) / 2,
+      y - 1.6 * mm,
+      3 * mm,
+      1.8 * mm,
+      T.lead,
+      Object.assign({ rx: 0.3 }, edge(T, T["lead-edge"], T["stroke-detail"]))
+    );
+    for (let i = 0; i < 3; i++)
+      s += rect(
+        x + bw / 2 + (i - 1) * 2.3 * mm - 0.35 * mm,
+        y + bh - 0.2,
+        0.7 * mm,
+        1.8 * mm,
+        T.lead,
+        Object.assign({ rx: 0.2 }, edge(T, T["lead-edge"], T["stroke-detail"]))
+      );
+    s += rect(x, y, bw, bh, T.chip, Object.assign({ rx: 0.5 }, edge(T, T["chip-edge"], T["stroke-detail"]))) + bevel(T, x, y, bw, bh, 1, 0.5);
+    s += text(x + bw / 2, y + bh * 0.42, lines[0], PIN_LABEL, T["chip-print"], { "font-weight": 600 });
+    s += text(x + bw / 2, y + bh * 0.42 + 4.4, lines[1], PIN_LABEL, T["chip-print"], { "fill-opacity": 0.85 });
+    return tag("chip", s);
+  }
+  function ams1117Module(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const w = 10 * p;
+    const h = 4.6 * p;
+    const ind = { power: false, ...props.indicators };
+    let s = "";
+    s += board({ width: w, height: h, finish: fin, holes: false });
+    const hdr = padRow(
+      T,
+      fin,
+      f,
+      {
+        x: 0.9 * p,
+        y: 1.3 * p,
+        axis: "y",
+        labels: ["VIN", "GND", "VOUT"],
+        kind: "pad",
+        side: "right",
+        silk: f.silk,
+        size: PIN_LABEL
+      },
+      1
+    );
+    s += sot2232(T, 3.9 * p, 1.75 * p, ["AMS1117", "3.3V"]);
+    s += framed(T, f, "capacitor", 7.1 * p, 0.6 * p, false) + framed(T, f, "capacitor", 7.1 * p, 2.9 * p, false);
+    s += silkFrame(T, f, 8.5 * p, 0.7 * p, 0.7 * p, 0.7 * p) + indicator({
+      x: 8.5 * p,
+      y: 0.7 * p,
+      size: 0.7 * p,
+      color: "red",
+      on: !!ind.power,
+      hook: "power-led",
+      state: "power-led",
+      finish: fin
+    }) + text(8.85 * p, 2.3 * p, "PWR", PIN_LABEL, f.silk);
+    s += framed(T, f, "resistor", 8.4 * p, 3.2 * p, true);
+    s += hdr.svg;
+    return art(w, h, "AMS1117-3.3 regulator module", s, hdr.pins);
+  }
+  function mb102Module(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "red";
+    const f = finish(T, fin);
+    const w = 13 * p;
+    const h = 21 * p;
+    const ind = { power: false, ...props.indicators };
+    const on2 = props.power !== "off";
+    let s = "";
+    s += board({ width: w, height: h, finish: fin, holes: false, mark: { x: 6.6 * p, y: 19.4 * p, size: 0.8 * p } });
+    s += text(3.2 * p, 1.4 * p, "MB102", 5, f.silk, { "font-weight": 600 });
+    const rails = (y, names) => header({
+      x: 11.5 * p,
+      y: y * p,
+      axis: "y",
+      labels: ["+", "−"],
+      names,
+      kind: "pad",
+      side: "left",
+      silk: f.silk
+    });
+    const top = rails(1, ["TOP+", "TOP-"]);
+    const bottom = rails(19, ["BOT+", "BOT-"]);
+    [1, 19].forEach((y) => {
+      s += rect(12.3 * p, (y - 0.3) * p, 0.25 * p, 0.6 * p, T["rail-plus"], { rx: 0.4 });
+      s += rect(12.3 * p, (y + 0.7) * p, 0.25 * p, 0.6 * p, T["rail-minus"], { rx: 0.4 });
+    });
+    const jy = 2.2 * p;
+    const jh = 3.8 * p;
+    s += tag(
+      "jack",
+      rect(0.3 * p, jy, 5.2 * p, jh, T["plastic-black"], Object.assign({ rx: 1 }, edge(T, T["plastic-black-edge"]))) + bevel(T, 0.3 * p, jy, 5.2 * p, jh, 1.6, 1) + rect(0.3 * p, jy + 0.6 * p, 1.1 * p, jh - 1.2 * p, T.cavity, { rx: 0.6 }) + rect(0.3 * p, jy + jh / 2 - 0.6, 1 * p, 1.2, T.metal, { rx: 0.4 })
+    );
+    s += text(2.9 * p, 7 * p, "DC 6.5-12V", PIN_LABEL, f.silk);
+    const uy = 13.6 * p;
+    const uh = 13 * mm;
+    s += tag(
+      "usb",
+      rect(0.3 * p, uy, 14 * mm, uh, T.metal, Object.assign({ rx: 0.8 }, edge(T, T["metal-edge"]))) + rect(0.3 * p, uy, 14 * mm, uh, sheen("metal"), { rx: 0.8, "fill-opacity": 0.75 }) + rect(0.3 * p, uy + 1.6 * mm, 1 * p, uh - 3.2 * mm, T.cavity, { rx: 0.4 }) + rect(0.3 * p, uy + uh / 2 - 1 * mm, 0.9 * p, 2 * mm, T["plastic-white"], { rx: 0.3 }) + line(0.3 * p + 9 * mm, uy + 1.2, 0.3 * p + 9 * mm, uy + uh - 1.2, T["metal-edge"], T["stroke-fine"])
+    );
+    s += text(2.9 * p, 13.1 * p, "USB", PIN_LABEL, f.silk);
+    const sx = 1.2 * p;
+    const sy = 8.2 * p;
+    const sw = 6 * mm;
+    s += tag(
+      "switch",
+      rect(sx, sy, sw, sw, T["plastic-black"], Object.assign({ rx: 0.8 }, edge(T, T["plastic-black-edge"]))) + circle(
+        sx + sw / 2,
+        sy + sw / 2,
+        on2 ? 1.6 * mm : 2.1 * mm,
+        on2 ? T["plastic-grey"] : T["plastic-white"],
+        edge(T, on2 ? T["plastic-grey-edge"] : T["plastic-white-edge"], T["stroke-detail"])
+      ),
+      { "data-hook": "switch", "data-on": on2 ? "true" : "false" }
+    );
+    s += text(sx + sw / 2, 11.5 * p, on2 ? "ON" : "OFF", PIN_LABEL, f.silk);
+    s += silkFrame(T, f, 4.4 * p, 8.4 * p, 0.7 * p, 0.7 * p) + indicator({
+      x: 4.4 * p,
+      y: 8.4 * p,
+      size: 0.7 * p,
+      color: "red",
+      on: !!ind.power,
+      hook: "power-led",
+      state: "power-led",
+      finish: fin
+    }) + text(4.75 * p, 10 * p, "PWR", PIN_LABEL, f.silk);
+    s += framed(T, f, "resistor", 4.3 * p, 11 * p, true);
+    s += sot2232(T, 6 * p, 5.6 * p, ["AMS1117", "5.0V"]) + text(7.3 * p, 4.4 * p, "5V", PIN_LABEL, f.silk);
+    s += sot2232(T, 6 * p, 14 * p, ["AMS1117", "3.3V"]) + text(7.3 * p, 12.8 * p, "3.3V", PIN_LABEL, f.silk);
+    [6.6, 13.5].forEach((y) => {
+      const cx = 9.9 * p;
+      const cy = y * p;
+      s += tag(
+        "cap",
+        circle(cx, cy, 1.2 * p, T["cap-electrolytic"], edge(T, T["plastic-black-edge"])) + circle(cx, cy, 0.9 * p, T.metal, { "fill-opacity": 0.85 }) + path(`M${r2(cx - 0.6 * p)} ${r2(cy)}h${r2(1.2 * p)}M${r2(cx)} ${r2(cy - 0.6 * p)}v${r2(1.2 * p)}`, "none", {
+          stroke: T["metal-edge"],
+          "stroke-width": 0.7
+        })
+      );
+    });
+    const jumper = (y, value, below) => {
+      let j = "";
+      [8.5, 9.5, 10.5].forEach((x) => {
+        j += circle(x * p, y, T["pad-radius"], T.pad) + circle(x * p, y, T["hole-radius"], T.hole, edge(T, T["metal-edge"], 0.5));
+      });
+      const ty = below ? y + 0.45 * p + 4.6 : y - 0.45 * p - 1.4;
+      j += text(8.5 * p, ty, "5V", PIN_LABEL, f.silk) + text(10.5 * p, ty, "3.3V", PIN_LABEL, f.silk);
+      const at = RAIL_JUMPER[value] === void 0 ? 0 : RAIL_JUMPER[value];
+      if (at !== null)
+        j += tag(
+          "jumper",
+          rect(
+            (8.5 + at) * p - 0.5 * p,
+            y - 0.45 * p,
+            2 * p,
+            0.9 * p,
+            T["plastic-black"],
+            Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
+          ) + rect((8.5 + at) * p - 0.35 * p, y - 0.3 * p, 1.7 * p, 0.25 * p, "#ffffff", {
+            rx: 0.2,
+            "fill-opacity": T["opacity-light"]
+          }),
+          { "data-rail": below ? "bottom" : "top", "data-volts": String(value) }
+        );
+      return j;
+    };
+    s += jumper(3.6 * p, props.topRail === void 0 ? "5" : String(props.topRail), true);
+    s += jumper(17.4 * p, props.bottomRail === void 0 ? "5" : String(props.bottomRail), false);
+    const out = header({ x: 8.5 * p, y: 10 * p, labels: ["5V", "3V3", "GND"], kind: "pad", side: "above", silk: f.silk });
+    s += top.svg + bottom.svg + out.svg;
+    return art(w, h, "MB102 breadboard power module", s, [...top.pins, ...bottom.pins, ...out.pins]);
+  }
+  var RAIL_JUMPER;
   var init_modules = __esm({
     "src/modules.js"() {
       init_core();
       init_pieces();
+      RAIL_JUMPER = { 5: 0, 3.3: 1, off: null };
     }
   });
 
@@ -8912,9 +9233,11 @@ var PartsKit = (() => {
   // src/families/modules.js
   var modules_exports = {};
   __export(modules_exports, {
+    ams1117Module: () => ams1117Module,
     ds3231Module: () => ds3231Module,
     hx711Board: () => hx711Board,
     logicAnalyzer: () => logicAnalyzer,
+    mb102Module: () => mb102Module,
     microsdModule: () => microsdModule,
     neopixelMeter: () => neopixelMeter,
     relayModule: () => relayModule,
@@ -9086,6 +9409,7 @@ var PartsKit = (() => {
   // src/families/passives.js
   var passives_exports = {};
   __export(passives_exports, {
+    batteryHolder: () => batteryHolder,
     capacitor: () => capacitor,
     resistor: () => resistor
   });
@@ -9472,8 +9796,10 @@ var PartsKit = (() => {
     FINISHES: () => FINISHES,
     LED_STRIP_MAX_PIXELS: () => LED_STRIP_MAX_PIXELS,
     PITCH: () => PITCH,
+    ams1117Module: () => ams1117Module,
     angleBetween: () => angleBetween,
     attiny85: () => attiny85,
+    batteryHolder: () => batteryHolder,
     bevel: () => bevel,
     bevelPoly: () => bevelPoly,
     bluePillBoard: () => bluePillBoard,
@@ -9548,6 +9874,7 @@ var PartsKit = (() => {
     logicSymbol: () => logicSymbol,
     lotCode: () => lotCode,
     max7219Matrix: () => max7219Matrix,
+    mb102Module: () => mb102Module,
     megaBoardTemplate: () => megaBoardTemplate,
     megaClassBoard: () => megaClassBoard,
     meterLines: () => meterLines,
@@ -9681,6 +10008,7 @@ var PartsKit = (() => {
   };
   var BOARD = { indicators: lamps2({ power: "Power LED", user: "User LED" }) };
   var POWER_BOARD = { indicators: lamps2({ power: "Power LED" }) };
+  var RAIL_CHOICES = [choice("5", "5 V"), choice("3.3", "3.3 V"), choice("off", "Off")];
   var SENSOR_BOARD = (def) => ({ indicators: lamps2({ power: "Power LED", out: "Output LED" }), finish: finish2(def) });
   var WAVE_CODE = "Array.from({ length: 2048 }, (_, i) => Math.abs(16 - 12 * Math.sin((i % 64) / 6) - Math.floor(i / 64)) < 1.5)";
   var WAVE = {
@@ -9946,6 +10274,14 @@ var PartsKit = (() => {
     rtcModule: { finish: finish2("blue") },
     ds3231Module: { indicators: lamps2({ power: "Power LED" }), finish: finish2("blue") },
     rfidModule: { indicators: lamps2({ power: "Power LED" }), finish: finish2("blue") },
+    ams1117Module: { indicators: lamps2({ power: "Power LED" }), finish: finish2("blue") },
+    mb102Module: {
+      power: { type: "enum", label: "Power switch", choices: [choice("on", "On"), choice("off", "Off")], default: "on" },
+      topRail: { type: "enum", label: "Top rail", choices: RAIL_CHOICES, default: "5" },
+      bottomRail: { type: "enum", label: "Bottom rail", choices: RAIL_CHOICES, default: "5" },
+      indicators: lamps2({ power: "Power LED" }),
+      finish: finish2("red")
+    },
     logicAnalyzer: {
       state: state({
         type: "enum",
@@ -10063,6 +10399,20 @@ var PartsKit = (() => {
         label: "Live layer",
         fields: { flow: flow2, heat: unit("Heat"), probe: probe2(["1", "2"]) }
       })
+    },
+    batteryHolder: {
+      cells: {
+        type: "enum",
+        label: "Cells",
+        choices: [
+          choice("2xAA", "2 × AA"),
+          choice("4xAA", "4 × AA"),
+          choice("6xAA", "6 × AA"),
+          choice("2x18650", "2 × 18650"),
+          choice("CR2032", "CR2032")
+        ],
+        default: "4xAA"
+      }
     },
     capacitor: {
       code: {
@@ -10261,6 +10611,15 @@ var PartsKit = (() => {
     ["relay-module", "Relay module", "module", "relayModule", null, ["relay", "SRD-05VDC"]],
     ["load-cell-amplifier", "Load cell amplifier", "module", "hx711Board", null, ["HX711", "scale"]],
     ["microsd-card-module", "microSD card module", "module", "microsdModule", null, ["SD card"]],
+    ["regulator-module-3-3-v", "Regulator module, 3.3 V", "module", "ams1117Module", null, ["AMS1117", "LDO"]],
+    [
+      "breadboard-power-module",
+      "Breadboard power module",
+      "module",
+      "mb102Module",
+      null,
+      ["MB102", "power supply", "5V", "3.3V"]
+    ],
     ["real-time-clock", "Real-time clock", "module", "rtcModule", null, ["DS1307", "RTC"]],
     [
       "precision-real-time-clock",
@@ -10287,7 +10646,16 @@ var PartsKit = (() => {
       { package: "to-220" },
       ["MOSFET", "IRLZ44N", "power"]
     ],
+    [
+      "voltage-regulator-to-220",
+      "Voltage regulator, TO-220",
+      "chip",
+      "transistor",
+      { package: "to-220", label: "L7805CV", pins: ["IN", "GND", "OUT"] },
+      ["7805", "LM7805", "L7805", "5V regulator"]
+    ],
     ["resistor", "Resistor", "passive", "resistor", null, ["ohm"]],
+    ["battery-holder", "Battery holder", "passive", "batteryHolder", null, ["battery", "AA", "18650", "CR2032"]],
     ["electrolytic-capacitor", "Electrolytic capacitor", "passive", "capacitor", { kind: "electrolytic" }, ["capacitor"]],
     ["ceramic-capacitor", "Ceramic capacitor", "passive", "capacitor", { kind: "ceramic" }, ["capacitor", "MLCC"]],
     ["mini-breadboard", "Mini breadboard", "breadboard", "breadboard", { variant: "breadboard-mini" }, ["170 points"]],

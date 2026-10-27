@@ -1,0 +1,15 @@
+<!-- @dsCard group="Templates" height=460 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>BreadboardPowerModule — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.mb102Module(), { pins: true, scale: 2, caption: "MB102, both rails 5 V" });
+K.mount(root, K.mb102Module({ topRail: "3.3", bottomRail: "off", indicators: { power: true } }), { scale: 2, caption: "3.3 V on top, bottom off, powered" });
+K.mount(root, K.mb102Module({ power: "off" }), { scale: 2, caption: "switched off" });
+</script>
+</body>
+</html>

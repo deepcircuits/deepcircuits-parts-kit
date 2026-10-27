@@ -348,6 +348,19 @@ export interface PartOptionsById {
   "microsd-card-module": {
     /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
   };
+  /** Regulator module, 3.3 V: ams1117Module. */
+  "regulator-module-3-3-v": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Breadboard power module: mb102Module. */
+  "breadboard-power-module": {
+    /** Power switch. Default "on". */ power?: "on" | "off";
+    /** Top rail. Default "5". */ topRail?: "5" | "3.3" | "off";
+    /** Bottom rail. Default "5". */ bottomRail?: "5" | "3.3" | "off";
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
+    /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
   /** Real-time clock: rtcModule. */
   "real-time-clock": {
     /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
@@ -409,12 +422,20 @@ export interface PartOptionsById {
     /** Part number. */ label?: string;
     /** Live layer. */ live?: { /** Heat. 0 to 1. Default 0. */ heat?: number };
   };
+  /** Voltage regulator, TO-220: transistor {"package":"to-220","label":"L7805CV","pins":["IN","GND","OUT"]}. */
+  "voltage-regulator-to-220": {
+    /** Live layer. */ live?: { /** Heat. 0 to 1. Default 0. */ heat?: number };
+  };
   /** Resistor: resistor. */
   "resistor": {
     /** Resistance. Default 1000. */ ohms?: number;
     /** Tolerance. Default 5. */ tolerance?: 5 | 10;
     /** Lead spacing. 3 to 12 pitches. Default 4. */ span?: number;
     /** Live layer. */ live?: { /** Current. Default false. */ flow?: false | true | "reverse"; /** Heat. 0 to 1. Default 0. */ heat?: number; /** Probe on pin. Default "". */ probe?: "" | "1" | "2" };
+  };
+  /** Battery holder: batteryHolder. */
+  "battery-holder": {
+    /** Cells. Default "4xAA". */ cells?: "2xAA" | "4xAA" | "6xAA" | "2x18650" | "CR2032";
   };
   /** Electrolytic capacitor: capacitor {"kind":"electrolytic"}. */
   "electrolytic-capacitor": Record<string, never>;

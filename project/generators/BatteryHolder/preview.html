@@ -1,0 +1,16 @@
+<!-- @dsCard group="Parts" height=360 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>BatteryHolder — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.batteryHolder({ cells: "2xAA" }), { pins: true, scale: 1.5, caption: "2 × AA" });
+K.mount(root, K.batteryHolder(), { scale: 1.5, caption: "4 × AA" });
+K.mount(root, K.batteryHolder({ cells: "2x18650" }), { scale: 1.5, caption: "2 × 18650" });
+K.mount(root, K.batteryHolder({ cells: "CR2032" }), { pins: true, scale: 2, caption: "CR2032" });
+</script>
+</body>
+</html>

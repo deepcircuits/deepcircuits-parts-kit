@@ -44,6 +44,8 @@ export interface PotentiometerProps { position?: number }
 /** contact: the pin the middle pin joins, 1 (default) or 3. */
 export interface SlideSwitchProps { contact?: 1 | 3 }
 export interface CapacitorProps { kind?: 'electrolytic' | 'ceramic'; code?: string }
+/** A battery holder from above with its two leads, + (red) one pitch and - (black) two pitches from the left at the top edge whatever the holder: 2, 4 or 6 AA cells, two 18650 cells, or a CR2032 coin cell. */
+export interface BatteryHolderProps { cells?: '2xAA' | '4xAA' | '6xAA' | '2x18650' | 'CR2032' }
 export interface BuzzerProps { live?: LiveState }
 export interface ModuleProps { label?: string; pins?: readonly string[]; finish?: Finish; part?: 'chip' | 'sensor' | 'can' | 'dual-can' | 'dome' | 'microsd' | 'rtc' | 'none'; /** A second row of pads along the top edge (the HX711's load-cell pads). */ extraPads?: readonly string[]; /** A can's diameter in pitches (2.6 by default; 6 for the HC-SR04's 16 mm cans). */ canPitches?: number; /** A dome's diameter in pitches (3 by default; 9 for the PIR's 23 mm lens). */ domePitches?: number; /** A sensor housing's vents: slots (DHT22) or holes (DHT11). */ vent?: 'slots' | 'holes'; /** The sensor housing's plastic: white (default) or the DHT11's blue. */ housing?: 'white' | 'blue'; /** A chip module's package: a SOIC with leads (default), a metal-lid LGA with its vent hole, or a QFN with pads on four sides. */ ic?: 'soic' | 'lga' | 'qfn'; widthPitches?: number; heightPitches?: number; /** The board's true width in mm, overriding widthPitches (the GY-521 is 21). */ width?: number; /** The board's true height in mm, overriding heightPitches (the GY-521 is 16). */ height?: number; holes?: boolean; description?: string; /** false hides the maker's mark. */ mark?: boolean }
 export interface DevBoardProps {
@@ -147,6 +149,10 @@ export interface NeopixelMeterProps { fps?: number; pixels?: number; amps?: numb
 export interface RelayModuleProps { /** The photographed board is red. */ finish?: Finish; label?: string | false; indicators?: { power?: boolean; status?: boolean } }
 export interface LogicAnalyzerProps { channels?: readonly string[]; lit?: readonly (boolean | 0 | 1)[]; samples?: number; state?: 'idle' | 'armed' | 'recording' | 'paused' | 'full' | 'error'; activity?: number; /** Accepted and ignored: the label prints the analyzer's own name and channel table. */ label?: string }
 export interface RfidModuleProps { finish?: Finish; pins?: readonly string[]; label?: string; indicators?: { power?: boolean } }
+/** The AMS1117-3.3 regulator module: VIN, GND and VOUT down the left edge; the power LED lit by `indicators.power`. */
+export interface Ams1117ModuleProps { finish?: Finish; indicators?: { power?: boolean } }
+/** The MB102 breadboard power module: the rail pins (TOP+, TOP-, BOT+, BOT-) where a breadboard's rails are, the output header (5V, 3V3, GND) over the centre channel; each rail's jumper at 5 V, 3.3 V or off, the power switch on or off, the power LED lit by `indicators.power`. */
+export interface Mb102ModuleProps { power?: 'on' | 'off'; topRail?: '5' | '3.3' | 'off'; bottomRail?: '5' | '3.3' | 'off'; finish?: Finish; indicators?: { power?: boolean } }
 export interface PicoBoardProps { label?: string; chipLabel?: string; finish?: Finish; left?: readonly string[]; right?: readonly string[]; indicators?: { power?: Lit; user?: Lit }; /** false draws the debug pads without returning them as pins. */ debugPins?: boolean; description?: string }
 export interface Nucleo32BoardProps { label?: string; chipLabel?: string; finish?: Finish; left?: readonly string[]; right?: readonly string[]; extraPads?: readonly { name: string; dx: number; dy: number }[]; indicators?: { power?: Lit; user?: Lit }; description?: string }
 export interface Dht22SensorProps { pins?: readonly string[] }
@@ -507,6 +513,10 @@ export interface PartsKit {
   microsdModule(props?: MicrosdModuleProps): Artwork;
   rtcModule(props?: RtcModuleProps): Artwork;
   ds3231Module(props?: Ds3231ModuleProps): Artwork;
+  /** The AMS1117-3.3 regulator module (VIN, GND, VOUT). */
+  ams1117Module(props?: Ams1117ModuleProps): Artwork;
+  /** The MB102 breadboard power module, its rail pins on a breadboard's rails. */
+  mb102Module(props?: Mb102ModuleProps): Artwork;
   oledSquare(props?: OledSquareProps): Artwork;
   max7219Matrix(props?: Max7219MatrixProps): Artwork;
   tm1637Module(props?: Tm1637ModuleProps): Artwork;
@@ -517,6 +527,8 @@ export interface PartsKit {
   potentiometer(props?: PotentiometerProps): Artwork;
   slideSwitch(props?: SlideSwitchProps): Artwork;
   capacitor(props?: CapacitorProps): Artwork;
+  /** A battery holder with its red and black leads (+, -). */
+  batteryHolder(props?: BatteryHolderProps): Artwork;
   buzzer(props?: BuzzerProps): Artwork;
   moduleTemplate(props: ModuleProps): Artwork;
   devBoardTemplate(props: DevBoardProps): Artwork;

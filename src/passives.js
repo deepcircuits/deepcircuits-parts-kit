@@ -2,11 +2,13 @@
 import {
   PIN_LABEL,
   art,
+  bevel,
   circle,
   edge,
   el,
   flow,
   lensColor,
+  line,
   path,
   probe,
   r2,
@@ -521,4 +523,164 @@ export function rgbLed(props) {
       return { name: names[i], x, y: legEnd(i) };
     }),
   );
+}
+
+/** Each holder: its cells, their diameter and length in mm, and what the label prints. */
+const HOLDERS = {
+  '2xAA': { cells: 2, d: 14.5, l: 50.5, label: '2 × AA  3V' },
+  '4xAA': { cells: 4, d: 14.5, l: 50.5, label: '4 × AA  6V' },
+  '6xAA': { cells: 6, d: 14.5, l: 50.5, label: '6 × AA  9V' },
+  '2x18650': { cells: 2, d: 18.6, l: 65, label: '2 × 18650  7.4V' },
+  CR2032: { cells: 1, d: 20, l: 3.2, label: 'CR2032  3V' },
+};
+
+/** A cylindrical cell lying in its holder from above, its axis along y, + at the top when `up`. */
+function cylinderCell(T, x, y, w, h, up, wrap) {
+  const nub = Math.min(w * 0.4, 5.5 * (T.pitch / 2.54));
+  const nubH = 1.2 * (T.pitch / 2.54);
+  const top = up ? y + nubH : y;
+  const bodyH = h - nubH;
+  let s = '';
+  s += rect(
+    x + (w - nub) / 2,
+    up ? y : y + h - nubH - 0.5,
+    nub,
+    nubH + 0.5,
+    T.metal,
+    edge(T, T['metal-edge'], T['stroke-fine']),
+  );
+  s += rect(x, top, w, bodyH, T[wrap], Object.assign({ rx: w * 0.12 }, edge(T, T['plastic-black-edge'])));
+  // The wrap's band, the metal ring at the + end and the bench light down the cell's left side.
+  s += rect(x + 0.4, top + bodyH * 0.3, w - 0.8, bodyH * 0.4, T['plastic-black'], { 'fill-opacity': 0.35 });
+  s += rect(x + 0.4, up ? top + 0.4 : top + bodyH - 2.2, w - 0.8, 1.8, T.metal, { rx: 0.6, 'fill-opacity': 0.8 });
+  s += rect(x + w * 0.14, top + 1.2, w * 0.16, bodyH - 2.4, '#ffffff', {
+    rx: w * 0.08,
+    'fill-opacity': T['opacity-light'],
+  });
+  s += rect(x + w * 0.72, top + 1.2, w * 0.18, bodyH - 2.4, '#000000', {
+    rx: w * 0.09,
+    'fill-opacity': T['opacity-shade'],
+  });
+  s += text(x + w / 2, up ? top + bodyH * 0.2 + 2 : top + bodyH * 0.8 + 2, up ? '+' : '−', 5.6, T['chip-print'], {
+    'font-weight': 700,
+  });
+  return s;
+}
+
+/** One insulated lead from (x, y0) up to its pin at (x, y1): the coloured insulation, then the tinned end. */
+function lead(T, x, y0, y1, colour) {
+  const tin = y1 + 0.9 * T.pitch;
+  return (
+    line(x, y0, x, tin, T[`${colour}-edge`], T['leg-width'] + 1.4) +
+    line(x, y0, x, tin, T[colour], T['leg-width'] + 0.4) +
+    wire(x, tin, x, y1)
+  );
+}
+
+/**
+ * A battery holder from above at its true size, with its red and black leads ending in two pins: AA cells side by
+ * side in a black tray (`cells` '2xAA', '4xAA' or '6xAA'), two 18650 cells ('2x18650'), or a CR2032 coin cell in its
+ * round holder ('CR2032'). The cells sit in series, each turned against its neighbour, with the springs at the
+ * negative ends. Whatever the holder, the leads leave its top edge and end one and two pitches from the left at the
+ * top edge, + (red) first, so a host can change the holder without moving a pin. The 4 × AA holder is the default.
+ */
+export function batteryHolder(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const kind = HOLDERS[props.cells] ? props.cells : '4xAA';
+  const spec = HOLDERS[kind];
+  const trayTop = 3 * p;
+  let s = '';
+  let w;
+  let h;
+  if (kind === 'CR2032') {
+    // The round holder: a black ring round the cell with its two solder tabs, the leads from the + tab at the top.
+    const r = 12 * mm;
+    w = Math.max(3 * p, 2 * r + 2 * p);
+    h = trayTop + 2 * r + 0.6 * p;
+    const cx = w / 2;
+    const cy = trayTop + r;
+    s += tag(
+      'body',
+      circle(cx, cy, r, T['plastic-black'], edge(T, T['plastic-black-edge'])) +
+        rect(
+          cx - r * 0.35,
+          trayTop - 0.2 * p,
+          r * 0.7,
+          0.9 * p,
+          T['plastic-black'],
+          Object.assign({ rx: 1 }, edge(T, T['plastic-black-edge'])),
+        ),
+    );
+    s += circle(cx, cy, (spec.d / 2) * mm, T.metal, edge(T, T['metal-edge']));
+    s += circle(cx, cy, (spec.d / 2) * mm, sheen('metal'), { 'fill-opacity': 0.6 });
+    s += circle(cx, cy, (spec.d / 2 - 1.2) * mm, 'none', { stroke: T['metal-edge'], 'stroke-width': T['stroke-fine'] });
+    s += text(cx, cy - 1, 'CR2032', 5, T['plastic-grey'], { 'font-weight': 600 });
+    s += text(cx, cy + 6, '3V  +', 4.4, T['plastic-grey']);
+    // The + clip across the cell to the top tab.
+    s += rect(
+      cx - 2 * mm,
+      trayTop - 0.2 * p,
+      4 * mm,
+      r * 0.75,
+      T.metal,
+      Object.assign({ rx: 0.6, 'fill-opacity': 0.9 }, edge(T, T['metal-edge'], T['stroke-fine'])),
+    );
+  } else {
+    const wall = 1.6 * mm;
+    const pitch = (spec.d + 0.8) * mm;
+    const cellW = spec.d * mm;
+    const contact = 4 * mm;
+    w = spec.cells * pitch + 2 * wall;
+    const trayH = spec.l * mm + 2 * contact + 2 * wall;
+    h = trayTop + trayH;
+    s += tag(
+      'body',
+      rect(
+        0.4,
+        trayTop,
+        w - 0.8,
+        trayH,
+        T['plastic-black'],
+        Object.assign({ rx: 1.6 * mm }, edge(T, T['plastic-black-edge'])),
+      ),
+    );
+    s += bevel(T, 0.4, trayTop, w - 0.8, trayH, 1.6, 1.6 * mm);
+    const wrap = spec.d > 15 ? 'plastic-blue' : 'pcb-teal';
+    for (let i = 0; i < spec.cells; i++) {
+      const x = wall + i * pitch + 0.4 * mm;
+      const y = trayTop + wall + contact;
+      // Series: the cells alternate, so the first cell's + and the last cell's - meet the leads at the top.
+      const up = i % 2 === 0;
+      // The well each cell lies in, then its spring at the - end and its plate at the + end.
+      s += rect(x - 0.2 * mm, trayTop + wall, cellW + 0.4 * mm, trayH - 2 * wall, '#000000', {
+        rx: 1,
+        'fill-opacity': 0.3,
+      });
+      const springY = up ? y + spec.l * mm : trayTop + wall;
+      for (let k = 0; k < 4; k++)
+        s += line(
+          x + cellW * 0.25,
+          springY + (k + 0.5) * (contact / 4),
+          x + cellW * 0.75,
+          springY + (k + 0.9) * (contact / 4),
+          T.metal,
+          0.8,
+        );
+      const plateY = up ? trayTop + wall + contact - 1.2 : y + spec.l * mm + 0.2;
+      s += rect(x + cellW * 0.2, plateY, cellW * 0.6, 1.0, T.metal, { rx: 0.3 });
+      s += cylinderCell(T, x, y, cellW, spec.l * mm, up, wrap);
+    }
+    // The tray's print along the bottom wall.
+    s += text(w / 2, h - wall - 0.8, spec.label, 4.4, T['plastic-grey']);
+  }
+  // The leads: red from +, black from -, both up from the tray's top edge to the pins.
+  s += tag('leg', lead(T, p, trayTop + 1.5, 0, 'plastic-red'));
+  s += tag('leg', lead(T, 2 * p, trayTop + 1.5, 0, 'plastic-black'));
+  return art(w, h, `Battery holder, ${spec.label}`, s, [
+    { name: '+', x: p, y: 0 },
+    { name: '-', x: 2 * p, y: 0 },
+  ]);
 }
