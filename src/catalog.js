@@ -173,14 +173,7 @@ const PARTS = [
   ['shift-register-74hc165', 'Shift register, 74HC165', 'chip', 'shiftRegister165', null, ['PISO']],
   ['nlsf595-driver', 'NLSF595 driver', 'chip', 'ledDriver595', null, ['LED driver']],
   ['attiny85', 'ATtiny85', 'chip', 'attiny85', null, ['microcontroller']],
-  [
-    'transistor-to-92',
-    'Transistor, TO-92',
-    'chip',
-    'transistor',
-    { package: 'to-92' },
-    ['BJT', 'MOSFET', '2N2222A', 'PN2222A', 'BC547', '2N7000'],
-  ],
+  ['transistor-to-92', 'Transistor, TO-92', 'chip', 'transistor', { package: 'to-92' }, ['BJT', '2N2222A', 'PN2222A']],
   [
     'transistor-to-220',
     'Transistor, TO-220',

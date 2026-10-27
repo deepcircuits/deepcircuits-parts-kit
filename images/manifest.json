@@ -19957,11 +19957,8 @@
       "family": "chip",
       "aliases": [
         "BJT",
-        "MOSFET",
         "2N2222A",
-        "PN2222A",
-        "BC547",
-        "2N7000"
+        "PN2222A"
       ],
       "width": 38.4,
       "height": 76.8,
