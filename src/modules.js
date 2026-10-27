@@ -25,7 +25,7 @@ import {
   trace,
   via,
 } from './core.js';
-import { edgeHeader, framed, padRow, qfp, silkFrame, smd, soicAcross, sot23, usbPort } from './pieces.js';
+import { dipOnBoard, edgeHeader, framed, padRow, qfp, silkFrame, smd, soicAcross, sot23, usbPort } from './pieces.js';
 
 /**
  * A breakout module: a board in a finish, one header row of pads along the
@@ -1754,4 +1754,114 @@ export function l298nModule(props) {
   ['OUT1', 'OUT2'].forEach((name, i) => pins.push({ name, x: p, y: (8 + 2 * i) * p }));
   ['OUT3', 'OUT4'].forEach((name, i) => pins.push({ name, x: 16 * p, y: (8 + 2 * i) * p }));
   return art(w, h, 'L298N dual H-bridge motor driver module', s, pins);
+}
+
+/**
+ * The ULN2003 stepper driver board sold with the 28BYJ-48, at its 35 x 32 mm size: the ULN2003A in DIP-16 across
+ * the middle, the white 5-pin motor connector along the top edge (D, C, B, A and + from the left, the order the
+ * motor's plug takes its BLUE, PINK, YELLOW, ORANGE and RED leads), the four channel LEDs A to D with their resistors
+ * at the top right, the input header (IN1 ... IN4) along the bottom left and the supply pins (- and +, 5-12 V) with
+ * the ON/OFF jumper along the bottom right. `status` lights the channel LEDs (`led-a` ... `led-d`).
+ */
+export function uln2003Board(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const fin = props.finish || 'green';
+  const f = finish(T, fin);
+  const w = 14 * p;
+  const h = 13 * p;
+  const status = props.status || [];
+  let s = '';
+  s += board({ width: w, height: h, finish: fin, holes: true });
+  // The motor connector: the white shrouded header, its five pins on the pitch.
+  const motor = header({
+    x: 2 * p,
+    y: 2 * p,
+    axis: 'x',
+    count: 5,
+    names: ['D', 'C', 'B', 'A', 'COM'],
+    kind: 'leg',
+  });
+  s += tag(
+    'connector',
+    rect(
+      1.4 * p,
+      1.35 * p,
+      5.2 * p,
+      1.3 * p,
+      T['plastic-white'],
+      Object.assign({ rx: 0.6 }, edge(T, T['plastic-white-edge'], T['stroke-detail'])),
+    ) + rect(1.55 * p, 1.5 * p, 4.9 * p, 0.25 * p, T['plastic-white-edge'], { rx: 0.2, 'fill-opacity': 0.6 }),
+  );
+  motor.pins.forEach((pn, i) => {
+    s +=
+      rect(pn.x - 1.3, pn.y - 1.3, 2.6, 2.6, T.lead, edge(T, T['lead-edge'], T['stroke-fine'])) +
+      text(pn.x, 3.3 * p, ['D', 'C', 'B', 'A', '+'][i], PIN_LABEL, f.silk);
+  });
+  s += motor.svg;
+  // The channel LEDs, each with its resistor below it.
+  ['A', 'B', 'C', 'D'].forEach((name, i) => {
+    const x = (8.2 + 1.3 * i) * p;
+    s +=
+      silkFrame(T, f, x, 1.1 * p, 0.7 * p, 0.7 * p) +
+      indicator({
+        x,
+        y: 1.1 * p,
+        size: 0.7 * p,
+        color: 'red',
+        on: !!status[i],
+        hook: `led-${name.toLowerCase()}`,
+        state: `led-${name.toLowerCase()}`,
+        finish: fin,
+        label: name,
+      });
+    s += framed(T, f, 'resistor', x - 0.1 * p, 3.1 * p, true);
+  });
+  // The ULN2003A, pin 1 at the bottom left.
+  s += dipOnBoard(T, 3 * p, 6.2 * p, 8, 'ULN2003A');
+  // The input header along the bottom left, the supply pins and the ON/OFF jumper along the bottom right.
+  const inputs = header({
+    x: 2 * p,
+    y: 12 * p,
+    axis: 'x',
+    labels: ['IN1', 'IN2', 'IN3', 'IN4'],
+    kind: 'pad',
+    side: 'above',
+    rotate: true,
+    silk: f.silk,
+    size: PIN_LABEL,
+  });
+  const supply = header({
+    x: 8 * p,
+    y: 12 * p,
+    axis: 'x',
+    labels: ['-', '+'],
+    names: ['GND', 'VCC'],
+    kind: 'pad',
+    side: 'above',
+    silk: f.silk,
+    size: PIN_LABEL,
+  });
+  s += inputs.svg + supply.svg;
+  s += text(8.5 * p, 10.5 * p, '5-12V', PIN_LABEL, f.silk);
+  const jumper = header({ x: 11 * p, y: 12 * p, axis: 'x', count: 2, kind: 'pad' });
+  s += jumper.svg + text(11.5 * p, 10.5 * p, 'ON/OFF', PIN_LABEL, f.silk);
+  s += tag(
+    'jumper',
+    rect(
+      10.55 * p,
+      11.55 * p,
+      1.9 * p,
+      0.9 * p,
+      T['plastic-black'],
+      Object.assign({ rx: 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
+    ) + rect(10.7 * p, 11.7 * p, 1.6 * p, 0.25 * p, '#ffffff', { rx: 0.2, 'fill-opacity': T['opacity-light'] }),
+  );
+  s += text(5.2 * p, 9.0 * p, 'ULN2003 DRIVER', PIN_LABEL, f.silk, { 'font-weight': 600 });
+  const at = new Map([...motor.pins, ...supply.pins].map(pn => [pn.name, pn]));
+  return art(w, h, 'ULN2003 stepper driver board', s, [
+    ...inputs.pins,
+    ...['VCC', 'GND', 'A', 'B', 'C', 'D', 'COM'].map(name => at.get(name)),
+  ]);
 }

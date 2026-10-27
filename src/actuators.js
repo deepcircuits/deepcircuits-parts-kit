@@ -259,6 +259,114 @@ export function stepper(props) {
   );
 }
 
+/** The 28BYJ-48's lead colours, in the order its plug holds them, and the pin each one is. */
+const GEARED_STEPPER_WIRES = [
+  ['BLUE', 'band-blue'],
+  ['PINK', '#e98bb0'],
+  ['YELLOW', 'band-yellow'],
+  ['ORANGE', 'band-orange'],
+  ['RED', 'band-red'],
+];
+
+/**
+ * The 28BYJ-48 geared unipolar stepper from its shaft side: the 28 mm steel
+ * can, the mounting flange with its two holes 35 mm apart, the output shaft
+ * 8 mm off the can's centre with its two flats (rotor, data-angle) on its
+ * boss, and the blue cover over the lead exit. Five leads run from the cover
+ * to a header of legs at the bottom edge in the plug's order (BLUE, PINK,
+ * YELLOW, ORANGE, RED); the pins are returned in drive order (ORANGE,
+ * YELLOW, PINK, BLUE, RED), RED being the two windings' common centre tap.
+ */
+export function gearedStepper(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const angle = Number(props.angle) || 0;
+  const w = 18 * p;
+  const cx = w / 2;
+  const cy = 0.5 * p + 14 * mm;
+  const coverY = cy + 9.5 * mm;
+  const coverB = cy + 17 * mm;
+  const h = r2(coverB + 4 * p);
+  const sy = cy - 8 * mm;
+  let s = '';
+  // The leads first, so the cover sits over their ends.
+  const hdr = header({
+    x: r2(cx - 2 * p),
+    y: h - 0.6 * p,
+    labels: GEARED_STEPPER_WIRES.map(wire => wire[0]),
+    kind: 'leg',
+    side: 'above',
+    silk: 'currentColor',
+    size: PIN_LABEL,
+    rotate: true,
+  });
+  hdr.pins.forEach((pn, i) => {
+    const x0 = cx + (i - 2) * 0.32 * p;
+    const color = GEARED_STEPPER_WIRES[i][1];
+    s += path(
+      `M${r2(x0)} ${r2(coverB - 1)}C${r2(x0)} ${r2(coverB + 0.9 * p)} ${r2(pn.x)} ${r2(coverB + 0.4 * p)} ${r2(pn.x)} ${r2(pn.y - 2.0 * p)}`,
+      'none',
+      { stroke: color.startsWith('#') ? color : T[color], 'stroke-width': 1.4, 'stroke-linecap': 'round' },
+    );
+  });
+  // The flange across the can, its ears rounded round the holes, then the can and the cover.
+  const ear = 3.5 * mm;
+  const span = 17.5 * mm;
+  s += tag(
+    'body',
+    path(
+      `M${r2(cx - span)} ${r2(cy - ear)}H${r2(cx + span)}A${r2(ear)} ${r2(ear)} 0 0 1 ${r2(cx + span)} ${r2(cy + ear)}H${r2(cx - span)}A${r2(ear)} ${r2(ear)} 0 0 1 ${r2(cx - span)} ${r2(cy - ear)}Z`,
+      T.metal,
+      edge(T, T['metal-edge']),
+    ) + circle(cx, cy, 14 * mm, T.metal, edge(T, T['metal-edge'])),
+  );
+  s += circle(cx, cy, 14 * mm - 0.8, sheen('metal'), { 'fill-opacity': 0.5 });
+  [-1, 1].forEach(k => {
+    s += circle(cx + k * span, cy, 2.1 * mm, T.hole, edge(T, T['metal-edge'], T['stroke-fine']));
+  });
+  // The rolled seam round the can's face, the cover over it at the lead exit, and the can's print below the shaft.
+  s += circle(cx, cy, 12.6 * mm, 'none', { stroke: T['metal-edge'], 'stroke-width': T['stroke-detail'] });
+  s += tag(
+    'cover',
+    rect(
+      cx - 8.5 * mm,
+      coverY,
+      17 * mm,
+      coverB - coverY,
+      T['plastic-blue'],
+      Object.assign({ rx: 1.2 }, edge(T, T['plastic-blue-edge'])),
+    ) + bevel(T, cx - 8.5 * mm, coverY, 17 * mm, coverB - coverY, 1.4, 1.2),
+  );
+  s += text(cx, cy + 3.2 * mm, '28BYJ-48', PIN_LABEL + 0.4, T['band-black'], { 'font-weight': 600 });
+  s += text(cx, cy + 5.6 * mm, `5VDC ${lotCode('28BYJ')}`, PIN_LABEL, T['band-black'], { 'fill-opacity': 0.8 });
+  // The shaft's boss, and the shaft with its two flats on the rotor hook.
+  s += circle(cx, sy, 4.6 * mm, T.metal, edge(T, T['metal-edge'], T['stroke-detail']));
+  s += el(
+    'g',
+    {
+      'data-hook': 'rotor',
+      'data-part': 'rotor',
+      'data-angle': r2(angle),
+      'data-cx': r2(cx),
+      'data-cy': r2(sy),
+      transform: `rotate(${r2(angle)} ${r2(cx)} ${r2(sy)})`,
+    },
+    path(flatted(cx, sy, 2.5 * mm, 1.5 * mm, 'x'), T.brass, edge(T, T['brass-edge'], T['stroke-fine'])) +
+      line(cx, sy - 1.6 * mm, cx, sy - 0.4 * mm, T['brass-edge'], 0.8),
+  );
+  s += hdr.svg;
+  const at = new Map(hdr.pins.map(pn => [pn.name, pn]));
+  return art(
+    w,
+    h,
+    `28BYJ-48 geared stepper at ${r2(angle)}°`,
+    s,
+    ['ORANGE', 'YELLOW', 'PINK', 'BLUE', 'RED'].map(name => at.get(name)),
+  );
+}
+
 /**
  * A DPDT relay in its amber can, 20.5 x 10 mm, eight pins in two rows three
  * pitches apart (NO2, NC2, P2, COIL2 along the top; NO1, NC1, P1, COIL1

@@ -174,6 +174,14 @@ export const CARDS = [
     },
   },
   {
+    name: "GearedStepper",
+    intro: "`gearedStepper`: the 28BYJ-48 5 V geared unipolar stepper seen from its shaft side",
+    draw(K, root) {
+      K.mount(root, K.gearedStepper(), { pins: true, scale: 1.4, caption: "28BYJ-48" });
+      K.mount(root, K.gearedStepper({ angle: 90 }), { scale: 1.4, caption: "the shaft at 90°" });
+    },
+  },
+  {
     name: "Header",
     intro: "A row of pins one `pitch` apart along x or y, with labels on one side",
     draw(K, root) {
@@ -662,6 +670,14 @@ export const CARDS = [
       K.mount(root, K.transistor({ label: "2N7000", pins: ["S", "G", "D"] }), { scale: 3, caption: "2N7000" });
       K.mount(root, K.transistor({ package: "to-220" }), { pins: true, scale: 3, caption: "IRLZ44N, TO-220" });
       K.mount(root, K.transistor({ package: "to-220", label: "NDP6020P", live: { heat: 0.7 } }), { scale: 3, caption: "live: warm" });
+    },
+  },
+  {
+    name: "Uln2003Board",
+    intro: "`uln2003Board`: the ULN2003 stepper driver board sold with the 28BYJ-48, 35 × 32 mm on a `pcb-green` board",
+    draw(K, root) {
+      K.mount(root, K.uln2003Board(), { pins: true, scale: 2, caption: "ULN2003 board" });
+      K.mount(root, K.uln2003Board({ status: [true, true, false, false] }), { scale: 2, caption: "A and B sinking" });
     },
   },
   {

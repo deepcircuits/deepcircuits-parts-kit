@@ -13,3 +13,4 @@ export declare const neopixelMeter: PartsKit['neopixelMeter'];
 export declare const relayModule: PartsKit['relayModule'];
 export declare const rfidModule: PartsKit['rfidModule'];
 export declare const rtcModule: PartsKit['rtcModule'];
+export declare const uln2003Board: PartsKit['uln2003Board'];

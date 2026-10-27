@@ -7200,6 +7200,100 @@ var PartsKit = (() => {
     ["OUT3", "OUT4"].forEach((name, i) => pins.push({ name, x: 16 * p, y: (8 + 2 * i) * p }));
     return art(w, h, "L298N dual H-bridge motor driver module", s, pins);
   }
+  function uln2003Board(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const fin = props.finish || "green";
+    const f = finish(T, fin);
+    const w = 14 * p;
+    const h = 13 * p;
+    const status = props.status || [];
+    let s = "";
+    s += board({ width: w, height: h, finish: fin, holes: true });
+    const motor = header({
+      x: 2 * p,
+      y: 2 * p,
+      axis: "x",
+      count: 5,
+      names: ["D", "C", "B", "A", "COM"],
+      kind: "leg"
+    });
+    s += tag(
+      "connector",
+      rect(
+        1.4 * p,
+        1.35 * p,
+        5.2 * p,
+        1.3 * p,
+        T["plastic-white"],
+        Object.assign({ rx: 0.6 }, edge(T, T["plastic-white-edge"], T["stroke-detail"]))
+      ) + rect(1.55 * p, 1.5 * p, 4.9 * p, 0.25 * p, T["plastic-white-edge"], { rx: 0.2, "fill-opacity": 0.6 })
+    );
+    motor.pins.forEach((pn, i) => {
+      s += rect(pn.x - 1.3, pn.y - 1.3, 2.6, 2.6, T.lead, edge(T, T["lead-edge"], T["stroke-fine"])) + text(pn.x, 3.3 * p, ["D", "C", "B", "A", "+"][i], PIN_LABEL, f.silk);
+    });
+    s += motor.svg;
+    ["A", "B", "C", "D"].forEach((name, i) => {
+      const x = (8.2 + 1.3 * i) * p;
+      s += silkFrame(T, f, x, 1.1 * p, 0.7 * p, 0.7 * p) + indicator({
+        x,
+        y: 1.1 * p,
+        size: 0.7 * p,
+        color: "red",
+        on: !!status[i],
+        hook: `led-${name.toLowerCase()}`,
+        state: `led-${name.toLowerCase()}`,
+        finish: fin,
+        label: name
+      });
+      s += framed(T, f, "resistor", x - 0.1 * p, 3.1 * p, true);
+    });
+    s += dipOnBoard(T, 3 * p, 6.2 * p, 8, "ULN2003A");
+    const inputs = header({
+      x: 2 * p,
+      y: 12 * p,
+      axis: "x",
+      labels: ["IN1", "IN2", "IN3", "IN4"],
+      kind: "pad",
+      side: "above",
+      rotate: true,
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    const supply = header({
+      x: 8 * p,
+      y: 12 * p,
+      axis: "x",
+      labels: ["-", "+"],
+      names: ["GND", "VCC"],
+      kind: "pad",
+      side: "above",
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    s += inputs.svg + supply.svg;
+    s += text(8.5 * p, 10.5 * p, "5-12V", PIN_LABEL, f.silk);
+    const jumper = header({ x: 11 * p, y: 12 * p, axis: "x", count: 2, kind: "pad" });
+    s += jumper.svg + text(11.5 * p, 10.5 * p, "ON/OFF", PIN_LABEL, f.silk);
+    s += tag(
+      "jumper",
+      rect(
+        10.55 * p,
+        11.55 * p,
+        1.9 * p,
+        0.9 * p,
+        T["plastic-black"],
+        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
+      ) + rect(10.7 * p, 11.7 * p, 1.6 * p, 0.25 * p, "#ffffff", { rx: 0.2, "fill-opacity": T["opacity-light"] })
+    );
+    s += text(5.2 * p, 9 * p, "ULN2003 DRIVER", PIN_LABEL, f.silk, { "font-weight": 600 });
+    const at = new Map([...motor.pins, ...supply.pins].map((pn) => [pn.name, pn]));
+    return art(w, h, "ULN2003 stepper driver board", s, [
+      ...inputs.pins,
+      ...["VCC", "GND", "A", "B", "C", "D", "COM"].map((name) => at.get(name))
+    ]);
+  }
   var RAIL_JUMPER;
   var init_modules = __esm({
     "src/modules.js"() {
@@ -10167,6 +10261,90 @@ var PartsKit = (() => {
       hdr.pins
     );
   }
+  function gearedStepper(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const angle = Number(props.angle) || 0;
+    const w = 18 * p;
+    const cx = w / 2;
+    const cy = 0.5 * p + 14 * mm;
+    const coverY = cy + 9.5 * mm;
+    const coverB = cy + 17 * mm;
+    const h = r2(coverB + 4 * p);
+    const sy = cy - 8 * mm;
+    let s = "";
+    const hdr = header({
+      x: r2(cx - 2 * p),
+      y: h - 0.6 * p,
+      labels: GEARED_STEPPER_WIRES.map((wire2) => wire2[0]),
+      kind: "leg",
+      side: "above",
+      silk: "currentColor",
+      size: PIN_LABEL,
+      rotate: true
+    });
+    hdr.pins.forEach((pn, i) => {
+      const x0 = cx + (i - 2) * 0.32 * p;
+      const color = GEARED_STEPPER_WIRES[i][1];
+      s += path(
+        `M${r2(x0)} ${r2(coverB - 1)}C${r2(x0)} ${r2(coverB + 0.9 * p)} ${r2(pn.x)} ${r2(coverB + 0.4 * p)} ${r2(pn.x)} ${r2(pn.y - 2 * p)}`,
+        "none",
+        { stroke: color.startsWith("#") ? color : T[color], "stroke-width": 1.4, "stroke-linecap": "round" }
+      );
+    });
+    const ear = 3.5 * mm;
+    const span = 17.5 * mm;
+    s += tag(
+      "body",
+      path(
+        `M${r2(cx - span)} ${r2(cy - ear)}H${r2(cx + span)}A${r2(ear)} ${r2(ear)} 0 0 1 ${r2(cx + span)} ${r2(cy + ear)}H${r2(cx - span)}A${r2(ear)} ${r2(ear)} 0 0 1 ${r2(cx - span)} ${r2(cy - ear)}Z`,
+        T.metal,
+        edge(T, T["metal-edge"])
+      ) + circle(cx, cy, 14 * mm, T.metal, edge(T, T["metal-edge"]))
+    );
+    s += circle(cx, cy, 14 * mm - 0.8, sheen("metal"), { "fill-opacity": 0.5 });
+    [-1, 1].forEach((k) => {
+      s += circle(cx + k * span, cy, 2.1 * mm, T.hole, edge(T, T["metal-edge"], T["stroke-fine"]));
+    });
+    s += circle(cx, cy, 12.6 * mm, "none", { stroke: T["metal-edge"], "stroke-width": T["stroke-detail"] });
+    s += tag(
+      "cover",
+      rect(
+        cx - 8.5 * mm,
+        coverY,
+        17 * mm,
+        coverB - coverY,
+        T["plastic-blue"],
+        Object.assign({ rx: 1.2 }, edge(T, T["plastic-blue-edge"]))
+      ) + bevel(T, cx - 8.5 * mm, coverY, 17 * mm, coverB - coverY, 1.4, 1.2)
+    );
+    s += text(cx, cy + 3.2 * mm, "28BYJ-48", PIN_LABEL + 0.4, T["band-black"], { "font-weight": 600 });
+    s += text(cx, cy + 5.6 * mm, `5VDC ${lotCode("28BYJ")}`, PIN_LABEL, T["band-black"], { "fill-opacity": 0.8 });
+    s += circle(cx, sy, 4.6 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-detail"]));
+    s += el(
+      "g",
+      {
+        "data-hook": "rotor",
+        "data-part": "rotor",
+        "data-angle": r2(angle),
+        "data-cx": r2(cx),
+        "data-cy": r2(sy),
+        transform: `rotate(${r2(angle)} ${r2(cx)} ${r2(sy)})`
+      },
+      path(flatted(cx, sy, 2.5 * mm, 1.5 * mm, "x"), T.brass, edge(T, T["brass-edge"], T["stroke-fine"])) + line(cx, sy - 1.6 * mm, cx, sy - 0.4 * mm, T["brass-edge"], 0.8)
+    );
+    s += hdr.svg;
+    const at = new Map(hdr.pins.map((pn) => [pn.name, pn]));
+    return art(
+      w,
+      h,
+      `28BYJ-48 geared stepper at ${r2(angle)}°`,
+      s,
+      ["ORANGE", "YELLOW", "PINK", "BLUE", "RED"].map((name) => at.get(name))
+    );
+  }
   function relay(props) {
     props = props || {};
     const T = tokens();
@@ -10555,9 +10733,17 @@ var PartsKit = (() => {
     s += leads.header;
     return art(w, h, `Solenoid, ${position >= 1 ? "pulled in" : position <= 0 ? "released" : "moving"}`, s, leads.pins);
   }
+  var GEARED_STEPPER_WIRES;
   var init_actuators = __esm({
     "src/actuators.js"() {
       init_core();
+      GEARED_STEPPER_WIRES = [
+        ["BLUE", "band-blue"],
+        ["PINK", "#e98bb0"],
+        ["YELLOW", "band-yellow"],
+        ["ORANGE", "band-orange"],
+        ["RED", "band-red"]
+      ];
     }
   });
 
@@ -10566,6 +10752,7 @@ var PartsKit = (() => {
   __export(outputs_exports, {
     buzzer: () => buzzer,
     dcMotor: () => dcMotor,
+    gearedStepper: () => gearedStepper,
     led: () => led,
     ledBarGraph: () => ledBarGraph,
     ledStrip: () => ledStrip,
@@ -10600,7 +10787,8 @@ var PartsKit = (() => {
     neopixelMeter: () => neopixelMeter,
     relayModule: () => relayModule,
     rfidModule: () => rfidModule,
-    rtcModule: () => rtcModule
+    rtcModule: () => rtcModule,
+    uln2003Board: () => uln2003Board
   });
   var init_modules2 = __esm({
     "src/families/modules.js"() {
@@ -11215,6 +11403,7 @@ var PartsKit = (() => {
     franzininho: () => franzininho,
     gasModuleTemplate: () => gasModuleTemplate,
     gasSensor: () => gasSensor,
+    gearedStepper: () => gearedStepper,
     hallSensor: () => hallSensor,
     header: () => header,
     hx711Board: () => hx711Board,
@@ -11330,6 +11519,7 @@ var PartsKit = (() => {
     touchSensor: () => touchSensor,
     trace: () => trace,
     transistor: () => transistor,
+    uln2003Board: () => uln2003Board,
     ultrasonicRanger: () => ultrasonicRanger,
     unoClassBoard: () => unoClassBoard,
     usbC: () => usbC,
@@ -11707,6 +11897,7 @@ var PartsKit = (() => {
       volts: { type: "number", label: "Coil rating", min: 1, max: 48, step: 1, unit: "V", default: 12 },
       position: state(unit("Plunger travel", { step: 0.05, default: 0 }))
     },
+    gearedStepper: { angle: state({ type: "number", label: "Angle", min: 0, max: 360, step: 1, unit: "°", default: 0 }) },
     // Modules.
     relayModule: { indicators: lamps2({ power: "Power LED", status: "Status LED" }, ["power"]), finish: finish2("red") },
     multiRelayModule: {
@@ -11734,6 +11925,10 @@ var PartsKit = (() => {
       regulatorJumper: bool("5V-EN jumper fitted", { default: true }),
       indicators: lamps2({ power: "Power LED" }),
       finish: finish2("red")
+    },
+    uln2003Board: {
+      status: state({ type: "list", label: "Channel LEDs lit (A to D)", items: { type: "boolean" } }),
+      finish: finish2("green")
     },
     logicAnalyzer: {
       state: state({
@@ -12129,6 +12324,7 @@ var PartsKit = (() => {
     ],
     ["water-pump", "Water pump", "output", "waterPump", null, ["submersible pump", "mini pump"]],
     ["solenoid", "Solenoid", "output", "solenoid", null, ["push-pull", "JF-0530B", "plunger"]],
+    ["geared-stepper", "Geared stepper", "output", "gearedStepper", null, ["28BYJ-48", "unipolar stepper", "5V stepper"]],
     ["relay-module", "Relay module", "module", "relayModule", null, ["relay", "SRD-05VDC"]],
     [
       "relay-module-2-channel",
@@ -12172,6 +12368,14 @@ var PartsKit = (() => {
       "l298nModule",
       null,
       ["L298N", "H-bridge", "dual motor driver"]
+    ],
+    [
+      "stepper-driver-board",
+      "Stepper driver board",
+      "module",
+      "uln2003Board",
+      null,
+      ["ULN2003", "Darlington array", "28BYJ-48 driver"]
     ],
     ["real-time-clock", "Real-time clock", "module", "rtcModule", null, ["DS1307", "RTC"]],
     [
