@@ -403,6 +403,12 @@ export const OPTIONS = {
     indicators: lamps({ power: 'Power LED' }),
     finish: finish('red'),
   },
+  l298nModule: {
+    enableJumpers: bool('ENA and ENB jumpers fitted', { default: true }),
+    regulatorJumper: bool('5V-EN jumper fitted', { default: true }),
+    indicators: lamps({ power: 'Power LED' }),
+    finish: finish('red'),
+  },
   logicAnalyzer: {
     state: state({
       type: 'enum',

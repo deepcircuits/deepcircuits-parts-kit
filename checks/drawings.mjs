@@ -76,6 +76,7 @@ export function suite(K) {
   'strip 2020 long': K.ledStrip({pixels:40,pixelSize:'2020',colors:[{r:1,g:0,b:0},{r:0,g:0.2,b:0}]}),
   'strip circle 3535': K.ledStrip({pixels:6,pixelShape:'circle',pixelSize:'3535'}),
   'relay module': K.relayModule(), 'mux breakout': K.muxBreakout(), 'regulator module': K.ams1117Module({indicators:{power:true}}), 'mb102': K.mb102Module(), 'mb102 lit 3v3 off': K.mb102Module({indicators:{power:true},topRail:'3.3',bottomRail:'off',power:'off'}),
+  'l298n': K.l298nModule(), 'l298n lit no jumpers': K.l298nModule({indicators:{power:true},enableJumpers:false,regulatorJumper:false}),
   'relay module on': K.relayModule({indicators:{power:true,status:true}}),
   'relay 2ch': K.multiRelayModule({channels:2}), 'relay 4ch lit': K.multiRelayModule({indicators:{power:true},status:[true,false,true,false]}), 'relay 8ch no jumper': K.multiRelayModule({channels:8,jumper:false}),
   'analyzer': K.logicAnalyzer({samples:12345,state:'recording',lit:[1,0,1,1,0,0,0,1]}),

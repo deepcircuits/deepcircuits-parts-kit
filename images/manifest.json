@@ -21606,6 +21606,94 @@
       ]
     },
     {
+      "id": "l298n-motor-driver",
+      "name": "L298N motor driver",
+      "family": "module",
+      "aliases": [
+        "L298N",
+        "H-bridge",
+        "dual motor driver"
+      ],
+      "width": 163.2,
+      "height": 163.2,
+      "pins": [
+        { "name": "ENA", "x": 96, "y": 153.6 },
+        { "name": "IN1", "x": 105.6, "y": 153.6 },
+        { "name": "IN2", "x": 115.2, "y": 153.6 },
+        { "name": "IN3", "x": 124.8, "y": 153.6 },
+        { "name": "IN4", "x": 134.4, "y": 153.6 },
+        { "name": "ENB", "x": 144, "y": 153.6 },
+        { "name": "12V", "x": 28.8, "y": 144 },
+        { "name": "GND", "x": 48, "y": 144 },
+        { "name": "5V", "x": 67.2, "y": 144 },
+        { "name": "OUT1", "x": 9.6, "y": 76.8 },
+        { "name": "OUT2", "x": 9.6, "y": 96 },
+        { "name": "OUT3", "x": 153.6, "y": 76.8 },
+        { "name": "OUT4", "x": 153.6, "y": 96 }
+      ],
+      "hooks": [
+        "power-led"
+      ],
+      "images": [
+        {
+          "file": "l298n-motor-driver.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "l298n-motor-driver--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true
+            }
+          }
+        },
+        {
+          "file": "l298n-motor-driver--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "l298n-motor-driver--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "l298n-motor-driver--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "l298n-motor-driver--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "l298n-motor-driver--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "l298n-motor-driver--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        }
+      ]
+    },
+    {
       "id": "real-time-clock",
       "name": "Real-time clock",
       "family": "module",

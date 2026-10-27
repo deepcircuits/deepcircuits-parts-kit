@@ -1570,3 +1570,188 @@ export function muxBreakout(props) {
   s += text(w - 3.4 * p, h / 2 + 1.4, '16CH', PIN_LABEL, f.silk);
   return art(w, h, 'CD74HC4067 analog multiplexer breakout', s, [...bottom.pins, ...top.pins]);
 }
+
+/**
+ * The L298N dual H-bridge module as photographed, at its 43 x 43 mm size: the finned heatsink across the top with the
+ * L298N in its Multiwatt package bolted to it and its fifteen legs into the board, the row of eight flyback diodes
+ * below it, the 78M05 regulator, the two 220 uF capacitors and the power LED. The motor terminals are on the left
+ * (OUT1, OUT2) and right (OUT3, OUT4) edges, the power terminal (12V, GND, 5V) along the bottom left, and the logic
+ * header (ENA, IN1 ... IN4, ENB) along the bottom right. Behind ENA and ENB stands a 5V pin; `enableJumpers` (fitted
+ * by default) draws the caps that join them, and `regulatorJumper` (fitted by default) the 5V-EN cap that lets the
+ * 78M05 feed the logic from 12V. `indicators.power` lights the power LED. Pins: ENA, IN1, IN2, IN3, IN4, ENB, 12V,
+ * GND, 5V, OUT1, OUT2, OUT3, OUT4. The box is 17 x 17 pitches.
+ */
+export function l298nModule(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const fin = props.finish || 'red';
+  const f = finish(T, fin);
+  const w = 17 * p;
+  const h = 17 * p;
+  const ind = { power: false, ...props.indicators };
+  let s = '';
+  s += board({ width: w, height: h, finish: fin, holes: false });
+  [
+    [0.9 * p, 0.9 * p],
+    [w - 0.9 * p, 0.9 * p],
+    [0.9 * p, h - 0.9 * p],
+    [w - 0.9 * p, h - 0.9 * p],
+  ].forEach(c => {
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
+  });
+  // The heatsink: a black anodised block with its fins running front to back.
+  const hx = 4.2 * p;
+  const hw = 8.6 * p;
+  const hy = 0.4 * p;
+  const hh = 4.8 * p;
+  let fins = '';
+  for (let i = 1; i < 12; i++)
+    fins += line(hx + (i * hw) / 12, hy + 0.3 * p, hx + (i * hw) / 12, hy + hh - 0.3 * p, T['plastic-black-edge'], 0.9);
+  s += tag(
+    'heatsink',
+    rect(hx, hy, hw, hh, T['plastic-black'], Object.assign({ rx: 0.8 }, edge(T, T['plastic-black-edge']))) +
+      bevel(T, hx, hy, hw, hh, 1.6, 0.8) +
+      fins,
+  );
+  // The L298N in front of it, standing, so only its top edge and its staggered legs show from above.
+  const cx = 4.65 * p;
+  const cw = 7.7 * p;
+  const cy = 5.2 * p;
+  const ch = 1.4 * p;
+  let legs = '';
+  for (let i = 0; i < 15; i++) {
+    const lx = cx + 0.35 * p + (i * (cw - 0.7 * p)) / 14;
+    legs += rect(lx - 0.8, cy + ch - 0.4, 1.6, (i % 2 ? 0.9 : 0.5) * p, T.lead, { rx: 0.3 });
+  }
+  s += tag(
+    'chip',
+    legs +
+      rect(cx, cy, cw, ch, T.chip, Object.assign({ rx: 0.6 }, edge(T, T['chip-edge'], T['stroke-detail']))) +
+      bevel(T, cx, cy, cw, ch, 1.0, 0.6) +
+      text(cx + cw / 2, cy + ch / 2 + 1.8, 'L298N', 5, T['chip-print'], { 'font-weight': 600 }),
+  );
+  // The eight flyback diodes in a row: black bodies with the cathode band.
+  for (let i = 0; i < 8; i++) {
+    const dx = 4.6 * p + i * p;
+    const dy = 7.75 * p;
+    s += tag(
+      'smd',
+      rect(dx, dy, 0.8 * p, 0.5 * p, T.chip, Object.assign({ rx: 0.4 }, edge(T, T['chip-edge'], T['stroke-detail']))) +
+        rect(dx + 0.6 * p, dy, 0.12 * p, 0.5 * p, T['cap-stripe'], { 'fill-opacity': 0.9 }),
+    );
+  }
+  // The motor terminals at the left and right edges, their names on the board side.
+  const terminal = (tx, names, side) => {
+    let t = tag(
+      'terminal',
+      rect(tx - p, 7 * p, 2 * p, 4 * p, T['plastic-blue'], Object.assign({ rx: 1 }, edge(T, T['plastic-blue-edge']))) +
+        bevel(T, tx - p, 7 * p, 2 * p, 4 * p, 1.6, 1),
+    );
+    names.forEach((n, i) => {
+      const y = (8 + 2 * i) * p;
+      t +=
+        terminalScrew(T, tx, y) +
+        text(side === 'right' ? tx + 1.3 * p : tx - 1.3 * p, y + 1.4, n, PIN_LABEL, f.silk, {
+          'text-anchor': side === 'right' ? 'start' : 'end',
+        });
+    });
+    return t;
+  };
+  s += terminal(p, ['OUT1', 'OUT2'], 'right') + terminal(16 * p, ['OUT3', 'OUT4'], 'left');
+  // The 78M05, the power LED with its resistor, and the two 220 uF capacitors.
+  s += sot223(T, 4.4 * p, 9.7 * p, ['78M05', '']);
+  s +=
+    silkFrame(T, f, 7.6 * p, 9.9 * p, 0.7 * p, 0.7 * p) +
+    indicator({
+      x: 7.6 * p,
+      y: 9.9 * p,
+      size: 0.7 * p,
+      color: 'red',
+      on: !!ind.power,
+      hook: 'power-led',
+      state: 'power-led',
+      finish: fin,
+    }) +
+    text(7.95 * p, 11.5 * p, 'PWR', PIN_LABEL, f.silk);
+  s += framed(T, f, 'resistor', 7.5 * p, 12.2 * p, true);
+  [9.9, 12.5].forEach(x => {
+    const ccx = x * p;
+    const ccy = 11.6 * p;
+    s += tag(
+      'cap',
+      circle(ccx, ccy, 1.2 * p, T['cap-electrolytic'], edge(T, T['plastic-black-edge'])) +
+        circle(ccx, ccy, 0.9 * p, T.metal, { 'fill-opacity': 0.85 }) +
+        path(`M${r2(ccx - 0.6 * p)} ${r2(ccy)}h${r2(1.2 * p)}M${r2(ccx)} ${r2(ccy - 0.6 * p)}v${r2(1.2 * p)}`, 'none', {
+          stroke: T['metal-edge'],
+          'stroke-width': 0.7,
+        }),
+    );
+  });
+  // A jumper cap over two pins from (x, y), along x or y.
+  const cap = (x, y, axis, data) => {
+    const along = axis === 'x';
+    return tag(
+      'jumper',
+      rect(
+        x - 0.45 * p,
+        y - 0.45 * p,
+        along ? 1.9 * p : 0.9 * p,
+        along ? 0.9 * p : 1.9 * p,
+        T['plastic-black'],
+        Object.assign({ rx: 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
+      ) +
+        rect(x - 0.3 * p, y - 0.3 * p, along ? 1.6 * p : 0.25 * p, along ? 0.25 * p : 1.6 * p, '#ffffff', {
+          rx: 0.2,
+          'fill-opacity': T['opacity-light'],
+        }),
+      data,
+    );
+  };
+  // A pin that is not one of the part's: a 5V pin behind an enable, the 5V-EN pair.
+  const bare = (x, y) =>
+    circle(x, y, T['pad-radius'], T.pad) + circle(x, y, T['hole-radius'], T.hole, edge(T, T['metal-edge'], 0.5));
+  // The 5V-EN jumper: fitted, the 78M05 feeds the logic from 12V and 5V is an output.
+  s +=
+    bare(2 * p, 12.5 * p) +
+    bare(3 * p, 12.5 * p) +
+    text(3.7 * p, 12.5 * p + 1.4, '5V-EN', PIN_LABEL, f.silk, { 'text-anchor': 'start' });
+  if (props.regulatorJumper !== false) s += cap(2 * p, 12.5 * p, 'x', { 'data-jumper': '5v-en' });
+  // The power terminal along the bottom left.
+  s += tag(
+    'terminal',
+    rect(
+      1.8 * p,
+      13.9 * p,
+      6.4 * p,
+      2.2 * p,
+      T['plastic-blue'],
+      Object.assign({ rx: 1 }, edge(T, T['plastic-blue-edge'])),
+    ) + bevel(T, 1.8 * p, 13.9 * p, 6.4 * p, 2.2 * p, 1.6, 1),
+  );
+  const power = ['12V', 'GND', '5V'].map((name, i) => ({ name, x: (3 + 2 * i) * p, y: 15 * p }));
+  power.forEach(pin => {
+    s += terminalScrew(T, pin.x, pin.y) + text(pin.x, 13.4 * p, pin.name, PIN_LABEL, f.silk);
+  });
+  // The logic header along the bottom right, with a 5V pin behind ENA and ENB for their jumpers.
+  const logic = header({
+    x: 10 * p,
+    y: 16 * p,
+    axis: 'x',
+    count: 6,
+    names: ['ENA', 'IN1', 'IN2', 'IN3', 'IN4', 'ENB'],
+    kind: 'pad',
+  });
+  s += logic.svg;
+  ['IN1', 'IN2', 'IN3', 'IN4'].forEach((name, i) => {
+    s += text((11 + i) * p, 15.25 * p, name, PIN_LABEL, f.silk);
+  });
+  [10, 15].forEach((x, i) => {
+    s += bare(x * p, 15 * p) + text(x * p, 13.9 * p, i ? 'ENB' : 'ENA', PIN_LABEL, f.silk);
+    if (props.enableJumpers !== false) s += cap(x * p, 15 * p, 'y', { 'data-jumper': i ? 'enb' : 'ena' });
+  });
+  const pins = [...logic.pins, ...power];
+  ['OUT1', 'OUT2'].forEach((name, i) => pins.push({ name, x: p, y: (8 + 2 * i) * p }));
+  ['OUT3', 'OUT4'].forEach((name, i) => pins.push({ name, x: 16 * p, y: (8 + 2 * i) * p }));
+  return art(w, h, 'L298N dual H-bridge motor driver module', s, pins);
+}

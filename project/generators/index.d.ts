@@ -164,6 +164,8 @@ export interface Ams1117ModuleProps { finish?: Finish; indicators?: { power?: bo
 export interface Mb102ModuleProps { power?: 'on' | 'off'; topRail?: '5' | '3.3' | 'off'; bottomRail?: '5' | '3.3' | 'off'; finish?: Finish; indicators?: { power?: boolean } }
 /** The CD74HC4067 16-channel analog multiplexer breakout: SIG, S3, S2, S1, S0, EN, VCC, GND along the bottom edge and C0 … C15 along the top. */
 export interface MuxBreakoutProps { finish?: Finish }
+/** The L298N dual H-bridge module: pins ENA, IN1 … IN4, ENB (the logic header), 12V, GND, 5V (the power terminal), OUT1 … OUT4 (the motor terminals). `enableJumpers` (fitted by default) draws the caps joining ENA and ENB to the 5V pins behind them; `regulatorJumper` (fitted by default) the 5V-EN cap; `indicators.power` lights the power LED. */
+export interface L298nModuleProps { enableJumpers?: boolean; regulatorJumper?: boolean; finish?: Finish; indicators?: { power?: boolean } }
 export interface PicoBoardProps { label?: string; chipLabel?: string; finish?: Finish; left?: readonly string[]; right?: readonly string[]; indicators?: { power?: Lit; user?: Lit }; /** false draws the debug pads without returning them as pins. */ debugPins?: boolean; description?: string }
 export interface Nucleo32BoardProps { label?: string; chipLabel?: string; finish?: Finish; left?: readonly string[]; right?: readonly string[]; extraPads?: readonly { name: string; dx: number; dy: number }[]; indicators?: { power?: Lit; user?: Lit }; description?: string }
 export interface Dht22SensorProps { pins?: readonly string[] }
@@ -585,6 +587,8 @@ export interface PartsKit {
   mb102Module(props?: Mb102ModuleProps): Artwork;
   /** The CD74HC4067 16-channel analog multiplexer breakout, its two rows straddling a breadboard's centre channel. */
   muxBreakout(props?: MuxBreakoutProps): Artwork;
+  /** The L298N dual H-bridge motor driver module, its jumpers drawn as fitted. */
+  l298nModule(props?: L298nModuleProps): Artwork;
   oledSquare(props?: OledSquareProps): Artwork;
   max7219Matrix(props?: Max7219MatrixProps): Artwork;
   tm1637Module(props?: Tm1637ModuleProps): Artwork;

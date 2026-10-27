@@ -8,7 +8,7 @@ The first public release.
 
 ### Parts
 
-- 138 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
+- 139 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
 - The templates behind them (`devBoardTemplate`, `moduleTemplate`, `sensorModuleTemplate`, `chipTemplate` and others, in `@deepcircuits/parts-kit/templates`) for parts of your own.
 - The Blue Pill, the ESP32-DevKitC V4 and the character LCDs checked against photographs and data sheets: the Blue Pill's rows and parts as the real board has them, the DevKitC V4 at its real length with the module over the rows, the LCD's mount holes and header where the module has them.
 - Every catalog part checked against photographs and data sheets for its pin order, which pins face each other, where its parts sit, its size, its holes and its pin-1 offset. Corrected:
@@ -40,6 +40,7 @@ The first public release.
 - The comparator boards take `hall` (the 49E), `sw420` (the vibration switch) and `ntc` (the KY-028's thermistor on the KY-037 board), and the KY boards take `hall` (the KY-003's A3144 and its LED), `slot` (the KY-010's opto-interrupter), `spring` (the KY-031's spring switch) and `touch` (the TTP223 module's pad, chip and LED). They make `linearHallSensor` (`linear-hall-sensor`: VCC, GND, DO, AO), `vibrationSensor` (`vibration-sensor`: VCC, GND, DO), `digitalTemperatureSensor` (`digital-temperature-sensor`: AO, GND, VCC, DO, printed A0, G, +, D0), `hallSensor` (`hall-sensor`), `photoInterrupter` (`photo-interrupter`), `knockSensor` (`knock-sensor`) and `touchSensor` (`touch-sensor`), each SIG, VCC, GND. `reedSwitch` (`reed-switch`: 1, 2) draws a glass reed switch, its reeds touching while `closed`.
 - `dcMotor` draws a brushed DC motor: the 130-size can end on (`dc-motor`) or the yellow TT gear motor lying flat (`dc-gear-motor`, `variant: 'tt-gear'`), its fan or output shaft turned by `angle` (M+, M-). `waterPump` (`water-pump`: M+, M-) draws the mini submersible pump, the water leaving its outlet while `running`, and `solenoid` (`solenoid`: 1, 2) the open-frame push-pull solenoid, its plunger drawn in by `position` and its coil rating printed from `volts`.
 - `muxBreakout`, the CD74HC4067 16-channel analog multiplexer breakout (`analog-multiplexer-16-channel`): the channel pins C0 … C15 along the top edge and the SIG, S3, S2, S1, S0, EN, VCC, GND header six pitches below them, so the board straddles a breadboard's centre channel, with the chip in SOIC-24 between the rows.
+- `l298nModule`, the L298N dual H-bridge motor driver module (`l298n-motor-driver`: ENA, IN1 … IN4, ENB, 12V, GND, 5V, OUT1 … OUT4): the heatsink and the L298N, the flyback diodes, the 78M05, the motor and power terminals and the logic header; `enableJumpers` draws the ENA and ENB caps and `regulatorJumper` the 5V-EN cap.
 
 ### API
 

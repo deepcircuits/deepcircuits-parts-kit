@@ -1,0 +1,15 @@
+<!-- @dsCard group="Templates" height=380 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>L298nModule — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.l298nModule(), { pins: true, scale: 2, caption: "L298N, jumpers fitted" });
+K.mount(root, K.l298nModule({ enableJumpers: false, indicators: { power: true } }), { scale: 2, caption: "ENA and ENB jumpers off, powered" });
+K.mount(root, K.l298nModule({ regulatorJumper: false }), { scale: 2, caption: "5V-EN off: 5V is the logic supply input" });
+</script>
+</body>
+</html>
