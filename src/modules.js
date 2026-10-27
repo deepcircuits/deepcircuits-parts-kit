@@ -1505,3 +1505,68 @@ export function mb102Module(props) {
   s += top.svg + bottom.svg + out.svg;
   return art(w, h, 'MB102 breadboard power module', s, [...top.pins, ...bottom.pins, ...out.pins]);
 }
+
+/**
+ * The CD74HC4067 16-channel analog multiplexer breakout: a 48 x 18 mm board with the channel pins C0 … C15 along
+ * the top edge, the SIG, S3, S2, S1, S0, EN, VCC, GND header along the bottom edge, six pitches below and centred
+ * under them, so the board straddles a breadboard's centre channel, and the chip in SOIC-24 between the rows with its
+ * decoupling capacitor. A mounting hole at each end. Pins: SIG … GND, then C0 … C15. The box is 19 x 7.2 pitches.
+ */
+export function muxBreakout(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const fin = props.finish || 'purple';
+  const f = finish(T, fin);
+  const w = 19 * p;
+  const h = 7.2 * p;
+  let s = '';
+  s += board({ width: w, height: h, finish: fin, holes: false });
+  [
+    [0.9 * p, h / 2],
+    [w - 0.9 * p, h / 2],
+  ].forEach(c => {
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
+  });
+  const channels = Array.from({ length: 16 }, (_, i) => `C${i}`);
+  const top = header({
+    x: 2 * p,
+    y: 0.6 * p,
+    labels: channels,
+    kind: 'pad',
+    side: 'below',
+    silk: f.silk,
+    size: PIN_LABEL,
+  });
+  const bottom = header({
+    x: 6 * p,
+    y: 6.6 * p,
+    labels: ['SIG', 'S3', 'S2', 'S1', 'S0', 'EN', 'VCC', 'GND'],
+    kind: 'pad',
+    side: 'above',
+    silk: f.silk,
+    size: PIN_LABEL,
+  });
+  // Traces from each row toward the chip between them, drawing in toward the middle.
+  [
+    [top, 1],
+    [bottom, -1],
+  ].forEach(([row, toward]) => {
+    row.pins.forEach(pn => {
+      const dx = (w / 2 - pn.x) * 0.12;
+      s += trace(T, fin, [
+        [pn.x, pn.y],
+        [pn.x, pn.y + toward * 1.1 * p],
+        [pn.x + dx, pn.y + toward * 1.6 * p],
+      ]);
+    });
+  });
+  s += top.svg + bottom.svg;
+  const cw = 15.4 * mm;
+  const ch = 7.5 * mm;
+  s += soicAcross(T, (w - cw) / 2, (h - ch) / 2, cw, ch, 12, 'CD74HC4067');
+  s += framed(T, f, 'capacitor', 3.6 * p, h / 2 - 0.45 * p, false);
+  s += text(w - 3.4 * p, h / 2 + 1.4, '16CH', PIN_LABEL, f.silk);
+  return art(w, h, 'CD74HC4067 analog multiplexer breakout', s, [...bottom.pins, ...top.pins]);
+}

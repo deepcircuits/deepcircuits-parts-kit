@@ -162,6 +162,8 @@ export interface RfidModuleProps { finish?: Finish; pins?: readonly string[]; la
 export interface Ams1117ModuleProps { finish?: Finish; indicators?: { power?: boolean } }
 /** The MB102 breadboard power module: the rail pins (TOP+, TOP-, BOT+, BOT-) where a breadboard's rails are, the output header (5V, 3V3, GND) over the centre channel; each rail's jumper at 5 V, 3.3 V or off, the power switch on or off, the power LED lit by `indicators.power`. */
 export interface Mb102ModuleProps { power?: 'on' | 'off'; topRail?: '5' | '3.3' | 'off'; bottomRail?: '5' | '3.3' | 'off'; finish?: Finish; indicators?: { power?: boolean } }
+/** The CD74HC4067 16-channel analog multiplexer breakout: SIG, S3, S2, S1, S0, EN, VCC, GND along the bottom edge and C0 … C15 along the top. */
+export interface MuxBreakoutProps { finish?: Finish }
 export interface PicoBoardProps { label?: string; chipLabel?: string; finish?: Finish; left?: readonly string[]; right?: readonly string[]; indicators?: { power?: Lit; user?: Lit }; /** false draws the debug pads without returning them as pins. */ debugPins?: boolean; description?: string }
 export interface Nucleo32BoardProps { label?: string; chipLabel?: string; finish?: Finish; left?: readonly string[]; right?: readonly string[]; extraPads?: readonly { name: string; dx: number; dy: number }[]; indicators?: { power?: Lit; user?: Lit }; description?: string }
 export interface Dht22SensorProps { pins?: readonly string[] }
@@ -581,6 +583,8 @@ export interface PartsKit {
   ams1117Module(props?: Ams1117ModuleProps): Artwork;
   /** The MB102 breadboard power module, its rail pins on a breadboard's rails. */
   mb102Module(props?: Mb102ModuleProps): Artwork;
+  /** The CD74HC4067 16-channel analog multiplexer breakout, its two rows straddling a breadboard's centre channel. */
+  muxBreakout(props?: MuxBreakoutProps): Artwork;
   oledSquare(props?: OledSquareProps): Artwork;
   max7219Matrix(props?: Max7219MatrixProps): Artwork;
   tm1637Module(props?: Tm1637ModuleProps): Artwork;

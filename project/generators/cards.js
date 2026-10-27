@@ -329,6 +329,14 @@ export const CARDS = [
     },
   },
   {
+    name: "MuxBreakout",
+    intro: "`muxBreakout`: the CD74HC4067 16-channel analog multiplexer breakout, 48 × 18 mm on a `pcb-purple` board",
+    draw(K, root) {
+      K.mount(root, K.muxBreakout(), { pins: true, scale: 2, caption: "CD74HC4067" });
+      K.mount(root, K.muxBreakout({ finish: "red" }), { scale: 2, caption: "red board" });
+    },
+  },
+  {
     name: "NanoConnect",
     intro: "The Nano RP2040 Connect on its navy `pcb-blue` board at its true size, as on Arduino's drawing",
     draw(K, root) {
