@@ -1481,3 +1481,46 @@ export function mpu6050Imu(props) {
     finish: finishOf(props, 'blue'),
   });
 }
+
+/**
+ * The four-pin GY-BME280 breakout with its 3.3 V regulator: the 13 x 11 mm
+ * board, the pins VCC GND SCL SDA, and the metal-lid sensor. `chip` prints
+ * BMP280 for the same board carrying the pressure-only chip.
+ */
+export function bme280Module(props) {
+  return moduleTemplate({
+    label: props && props.chip === 'BMP280' ? 'BMP280' : 'BME280',
+    pins: ['VCC', 'GND', 'SCL', 'SDA'],
+    part: 'chip',
+    ic: 'lga',
+    width: 13,
+    height: 11,
+    finish: finishOf(props, 'purple'),
+  });
+}
+
+/** The GY-530 time-of-flight breakout: the 25 x 15 mm board, the pins VCC GND SCL SDA GPIO1 XSHUT, and the VL53L0X's optical package. */
+export function vl53l0xModule(props) {
+  return moduleTemplate({
+    label: 'VL53L0X',
+    pins: ['VCC', 'GND', 'SCL', 'SDA', 'GPIO1', 'XSHUT'],
+    part: 'chip',
+    ic: 'qfn',
+    width: 25,
+    height: 15,
+    finish: finishOf(props, 'purple'),
+  });
+}
+
+/** The MAX30102 pulse-oximeter breakout: the 20 x 15 mm board, the pins VCC GND SCL SDA INT, and the sensor's windowed package. */
+export function max30102Module(props) {
+  return moduleTemplate({
+    label: 'MAX30102',
+    pins: ['VCC', 'GND', 'SCL', 'SDA', 'INT'],
+    part: 'chip',
+    ic: 'lga',
+    width: 20,
+    height: 15,
+    finish: finishOf(props, 'purple'),
+  });
+}

@@ -216,6 +216,17 @@ export const OPTIONS = {
   mpu6050Imu: { finish: finish('blue') },
   pulseSensor: { on: state(bool('Beat LED')) },
   ds18b20Sensor: {},
+  bme280Module: {
+    chip: {
+      type: 'enum',
+      label: 'Chip',
+      choices: [choice('BME280', 'BME280'), choice('BMP280', 'BMP280')],
+      default: 'BME280',
+    },
+    finish: finish('purple'),
+  },
+  vl53l0xModule: { finish: finish('purple') },
+  max30102Module: { finish: finish('purple') },
   // Inputs.
   pushbutton: {
     pressed: state(bool('Pressed')),

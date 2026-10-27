@@ -15,4 +15,7 @@ export {
   ntcSensor,
   mpu6050Imu,
   ds18b20Sensor,
+  bme280Module,
+  vl53l0xModule,
+  max30102Module,
 } from '../sensors.js';
