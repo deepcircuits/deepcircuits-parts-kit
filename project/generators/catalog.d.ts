@@ -498,6 +498,13 @@ export interface PartOptionsById {
     /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
     /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
   };
+  /** L298N motor driver: l298nModule. */
+  "l298n-motor-driver": {
+    /** ENA and ENB jumpers fitted. Default true. */ enableJumpers?: boolean;
+    /** 5V-EN jumper fitted. Default true. */ regulatorJumper?: boolean;
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
+    /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
   /** Real-time clock: rtcModule. */
   "real-time-clock": {
     /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";

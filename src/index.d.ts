@@ -51,6 +51,7 @@ export declare const irRemote: PartsKit['irRemote'];
 export declare const joystick: PartsKit['joystick'];
 export declare const keypad: PartsKit['keypad'];
 export declare const knockSensor: PartsKit['knockSensor'];
+export declare const l298nModule: PartsKit['l298nModule'];
 export declare const led: PartsKit['led'];
 export declare const ledBarGraph: PartsKit['ledBarGraph'];
 export declare const ledDriver595: PartsKit['ledDriver595'];

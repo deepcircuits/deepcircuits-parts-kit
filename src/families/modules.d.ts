@@ -3,6 +3,7 @@ import type { PartsKit } from '../../project/generators/index.d.ts';
 export declare const ams1117Module: PartsKit['ams1117Module'];
 export declare const ds3231Module: PartsKit['ds3231Module'];
 export declare const hx711Board: PartsKit['hx711Board'];
+export declare const l298nModule: PartsKit['l298nModule'];
 export declare const logicAnalyzer: PartsKit['logicAnalyzer'];
 export declare const mb102Module: PartsKit['mb102Module'];
 export declare const microsdModule: PartsKit['microsdModule'];

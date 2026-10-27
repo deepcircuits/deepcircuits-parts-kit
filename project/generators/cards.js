@@ -210,6 +210,15 @@ export const CARDS = [
     },
   },
   {
+    name: "L298nModule",
+    intro: "`l298nModule`: the L298N dual H-bridge motor driver module, 43 × 43 mm",
+    draw(K, root) {
+      K.mount(root, K.l298nModule(), { pins: true, scale: 2, caption: "L298N, jumpers fitted" });
+      K.mount(root, K.l298nModule({ enableJumpers: false, indicators: { power: true } }), { scale: 2, caption: "ENA and ENB jumpers off, powered" });
+      K.mount(root, K.l298nModule({ regulatorJumper: false }), { scale: 2, caption: "5V-EN off: 5V is the logic supply input" });
+    },
+  },
+  {
     name: "Led",
     intro: "A 5 mm LED standing on the bench, seen from the front at the real size (5 mm dome, 8.6 mm tall, 5.8 mm flange)",
     draw(K, root) {

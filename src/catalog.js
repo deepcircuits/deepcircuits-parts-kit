@@ -265,6 +265,14 @@ const PARTS = [
     null,
     ['MB102', 'power supply', '5V', '3.3V'],
   ],
+  [
+    'l298n-motor-driver',
+    'L298N motor driver',
+    'module',
+    'l298nModule',
+    null,
+    ['L298N', 'H-bridge', 'dual motor driver'],
+  ],
   ['real-time-clock', 'Real-time clock', 'module', 'rtcModule', null, ['DS1307', 'RTC']],
   [
     'precision-real-time-clock',
