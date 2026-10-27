@@ -53,6 +53,7 @@ const SPEC = [
   ['PulseSensor', K.pulseSensor({ on: true }), {board: 1, indicator: 1, sensor: 1}, [/data-hook="pulse-led"/, /data-lit="true"/]],
   ['MicrosdModule', K.microsdModule(), {board: 1, hole: 4, mark: 1, slot: 1, chip: 2, smd: 7, pin: 7, trace: 7}, [/74LVC125/, /AMS1117/, />CS</, />CD</]],
   ['RtcModule', K.rtcModule(), {board: 1, hole: 4, mark: 1, cell: 1, chip: 1, crystal: 1, smd: 1, pin: 5, trace: 5}, [/DS1307/, /CR1220/, />SQW</]],
+  ['Ds3231Module', K.ds3231Module({ indicators: { power: true } }), {board: 1, hole: 2, mark: 1, pin: 4, chip: 2, smd: 4, indicator: 1, leg: 6, header: 1}, [/DS3231/, /24C32/, /data-hook="power-led"/, />32K</, />SQW</]],
   ['Hx711Board', K.hx711Board(), {board: 1, hole: 4, mark: 1, pin: 10, chip: 1, cap: 2, smd: 9, trace: 10}, [/HX711/, />RED</, />YLW</, />VDD</, />DT</, />SCK</]],
   ['Neopixel', K.neopixel({ r: 1 }), {pin: 4, body: 1}, [/data-hook="pixel"/, /data-level="1"/]],
   ['LedRing', K.ledRing({ colors: ['#ff0000'] }), {board: 2, body: 16, pin: 4}, [/data-hook="px-1"/, /data-hook="px-16"/, /fill-rule="evenodd"/, /DOUT/, /rotate\(/]],

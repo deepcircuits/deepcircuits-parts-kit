@@ -25,7 +25,7 @@ import {
   trace,
   via,
 } from './core.js';
-import { framed, padRow, qfp, silkFrame, smd, soicAcross, sot23, usbPort } from './pieces.js';
+import { edgeHeader, framed, padRow, qfp, silkFrame, smd, soicAcross, sot23, usbPort } from './pieces.js';
 
 /**
  * A breakout module: a board in a finish, one header row of pads along the
@@ -750,6 +750,87 @@ export function rtcModule(props) {
     text(9.75 * p, 6.5 * p, 'R1', 4, f.silk, { 'text-anchor': 'start' });
   s += hdr.svg;
   return art(w, h, 'DS1307 real-time clock module', s, hdr.pins);
+}
+
+/**
+ * The DS3231 clock module as sold (the ZS-042 layout): a blue 38 x 22 mm
+ * board, the DS3231 in SOIC-16 wide at the left of centre, the 24C32
+ * EEPROM in SOIC-8 at the top right, the 472 resistor pack, the power LED
+ * with its resistor, the cell's charging resistor, the four pass-through
+ * pads down the left edge, and the six main pins on the right-angle header
+ * standing past the right edge, 32K SQW SCL SDA VCC GND from the top, their
+ * names printed beside the joints. The CR2032 holder is on the back. The
+ * box is the board's height, its width running to the pins' tips.
+ */
+export function ds3231Module(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const fin = props.finish || 'blue';
+  const f = finish(T, fin);
+  const bw = 38 * mm;
+  const h = 22 * mm;
+  const names = props.pins || ['32K', 'SQW', 'SCL', 'SDA', 'VCC', 'GND'];
+  const prints = props.labels || names;
+  let s = '';
+  s += board({ width: bw, height: h, finish: fin, holes: false, mark: { x: 13.2 * mm, y: 17.6 * mm, size: 0.6 * p } });
+  [
+    [2.6 * mm, 2.6 * mm],
+    [2.6 * mm, h - 2.6 * mm],
+  ].forEach(c => {
+    s += hole(T, c[0], c[1], T['mount-hole-radius']);
+  });
+  // The pass-through pads: the same bus and supply, for chaining another module; not pins of this part.
+  s += header({
+    x: 2.6 * mm,
+    y: h / 2 - 1.5 * p,
+    axis: 'y',
+    labels: ['SCL', 'SDA', 'VCC', 'GND'],
+    kind: 'pad',
+    side: 'right',
+    silk: f.silk,
+  }).svg;
+  s += text(17 * mm, 2.9 * mm, props.label || 'ZS-042', 4.4, f.silk, { 'font-weight': 600 });
+  s += soicAcross(T, 7.6 * mm, 7.0 * mm, 10.3 * mm, 7.5 * mm, 8, 'DS3231');
+  s += soicAcross(T, 22.4 * mm, 4.6 * mm, 4.9 * mm, 3.9 * mm, 4, '24C32');
+  // The resistor pack (four 4.7 kOhm), the charging resistor and the decoupling capacitor.
+  s +=
+    framed(T, f, 'resistor', 21.4 * mm, 12.4 * mm, true) +
+    text(21.4 * mm + 0.45 * p, 12.4 * mm + 0.55 * p + 4.2, '472', 4, f.silk) +
+    framed(T, f, 'resistor', 21.4 * mm, 17.0 * mm, true) +
+    framed(T, f, 'capacitor', 8.4 * mm, 18.6 * mm, true);
+  // The power LED and its resistor.
+  s +=
+    rect(27.4 * mm - 1.2, 15.6 * mm - 1.2, 0.55 * p + 2.4, 0.55 * p + 2.4, 'none', {
+      stroke: f.silk,
+      'stroke-width': T['stroke-fine'],
+      'stroke-opacity': 0.85,
+      rx: 0.4,
+    }) +
+    indicator({
+      x: 27.4 * mm,
+      y: 15.6 * mm,
+      size: 0.55 * p,
+      color: 'red',
+      on: !!(props.indicators && props.indicators.power),
+      hook: 'power-led',
+      state: 'power',
+      finish: fin,
+    });
+  s += framed(T, f, 'resistor', 27.0 * mm, 10.0 * mm, false);
+  const edgePins = edgeHeader(T, { names, side: 'right', at: bw, from: r2(h / 2 - ((names.length - 1) * p) / 2) });
+  const prs = header({
+    x: edgePins.pads[0].x,
+    y: edgePins.pads[0].y,
+    axis: 'y',
+    labels: prints,
+    kind: 'print',
+    side: 'left',
+    silk: f.silk,
+  });
+  s += edgePins.svg + prs.svg;
+  return art(edgePins.pins[0].x, h, 'DS3231 real-time clock module', s, edgePins.pins);
 }
 
 /**

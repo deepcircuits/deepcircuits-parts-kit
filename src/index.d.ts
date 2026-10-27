@@ -21,6 +21,7 @@ export declare const dht22Sensor: PartsKit['dht22Sensor'];
 export declare const dipSwitch: PartsKit['dipSwitch'];
 export declare const drawPart: PartsKit['drawPart'];
 export declare const ds18b20Sensor: PartsKit['ds18b20Sensor'];
+export declare const ds3231Module: PartsKit['ds3231Module'];
 export declare const epaperModule: PartsKit['epaperModule'];
 export declare const esp32C3DevKit: PartsKit['esp32C3DevKit'];
 export declare const esp32C5DevKit: PartsKit['esp32C5DevKit'];

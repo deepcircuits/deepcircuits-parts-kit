@@ -54,7 +54,7 @@ export function suite(K) {
   'sensor sound': K.sensorModuleTemplate({element:'mic',comparator:true,pins:['AOUT','GND','VCC','DOUT'],indicators:{power:true}}), 'sensor sound small': K.sensorModuleTemplate({element:'mic',micMm:6,comparator:true,pins:['AOUT','GND','VCC','DOUT']}),
   'sensor ntc': K.sensorModuleTemplate({label:'NTC',element:'bead',pins:['GND','VCC','OUT']}), 'sensor tilt': K.sensorModuleTemplate({element:'cylinder',pins:['GND','VCC','OUT'],indicators:{power:true}}), 'sensor ir': K.sensorModuleTemplate({label:'IR RX',element:'ir',pins:['GND','VCC','DAT'],indicators:{power:true}}),
   'pulse': K.pulseSensor({on:true}), 'mod hx711': K.hx711Board(),
-  'mod microsd': K.microsdModule(), 'mod rtc': K.rtcModule(),
+  'mod microsd': K.microsdModule(), 'mod rtc': K.rtcModule(), 'mod ds3231': K.ds3231Module({indicators:{power:true}}),
   'neopixel': K.neopixel({r:0,g:1,b:0.4}), 'ring 16': K.ledRing({colors:['#ff0000','#ff8800','#ffff00','#00ff00']}), 'ring 12': K.ledRing({pixels:12}), 'matrix 8': K.neopixelMatrix({colors:['#ff0000',null,'#00ff00']}), 'matrix 4': K.neopixelMatrix({rows:4,cols:4}),
   'bar': K.ledBarGraph({levels:[1,1,1,1,1,1,0.6,0,0,0]}), 'bar vertical': K.ledBarGraph({levels:[1,1,1,0.5],vertical:true,colors:['green','green','yellow','red']}), 'oled': K.oledBreakout({caption:'Hello'}), 'tft': K.tftModule({caption:'TFT'}),
   'servo': K.servo({angle:45}), 'servo -90': K.servo({angle:-90}), 'servo 90': K.servo({angle:90}), 'stepper': K.stepper(), 'stepper 28': K.stepper({frameSize:28}), 'biaxial': K.stepper({biaxial:true,angle:30,angle2:-60}), 'relay': K.relay(), 'relay on': K.relay({energised:true}),

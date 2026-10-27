@@ -329,6 +329,7 @@ export const OPTIONS = {
   hx711Board: { finish: finish('red') },
   microsdModule: { finish: finish('blue') },
   rtcModule: { finish: finish('blue') },
+  ds3231Module: { indicators: lamps({ power: 'Power LED' }), finish: finish('blue') },
   rfidModule: { indicators: lamps({ power: 'Power LED' }), finish: finish('blue') },
   logicAnalyzer: {
     state: state({
