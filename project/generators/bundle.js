@@ -6998,6 +6998,63 @@ var PartsKit = (() => {
     s += top.svg + bottom.svg + out.svg;
     return art(w, h, "MB102 breadboard power module", s, [...top.pins, ...bottom.pins, ...out.pins]);
   }
+  function muxBreakout(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const fin = props.finish || "purple";
+    const f = finish(T, fin);
+    const w = 19 * p;
+    const h = 7.2 * p;
+    let s = "";
+    s += board({ width: w, height: h, finish: fin, holes: false });
+    [
+      [0.9 * p, h / 2],
+      [w - 0.9 * p, h / 2]
+    ].forEach((c) => {
+      s += hole(T, c[0], c[1], T["mount-hole-radius"]);
+    });
+    const channels = Array.from({ length: 16 }, (_, i) => `C${i}`);
+    const top = header({
+      x: 2 * p,
+      y: 0.6 * p,
+      labels: channels,
+      kind: "pad",
+      side: "below",
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    const bottom = header({
+      x: 6 * p,
+      y: 6.6 * p,
+      labels: ["SIG", "S3", "S2", "S1", "S0", "EN", "VCC", "GND"],
+      kind: "pad",
+      side: "above",
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    [
+      [top, 1],
+      [bottom, -1]
+    ].forEach(([row, toward]) => {
+      row.pins.forEach((pn) => {
+        const dx = (w / 2 - pn.x) * 0.12;
+        s += trace(T, fin, [
+          [pn.x, pn.y],
+          [pn.x, pn.y + toward * 1.1 * p],
+          [pn.x + dx, pn.y + toward * 1.6 * p]
+        ]);
+      });
+    });
+    s += top.svg + bottom.svg;
+    const cw = 15.4 * mm;
+    const ch = 7.5 * mm;
+    s += soicAcross(T, (w - cw) / 2, (h - ch) / 2, cw, ch, 12, "CD74HC4067");
+    s += framed(T, f, "capacitor", 3.6 * p, h / 2 - 0.45 * p, false);
+    s += text(w - 3.4 * p, h / 2 + 1.4, "16CH", PIN_LABEL, f.silk);
+    return art(w, h, "CD74HC4067 analog multiplexer breakout", s, [...bottom.pins, ...top.pins]);
+  }
   var RAIL_JUMPER;
   var init_modules = __esm({
     "src/modules.js"() {
@@ -10393,6 +10450,7 @@ var PartsKit = (() => {
     mb102Module: () => mb102Module,
     microsdModule: () => microsdModule,
     multiRelayModule: () => multiRelayModule,
+    muxBreakout: () => muxBreakout,
     neopixelMeter: () => neopixelMeter,
     relayModule: () => relayModule,
     rfidModule: () => rfidModule,
@@ -11048,6 +11106,7 @@ var PartsKit = (() => {
     mount: () => mount,
     mpu6050Imu: () => mpu6050Imu,
     multiRelayModule: () => multiRelayModule,
+    muxBreakout: () => muxBreakout,
     muxSymbol: () => muxSymbol,
     nanoClassBoard: () => nanoClassBoard,
     nanoConnectTemplate: () => nanoConnectTemplate,
@@ -11515,6 +11574,7 @@ var PartsKit = (() => {
     ds3231Module: { indicators: lamps2({ power: "Power LED" }), finish: finish2("blue") },
     rfidModule: { indicators: lamps2({ power: "Power LED" }), finish: finish2("blue") },
     ams1117Module: { indicators: lamps2({ power: "Power LED" }), finish: finish2("blue") },
+    muxBreakout: { finish: finish2("purple") },
     mb102Module: {
       power: { type: "enum", label: "Power switch", choices: [choice("on", "On"), choice("off", "Off")], default: "on" },
       topRail: { type: "enum", label: "Top rail", choices: RAIL_CHOICES, default: "5" },
@@ -11964,6 +12024,14 @@ var PartsKit = (() => {
     ["rfid-reader", "RFID reader", "module", "rfidModule", null, ["MFRC522", "RC522", "NFC"]],
     ["logic-analyzer", "Logic analyzer", "module", "logicAnalyzer", null, ["8 channels"]],
     ["pixel-meter", "Pixel meter", "module", "neopixelMeter", null, ["NeoPixel", "current meter"]],
+    [
+      "analog-multiplexer-16-channel",
+      "Analog multiplexer, 16-channel",
+      "module",
+      "muxBreakout",
+      null,
+      ["CD74HC4067", "74HC4067", "mux", "breakout"]
+    ],
     ["ne555-timer", "NE555 timer", "chip", "ne555Timer", null, ["555"]],
     ["shift-register-74hc595", "Shift register, 74HC595", "chip", "shiftRegister595", null, ["SIPO"]],
     ["shift-register-74hc165", "Shift register, 74HC165", "chip", "shiftRegister165", null, ["PISO"]],

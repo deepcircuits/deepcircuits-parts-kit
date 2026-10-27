@@ -395,6 +395,7 @@ export const OPTIONS = {
   ds3231Module: { indicators: lamps({ power: 'Power LED' }), finish: finish('blue') },
   rfidModule: { indicators: lamps({ power: 'Power LED' }), finish: finish('blue') },
   ams1117Module: { indicators: lamps({ power: 'Power LED' }), finish: finish('blue') },
+  muxBreakout: { finish: finish('purple') },
   mb102Module: {
     power: { type: 'enum', label: 'Power switch', choices: [choice('on', 'On'), choice('off', 'Off')], default: 'on' },
     topRail: { type: 'enum', label: 'Top rail', choices: RAIL_CHOICES, default: '5' },

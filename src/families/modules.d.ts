@@ -7,6 +7,7 @@ export declare const logicAnalyzer: PartsKit['logicAnalyzer'];
 export declare const mb102Module: PartsKit['mb102Module'];
 export declare const microsdModule: PartsKit['microsdModule'];
 export declare const multiRelayModule: PartsKit['multiRelayModule'];
+export declare const muxBreakout: PartsKit['muxBreakout'];
 export declare const neopixelMeter: PartsKit['neopixelMeter'];
 export declare const relayModule: PartsKit['relayModule'];
 export declare const rfidModule: PartsKit['rfidModule'];

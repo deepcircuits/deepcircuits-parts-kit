@@ -357,6 +357,11 @@ var CARDS = [
     K.mount(root, K.multiRelayModule({ indicators: { power: true }, status: [true, false, true, false] }), { scale: 1.2, caption: "4 channels, 1 and 3 energised" });
     K.mount(root, K.multiRelayModule({ channels: 8, jumper: false }), { scale: 0.8, caption: "8 channels, jumper off" });
   } },
+  { name: "MuxBreakout", intro: "<code>muxBreakout</code>: the CD74HC4067 16-channel analog multiplexer breakout, 48 × 18 mm on a <code>pcb-purple</code> board", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.muxBreakout(), { pins: true, scale: 2, caption: "CD74HC4067" });
+    K.mount(root, K.muxBreakout({ finish: "red" }), { scale: 2, caption: "red board" });
+  } },
   { name: "NanoConnect", intro: "The Nano RP2040 Connect on its navy <code>pcb-blue</code> board at its true size, as on Arduino's drawing", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");
     K.mount(root, K.nanoConnectTemplate({label: 'NANO RP2040', chipLabel: 'RP2040', left: ['D12', 'D11', 'D10', 'D9', 'D8', 'D7', 'D6', 'D5', 'D4', 'D3', 'D2', 'GND', 'RESET', 'RX', 'TX'], right: ['D13', '3.3V', 'AREF', 'A0', 'A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', '5V', 'REC', 'GND', 'VIN'], indicators: {power: true}}), { pins: true, scale: 1.6, caption: "powered" });

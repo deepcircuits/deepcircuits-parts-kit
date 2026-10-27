@@ -529,6 +529,10 @@ export interface PartOptionsById {
     /** Peak current. 0 to 10 A. Default 0. */ peakAmps?: number;
     /** Supply limit. 0 to 10 A. Default 0. */ limitAmps?: number;
   };
+  /** Analog multiplexer, 16-channel: muxBreakout. */
+  "analog-multiplexer-16-channel": {
+    /** Board colour. Default "purple". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
   /** NE555 timer: ne555Timer. */
   "ne555-timer": {
     /** Package. Default "dip". */ package?: "dip" | "soic" | "tssop";
