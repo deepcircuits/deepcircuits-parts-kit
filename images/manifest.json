@@ -17562,6 +17562,8 @@
       "family": "sensor",
       "aliases": [
         "MQ-2",
+        "MQ-3",
+        "MQ-7",
         "MQ-135"
       ],
       "width": 76.8,
@@ -18167,6 +18169,666 @@
           "label": "Red",
           "options": {
             "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "lm35-temperature-sensor",
+      "name": "LM35 temperature sensor",
+      "family": "sensor",
+      "aliases": [
+        "analog",
+        "TO-92"
+      ],
+      "width": 38.4,
+      "height": 48,
+      "pins": [
+        { "name": "+VS", "x": 9.6, "y": 48 },
+        { "name": "VOUT", "x": 19.2, "y": 48 },
+        { "name": "GND", "x": 28.8, "y": 48 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "lm35-temperature-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": "tmp36-temperature-sensor",
+      "name": "TMP36 temperature sensor",
+      "family": "sensor",
+      "aliases": [
+        "analog",
+        "TO-92"
+      ],
+      "width": 38.4,
+      "height": 48,
+      "pins": [
+        { "name": "+VS", "x": 9.6, "y": 48 },
+        { "name": "VOUT", "x": 19.2, "y": 48 },
+        { "name": "GND", "x": 28.8, "y": 48 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "tmp36-temperature-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": "soil-moisture-sensor",
+      "name": "Soil moisture sensor",
+      "family": "sensor",
+      "aliases": [
+        "FC-28",
+        "YL-69",
+        "hygrometer"
+      ],
+      "width": 143.62,
+      "height": 226.77,
+      "pins": [
+        { "name": "VCC", "x": 102.77, "y": 156.85 },
+        { "name": "GND", "x": 112.37, "y": 156.85 },
+        { "name": "DO", "x": 121.97, "y": 156.85 },
+        { "name": "AO", "x": 131.57, "y": 156.85 }
+      ],
+      "hooks": [
+        "power-led",
+        "out-led"
+      ],
+      "images": [
+        {
+          "file": "soil-moisture-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "soil-moisture-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true,
+              "out": true
+            }
+          }
+        },
+        {
+          "file": "soil-moisture-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "soil-moisture-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "soil-moisture-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "soil-moisture-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "soil-moisture-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "soil-moisture-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "capacitive-soil-moisture-sensor",
+      "name": "Capacitive soil moisture sensor",
+      "family": "sensor",
+      "aliases": [
+        "v1.2",
+        "hygrometer"
+      ],
+      "width": 86.93,
+      "height": 393.07,
+      "pins": [
+        { "name": "GND", "x": 33.86, "y": 0 },
+        { "name": "VCC", "x": 43.46, "y": 0 },
+        { "name": "AOUT", "x": 53.06, "y": 0 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "capacitive-soil-moisture-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "capacitive-soil-moisture-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "capacitive-soil-moisture-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "capacitive-soil-moisture-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "capacitive-soil-moisture-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "capacitive-soil-moisture-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "capacitive-soil-moisture-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "water-level-sensor",
+      "name": "Water level sensor",
+      "family": "sensor",
+      "aliases": [
+        "water sensor",
+        "liquid level"
+      ],
+      "width": 75.59,
+      "height": 257.01,
+      "pins": [
+        { "name": "S", "x": 28.2, "y": 257.01 },
+        { "name": "+", "x": 37.8, "y": 257.01 },
+        { "name": "-", "x": 47.4, "y": 257.01 }
+      ],
+      "hooks": [
+        "power-led"
+      ],
+      "images": [
+        {
+          "file": "water-level-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "water-level-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true
+            }
+          }
+        },
+        {
+          "file": "water-level-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "water-level-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "water-level-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "water-level-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "water-level-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "water-level-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rain-sensor",
+      "name": "Rain sensor",
+      "family": "sensor",
+      "aliases": [
+        "FC-37",
+        "YL-83",
+        "raindrop"
+      ],
+      "width": 219.21,
+      "height": 204.09,
+      "pins": [
+        { "name": "VCC", "x": 178.36, "y": 156.85 },
+        { "name": "GND", "x": 187.96, "y": 156.85 },
+        { "name": "DO", "x": 197.56, "y": 156.85 },
+        { "name": "AO", "x": 207.16, "y": 156.85 }
+      ],
+      "hooks": [
+        "power-led",
+        "out-led"
+      ],
+      "images": [
+        {
+          "file": "rain-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "rain-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true,
+              "out": true
+            }
+          }
+        },
+        {
+          "file": "rain-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "rain-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "rain-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "rain-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "rain-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "rain-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ir-obstacle-sensor",
+      "name": "IR obstacle sensor",
+      "family": "sensor",
+      "aliases": [
+        "FC-51",
+        "infrared",
+        "avoidance"
+      ],
+      "width": 52.91,
+      "height": 168.19,
+      "pins": [
+        { "name": "OUT", "x": 16.86, "y": 168.19 },
+        { "name": "GND", "x": 26.46, "y": 168.19 },
+        { "name": "VCC", "x": 36.06, "y": 168.19 }
+      ],
+      "hooks": [
+        "power-led",
+        "out-led"
+      ],
+      "images": [
+        {
+          "file": "ir-obstacle-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "ir-obstacle-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true,
+              "out": true
+            }
+          }
+        },
+        {
+          "file": "ir-obstacle-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "ir-obstacle-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "ir-obstacle-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "ir-obstacle-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "ir-obstacle-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "ir-obstacle-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "line-tracking-sensor",
+      "name": "Line tracking sensor",
+      "family": "sensor",
+      "aliases": [
+        "TCRT5000",
+        "line follower"
+      ],
+      "width": 52.91,
+      "height": 168.19,
+      "pins": [
+        { "name": "VCC", "x": 12.06, "y": 168.19 },
+        { "name": "GND", "x": 21.66, "y": 168.19 },
+        { "name": "DO", "x": 31.26, "y": 168.19 },
+        { "name": "AO", "x": 40.86, "y": 168.19 }
+      ],
+      "hooks": [
+        "power-led",
+        "out-led"
+      ],
+      "images": [
+        {
+          "file": "line-tracking-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "line-tracking-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true,
+              "out": true
+            }
+          }
+        },
+        {
+          "file": "line-tracking-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "line-tracking-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "line-tracking-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "line-tracking-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "line-tracking-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "line-tracking-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "voltage-sensor",
+      "name": "Voltage sensor",
+      "family": "sensor",
+      "aliases": [
+        "0-25V",
+        "voltage divider"
+      ],
+      "width": 105.6,
+      "height": 53.76,
+      "pins": [
+        { "name": "VCC", "x": 14.4, "y": 17.28 },
+        { "name": "GND", "x": 14.4, "y": 36.48 },
+        { "name": "S", "x": 100.8, "y": 17.28 },
+        { "name": "+", "x": 100.8, "y": 26.88 },
+        { "name": "-", "x": 100.8, "y": 36.48 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "voltage-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "voltage-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "voltage-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "voltage-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "voltage-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "voltage-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "voltage-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        }
+      ]
+    },
+    {
+      "id": "current-sensor",
+      "name": "Current sensor",
+      "family": "sensor",
+      "aliases": [
+        "ACS712",
+        "hall effect"
+      ],
+      "width": 115.2,
+      "height": 53.76,
+      "pins": [
+        { "name": "IP+", "x": 14.4, "y": 17.28 },
+        { "name": "IP-", "x": 14.4, "y": 36.48 },
+        { "name": "VCC", "x": 110.4, "y": 17.28 },
+        { "name": "OUT", "x": 110.4, "y": 26.88 },
+        { "name": "GND", "x": 110.4, "y": 36.48 }
+      ],
+      "hooks": [
+        "power-led"
+      ],
+      "images": [
+        {
+          "file": "current-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "current-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true
+            }
+          }
+        },
+        {
+          "file": "current-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "current-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "current-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "current-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "current-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "current-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
           }
         }
       ]

@@ -111,7 +111,7 @@ export interface IrRemoteProps {
 }
 export interface RotaryDialerProps { angle?: number; pins?: readonly string[] }
 /** The small sensor boards, each laid out from its photograph by `element`: the comparator boards (ldr and flame 16.5 × 36 mm, mic 16.5 × 36 mm in red, cylinder 14 × 36 mm, each with the LM393 and the trimmer) and the small boards (bead 16 × 19 mm, ir 15 × 20 mm). The board size follows the element; `widthPitches` and `heightPitches` apply only to `element: 'none'`. */
-export interface SensorModuleProps { label?: string; pins?: readonly string[]; /** The print beside the pins, in pin order, where the board prints other names than pins (DO for DOUT); pins by default. */ labels?: readonly string[]; element?: 'ldr' | 'flame' | 'mic' | 'bead' | 'cylinder' | 'ir' | 'none'; comparator?: boolean; /** The sound boards' electret capsule in mm: 9.7 by default, 6 for the small board. */ micMm?: number; /** Only for `element: 'none'`; the photographed elements set their own size. */ widthPitches?: number; /** Only for `element: 'none'`. */ heightPitches?: number; finish?: Finish; indicators?: { power?: boolean; out?: boolean }; description?: string }
+export interface SensorModuleProps { label?: string; pins?: readonly string[]; /** The print beside the pins, in pin order, where the board prints other names than pins (DO for DOUT); pins by default. */ labels?: readonly string[]; /** The comparator boards also take 'ir-pair' (FC-51), 'tcrt5000' (line tracker), and 'fork-probe' and 'rain-plate' (the soil and rain probes drawn beside the board). */ element?: 'ldr' | 'flame' | 'mic' | 'bead' | 'cylinder' | 'ir' | 'ir-pair' | 'tcrt5000' | 'fork-probe' | 'rain-plate' | 'none'; comparator?: boolean; /** The sound boards' electret capsule in mm: 9.7 by default, 6 for the small board. */ micMm?: number; /** Only for `element: 'none'`; the photographed elements set their own size. */ widthPitches?: number; /** Only for `element: 'none'`. */ heightPitches?: number; finish?: Finish; indicators?: { power?: boolean; out?: boolean }; description?: string }
 export interface PulseSensorProps { on?: boolean; pins?: readonly string[] }
 export interface NeopixelProps { r?: number; g?: number; b?: number; color?: string }
 /** A pixel's colour: a CSS colour, or r, g and b from 0 to 1; null or undefined leaves it dark. */
@@ -200,6 +200,12 @@ export interface CatalogBoardState { indicators?: { power?: boolean; user?: Lit 
 export interface CatalogSensorState { indicators?: { power?: boolean; out?: boolean }; /** The board colour; each part has its own default. */ finish?: Finish }
 /** A catalog module's options: its board colour. */
 export interface CatalogModuleState { finish?: Finish }
+/** The gas sensor's print: MQ-2 (default), MQ-3, MQ-7 or MQ-135. */
+export interface GasSensorState extends CatalogSensorState { label?: 'MQ-2' | 'MQ-3' | 'MQ-7' | 'MQ-135' }
+/** A small sensor board with only its power LED. */
+export interface PowerLedSensorState { indicators?: { power?: boolean }; finish?: Finish }
+/** The ACS712 module: its grade (5A, 20A or 30A, printed on the chip) and its power LED. */
+export interface Acs712ModuleState { range?: '5A' | '20A' | '30A'; indicators?: { power?: boolean }; finish?: Finish }
 /** A catalog chip's options: its package (the part's own by default). */
 export interface CatalogChipState { package?: 'dip' | 'soic' | 'tssop' }
 /** A catalog screen module's picture. */
@@ -470,7 +476,23 @@ export interface PartsKit {
   soundSensor(state?: CatalogSensorState & { small?: boolean }): Artwork;
   ntcSensor(state?: CatalogModuleState): Artwork;
   irReceiver(state?: CatalogModuleState): Artwork;
-  gasSensor(state?: CatalogSensorState): Artwork;
+  gasSensor(state?: GasSensorState): Artwork;
+  /** The resistive soil moisture sensor: the fork probe beside its comparator board (VCC, GND, DO, AO). */
+  soilMoistureSensor(state?: CatalogSensorState): Artwork;
+  /** The rain sensor: the plate beside its comparator board (VCC, GND, DO, AO). */
+  rainSensor(state?: CatalogSensorState): Artwork;
+  /** The FC-51 infrared obstacle sensor (OUT, GND, VCC). */
+  obstacleSensor(state?: CatalogSensorState): Artwork;
+  /** The TCRT5000 line tracking sensor (VCC, GND, DO, AO). */
+  lineTracker(state?: CatalogSensorState): Artwork;
+  /** The water level sensor (S, +, -). */
+  waterLevelSensor(state?: PowerLedSensorState): Artwork;
+  /** The capacitive soil moisture sensor v1.2 (GND, VCC, AOUT). */
+  capacitiveSoilSensor(state?: CatalogModuleState): Artwork;
+  /** The 0-25 V voltage sensor module: the terminal (VCC, GND) and the header (S, +, -). */
+  voltageSensorModule(state?: CatalogModuleState): Artwork;
+  /** The ACS712 current sensor module: the terminal (IP+, IP-) and the header (VCC, OUT, GND). */
+  acs712Module(state?: Acs712ModuleState): Artwork;
   mpu6050Imu(state?: CatalogModuleState): Artwork;
   /** `chip`: BMP280 prints the pressure-only chip on the same board. */
   bme280Module(state?: CatalogModuleState & { chip?: 'BME280' | 'BMP280' }): Artwork;
@@ -495,6 +517,10 @@ export interface PartsKit {
   to92Template(props?: To92Props): Artwork;
   /** The DS18B20 temperature sensor in its TO-92 package: GND, DQ, VDD. */
   ds18b20Sensor(): Artwork;
+  /** The LM35 analog temperature sensor in its TO-92 package: +VS, VOUT, GND. */
+  lm35Sensor(): Artwork;
+  /** The TMP36 analog temperature sensor in its TO-92 package: +VS, VOUT, GND. */
+  tmp36Sensor(): Artwork;
   ledStrip(props?: LedStripProps): Artwork;
   readonly LED_STRIP_MAX_PIXELS: number;
   neopixelMeter(props?: NeopixelMeterProps): Artwork;

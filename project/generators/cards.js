@@ -58,6 +58,13 @@ export const CARDS = [
     },
   },
   {
+    name: "CapacitiveSoilSensor",
+    intro: "`capacitiveSoilSensor`",
+    draw(K, root) {
+      K.mount(root, K.capacitiveSoilSensor(), { pins: true, scale: 1.5, caption: "capacitive soil moisture sensor v1.2" });
+    },
+  },
+  {
     name: "Capacitor",
     intro: "A radial capacitor standing on the bench, seen from the front at the real size",
     draw(K, root) {
@@ -100,6 +107,14 @@ export const CARDS = [
       K.mount(root, K.chipTemplate({ pins: ne555, label: "NE555" }), { pins: true, caption: "DIP-8" });
       K.mount(root, K.chipTemplate({ pins: ne555, label: "NE555", package: "soic" }), { caption: "SOIC-8" });
       K.mount(root, K.chipTemplate({ pins: ["Q1", "Q2", "Q3", "Q4", "Q5", "Q6", "Q7", "GND", "Q7S", "MR", "SHCP", "STCP", "OE", "DS", "Q0", "VCC"], label: "74HC595" }), { caption: "DIP-16" });
+    },
+  },
+  {
+    name: "CurrentSensor",
+    intro: "`acs712Module`: the red ACS712 current sensor module, 31 × 14 mm",
+    draw(K, root) {
+      K.mount(root, K.acs712Module(), { pins: true, scale: 3, caption: "ACS712, 5 A" });
+      K.mount(root, K.acs712Module({ range: "30A", indicators: { power: true } }), { scale: 3, caption: "30 A, powered" });
     },
   },
   {
@@ -485,6 +500,10 @@ export const CARDS = [
       K.mount(root, K.sensorModuleTemplate({ element: "flame", comparator: true, pins: ["VCC", "GND", "DOUT", "AOUT"], indicators: { power: true } }), { caption: "flame, 15.5 × 36 mm, the LED past the end" });
       K.mount(root, K.sensorModuleTemplate({ element: "mic", comparator: true, pins: ["AOUT", "GND", "VCC", "DOUT"], indicators: { power: true } }), { caption: "sound, the KY-037 with the 9.7 mm capsule" });
       K.mount(root, K.sensorModuleTemplate({ element: "mic", micMm: 6, comparator: true, pins: ["AOUT", "GND", "VCC", "DOUT"] }), { caption: "sound, the 6 mm capsule" });
+      K.mount(root, K.obstacleSensor({ indicators: { power: true } }), { pins: true, caption: "IR obstacle, the FC-51" });
+      K.mount(root, K.lineTracker(), { caption: "line tracker, the TCRT5000 across the end" });
+      K.mount(root, K.soilMoistureSensor({ indicators: { power: true } }), { caption: "soil moisture, the fork beside the board" });
+      K.mount(root, K.rainSensor(), { caption: "rain, the plate beside the board" });
       K.mount(root, K.sensorModuleTemplate({ label: "NTC", element: "bead", pins: ["GND", "VCC", "OUT"] }), { caption: "NTC temperature, 16 × 19 mm" });
       K.mount(root, K.sensorModuleTemplate({ element: "cylinder", pins: ["GND", "VCC", "OUT"], indicators: { power: true } }), { caption: "tilt switch, the 14 mm board, the brass SW-520D past the end" });
       K.mount(root, K.sensorModuleTemplate({ label: "IR RX", element: "ir", pins: ["GND", "VCC", "DAT"], indicators: { power: true } }), { caption: "IR receiver, 15 × 20 mm, its indicator lit" });
@@ -570,7 +589,8 @@ export const CARDS = [
     intro: "A TO-92 part in elevation, flat face to the viewer",
     draw(K, root) {
       K.mount(root, K.to92Template(), { pins: true, scale: 3, caption: "DS18B20" });
-      K.mount(root, K.to92Template({ label: "LM35", pins: ["VCC", "OUT", "GND"] }), { scale: 3, caption: "LM35" });
+      K.mount(root, K.lm35Sensor(), { pins: true, scale: 3, caption: "LM35" });
+      K.mount(root, K.tmp36Sensor(), { scale: 3, caption: "TMP36" });
     },
   },
   {
@@ -582,6 +602,21 @@ export const CARDS = [
       K.mount(root, K.transistor({ label: "2N7000", pins: ["S", "G", "D"] }), { scale: 3, caption: "2N7000" });
       K.mount(root, K.transistor({ package: "to-220" }), { pins: true, scale: 3, caption: "IRLZ44N, TO-220" });
       K.mount(root, K.transistor({ package: "to-220", label: "NDP6020P", live: { heat: 0.7 } }), { scale: 3, caption: "live: warm" });
+    },
+  },
+  {
+    name: "VoltageSensor",
+    intro: "`voltageSensorModule`",
+    draw(K, root) {
+      K.mount(root, K.voltageSensorModule(), { pins: true, scale: 3, caption: "voltage sensor, 0-25 V" });
+    },
+  },
+  {
+    name: "WaterLevelSensor",
+    intro: "`waterLevelSensor`: the red water level sensor, 20 × 62 mm",
+    draw(K, root) {
+      K.mount(root, K.waterLevelSensor(), { pins: true, scale: 2, caption: "water level sensor" });
+      K.mount(root, K.waterLevelSensor({ indicators: { power: true } }), { scale: 2, caption: "powered" });
     },
   },
 ];

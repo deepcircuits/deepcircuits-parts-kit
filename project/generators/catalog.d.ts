@@ -208,6 +208,7 @@ export interface PartOptionsById {
   "gas-sensor": {
     /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** Output LED. Default false. */ out?: boolean };
     /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+    /** Sensor. Default "MQ-2". */ label?: "MQ-2" | "MQ-3" | "MQ-7" | "MQ-135";
   };
   /** IR receiver: irReceiver. */
   "ir-receiver": {
@@ -243,6 +244,49 @@ export interface PartOptionsById {
   /** Pulse oximeter: max30102Module. */
   "pulse-oximeter": {
     /** Board colour. Default "purple". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** LM35 temperature sensor: lm35Sensor. */
+  "lm35-temperature-sensor": Record<string, never>;
+  /** TMP36 temperature sensor: tmp36Sensor. */
+  "tmp36-temperature-sensor": Record<string, never>;
+  /** Soil moisture sensor: soilMoistureSensor. */
+  "soil-moisture-sensor": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** Output LED. Default false. */ out?: boolean };
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Capacitive soil moisture sensor: capacitiveSoilSensor. */
+  "capacitive-soil-moisture-sensor": {
+    /** Board colour. Default "black". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Water level sensor: waterLevelSensor. */
+  "water-level-sensor": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
+    /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Rain sensor: rainSensor. */
+  "rain-sensor": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** Output LED. Default false. */ out?: boolean };
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** IR obstacle sensor: obstacleSensor. */
+  "ir-obstacle-sensor": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** Output LED. Default false. */ out?: boolean };
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Line tracking sensor: lineTracker. */
+  "line-tracking-sensor": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** Output LED. Default false. */ out?: boolean };
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Voltage sensor: voltageSensorModule. */
+  "voltage-sensor": {
+    /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Current sensor: acs712Module. */
+  "current-sensor": {
+    /** Range. Default "5A". */ range?: "5A" | "20A" | "30A";
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
+    /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
   };
   /** Pushbutton: pushbutton {"size":12}. */
   "pushbutton": {
