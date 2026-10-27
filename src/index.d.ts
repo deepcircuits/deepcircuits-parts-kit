@@ -64,6 +64,7 @@ export declare const mb102Module: PartsKit['mb102Module'];
 export declare const megaClassBoard: PartsKit['megaClassBoard'];
 export declare const microsdModule: PartsKit['microsdModule'];
 export declare const mpu6050Imu: PartsKit['mpu6050Imu'];
+export declare const multiRelayModule: PartsKit['multiRelayModule'];
 export declare const muxSymbol: PartsKit['muxSymbol'];
 export declare const nanoClassBoard: PartsKit['nanoClassBoard'];
 export declare const nanoRp2040Board: PartsKit['nanoRp2040Board'];

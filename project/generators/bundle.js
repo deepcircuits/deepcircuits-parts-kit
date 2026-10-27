@@ -1354,8 +1354,19 @@ var PartsKit = (() => {
     s += tag("body", circle(cx, cy, r, T["plastic-black"], edge(T, T["plastic-black-edge"])));
     s += circle(cx, cy, r * 0.86, "#000000", { "fill-opacity": 0.35 });
     s += circle(cx, cy, r * 0.86, "none", { stroke: "#ffffff", "stroke-width": 0.5, "stroke-opacity": 0.12 });
-    s += circle(cx, cy, r * 0.5, T["plastic-black"], edge(T, T["plastic-black-edge"], T["stroke-fine"]));
-    s += circle(cx, cy, 1.1 * mm, T.cavity);
+    if (props.sealed)
+      s += tag(
+        "seal",
+        circle(cx, cy, r * 0.6, T["plastic-white"], edge(T, T["plastic-white-edge"], T["stroke-fine"])) + circle(cx, cy, r * 0.42, "none", {
+          stroke: T["plastic-white-edge"],
+          "stroke-width": 0.4,
+          "stroke-opacity": 0.6
+        })
+      );
+    else {
+      s += circle(cx, cy, r * 0.5, T["plastic-black"], edge(T, T["plastic-black-edge"], T["stroke-fine"]));
+      s += circle(cx, cy, 1.1 * mm, T.cavity);
+    }
     s += path(
       `M${r2(cx - r * 0.72)} ${r2(cy - r * 0.3)}A${r2(r * 0.78)} ${r2(r * 0.78)} 0 0 1 ${r2(cx - r * 0.3)} ${r2(cy - r * 0.72)}`,
       "none",
@@ -1365,7 +1376,7 @@ var PartsKit = (() => {
     const live = props.live || {};
     s += flow(p, h, p, legTop, live.flow, "flow-1") + flow(4 * p, legTop, 4 * p, h, live.flow, "flow-2");
     if (live.probe) s += probe(live.probe === "-" || live.probe === "2" ? 4 * p : p, h);
-    return art(w, h, "Buzzer", s, [
+    return art(w, h, props.sealed ? "Active buzzer" : "Buzzer", s, [
       { name: "+", x: p, y: h },
       { name: "-", x: 4 * p, y: h }
     ]);
@@ -6682,6 +6693,123 @@ var PartsKit = (() => {
     s += hdr.svg;
     return art(w, h, "Relay module with an SPDT changeover contact", s, pins);
   }
+  function terminalScrew(T, x, y) {
+    const p = T.pitch;
+    return circle(x, y, 0.5 * p, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + circle(x, y, 0.5 * p, sheen("metal"), { "fill-opacity": 0.6 }) + line(x - 0.3 * p, y - 0.3 * p, x + 0.3 * p, y + 0.3 * p, T["metal-edge"], 0.9) + line(x + 0.3 * p, y - 0.3 * p, x - 0.3 * p, y + 0.3 * p, T["metal-edge"], 0.9);
+  }
+  function multiRelayModule(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const n = [2, 4, 8].includes(Number(props.channels)) ? Number(props.channels) : 4;
+    const fin = props.finish || "blue";
+    const f = finish(T, fin);
+    const w = (7 * n + 2) * p;
+    const h = 21 * p;
+    const ind = { power: false, ...props.indicators };
+    const status = props.status || [];
+    let s = "";
+    s += board({ width: w, height: h, finish: fin, holes: true });
+    const contacts = [];
+    for (let i = 0; i < n; i++) {
+      const k = i + 1;
+      const cx = (4.5 + 7 * i) * p;
+      const ty = 1.2 * p;
+      const th = 3.2 * p;
+      s += tag(
+        "terminal",
+        rect(cx - 3 * p, ty, 6 * p, th, T["plastic-blue"], Object.assign({ rx: 1 }, edge(T, T["plastic-blue-edge"]))) + bevel(T, cx - 3 * p, ty, 6 * p, th, 1.6, 1)
+      );
+      ["NO", "COM", "NC"].forEach((name, j) => {
+        const x = cx + (j - 1) * 2 * p;
+        s += terminalScrew(T, x, 2.8 * p) + text(x, 5.3 * p, name, PIN_LABEL, f.silk);
+        contacts.push({ name: `${name}${k}`, x, y: 2.8 * p });
+      });
+      const rw = 15.5 * mm;
+      const rh = 19 * mm;
+      const rx = cx - rw / 2;
+      const ry = 6 * p;
+      s += tag(
+        "body",
+        rect(rx, ry, rw, rh, T["plastic-blue"], Object.assign({ rx: 1.2 }, edge(T, T["plastic-blue-edge"])))
+      );
+      s += bevel(T, rx, ry, rw, rh, 1.8, 1.2);
+      s += text(cx, ry + 1.6 * p, "RELAY", 5, T["chip-print"], { "font-weight": 700 });
+      s += text(cx, ry + 2.8 * p, "10A 250VAC  10A 125VAC", PIN_LABEL, T["chip-print"]) + text(cx, ry + 3.4 * p, "10A 30VDC   10A 28VDC", PIN_LABEL, T["chip-print"]);
+      s += text(cx, ry + 4.8 * p, "SRD-05VDC-SL-C", 5, T["chip-print"], { "font-weight": 600 });
+      s += text(cx, ry + 5.9 * p, lotCode(`SRD${k}`), PIN_LABEL, T["chip-print"], { "fill-opacity": 0.8 });
+      s += framed(T, f, "resistor", cx - 2.9 * p, 14.4 * p, true);
+      s += sot23(T, cx - 0.9 * p, 14.2 * p, 3);
+      s += soicAcross(T, cx + 0.8 * p, 14.7 * p, 1.6 * p, 1.4 * p, 2, "817");
+      s += silkFrame(T, f, cx - 2.8 * p, 16.3 * p, 0.7 * p, 0.7 * p) + indicator({
+        x: cx - 2.8 * p,
+        y: 16.3 * p,
+        size: 0.7 * p,
+        color: "red",
+        on: !!status[i],
+        hook: `status-led-${k}`,
+        state: `status-led-${k}`,
+        finish: fin,
+        label: `IN${k}`
+      });
+      s += framed(T, f, "resistor", cx - 1.3 * p, 16.6 * p, true);
+    }
+    const inputs = ["GND", ...Array.from({ length: n }, (_, i) => `IN${i + 1}`), "VCC"];
+    const hdr = header({
+      x: 1.5 * p,
+      y: 19.8 * p,
+      axis: "x",
+      labels: inputs,
+      kind: "pad",
+      side: "above",
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    const lx = (n + 3.8) * p;
+    s += silkFrame(T, f, lx, 19.45 * p, 0.7 * p, 0.7 * p) + indicator({
+      x: lx,
+      y: 19.45 * p,
+      size: 0.7 * p,
+      color: "red",
+      on: !!ind.power,
+      hook: "power-led",
+      state: "power-led",
+      finish: fin
+    }) + text(lx + 0.9 * p, 20.05 * p, "PWR", PIN_LABEL, f.silk, { "text-anchor": "start" });
+    const jx = w - 3.5 * p;
+    const block = header({
+      x: jx,
+      y: 19.8 * p,
+      axis: "x",
+      labels: ["GND", "VCC", "JD-VCC"],
+      kind: "pad",
+      side: "above",
+      rotate: true,
+      silk: f.silk,
+      size: PIN_LABEL
+    });
+    s += text((n + 6 + 7 * n - 1.6) * 0.5 * p, 20.15 * p, `${n}-CH RELAY`, PIN_LABEL, f.silk, { "font-weight": 600 });
+    s += hdr.svg + block.svg;
+    if (props.jumper !== false)
+      s += tag(
+        "jumper",
+        rect(
+          jx + 0.55 * p,
+          19.45 * p,
+          1.9 * p,
+          0.75 * p,
+          T["plastic-black"],
+          Object.assign({ rx: 0.3 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
+        ) + rect(jx + 0.7 * p, 19.55 * p, 1.6 * p, 0.25 * p, "#ffffff", { rx: 0.2, "fill-opacity": 0.18 })
+      );
+    const jd = block.pins[2];
+    return art(w, h, `${n}-channel relay module with optocoupled inputs`, s, [
+      ...hdr.pins,
+      { name: "JD-VCC", x: jd.x, y: jd.y },
+      ...contacts
+    ]);
+  }
   function sot2232(T, x, y, lines) {
     const mm = T.pitch / 2.54;
     const bw = 6.5 * mm;
@@ -9659,6 +9787,7 @@ var PartsKit = (() => {
     logicAnalyzer: () => logicAnalyzer,
     mb102Module: () => mb102Module,
     microsdModule: () => microsdModule,
+    multiRelayModule: () => multiRelayModule,
     neopixelMeter: () => neopixelMeter,
     relayModule: () => relayModule,
     rfidModule: () => rfidModule,
@@ -10308,6 +10437,7 @@ var PartsKit = (() => {
     moduleTemplate: () => moduleTemplate,
     mount: () => mount,
     mpu6050Imu: () => mpu6050Imu,
+    multiRelayModule: () => multiRelayModule,
     muxSymbol: () => muxSymbol,
     nanoClassBoard: () => nanoClassBoard,
     nanoConnectTemplate: () => nanoConnectTemplate,
@@ -10722,7 +10852,10 @@ var PartsKit = (() => {
         default: "square"
       }
     },
-    buzzer: { live: state({ type: "object", label: "Live layer", fields: { flow: flow2, probe: probe2(["+", "-"]) } }) },
+    buzzer: {
+      sealed: bool("Sealed (active buzzer)"),
+      live: state({ type: "object", label: "Live layer", fields: { flow: flow2, probe: probe2(["+", "-"]) } })
+    },
     servo: { angle: state({ type: "number", label: "Angle", min: -90, max: 90, step: 1, unit: "°", default: 0 }) },
     stepper: {
       angle: state({ type: "number", label: "Angle", min: 0, max: 360, step: 1.8, unit: "°", default: 0 }),
@@ -10740,6 +10873,12 @@ var PartsKit = (() => {
     relay: { energised: state(bool("Energised")) },
     // Modules.
     relayModule: { indicators: lamps2({ power: "Power LED", status: "Status LED" }, ["power"]), finish: finish2("red") },
+    multiRelayModule: {
+      jumper: bool("JD-VCC jumper fitted", { default: true }),
+      indicators: lamps2({ power: "Power LED" }),
+      status: state({ type: "list", label: "Channel LEDs lit", items: { type: "boolean" } }),
+      finish: finish2("blue")
+    },
     hx711Board: { finish: finish2("red") },
     microsdModule: { finish: finish2("blue") },
     rtcModule: { finish: finish2("blue") },
@@ -11116,11 +11255,36 @@ var PartsKit = (() => {
     ["addressable-led", "Addressable LED", "output", "neopixel", null, ["WS2812B", "NeoPixel"]],
     ["addressable-led-strip", "Addressable LED strip", "output", "ledStrip", null, ["WS2812B", "NeoPixel strip"]],
     ["piezo-buzzer", "Piezo buzzer", "output", "buzzer", null, ["beeper", "speaker"]],
+    ["active-buzzer", "Active buzzer", "output", "buzzer", { sealed: true }, ["beeper", "KY-012"]],
     ["servo", "Servo", "output", "servo", null, ["SG90", "micro servo"]],
     ["stepper-motor", "Stepper motor", "output", "stepper", { biaxial: false }, ["NEMA 17"]],
     ["biaxial-stepper", "Biaxial stepper", "output", "stepper", { biaxial: true }, ["clock motor"]],
     ["dpdt-relay", "DPDT relay", "output", "relay", null, ["relay"]],
     ["relay-module", "Relay module", "module", "relayModule", null, ["relay", "SRD-05VDC"]],
+    [
+      "relay-module-2-channel",
+      "Relay module, 2-channel",
+      "module",
+      "multiRelayModule",
+      { channels: 2 },
+      ["relay", "SRD-05VDC", "optocoupler"]
+    ],
+    [
+      "relay-module-4-channel",
+      "Relay module, 4-channel",
+      "module",
+      "multiRelayModule",
+      { channels: 4 },
+      ["relay", "SRD-05VDC", "optocoupler"]
+    ],
+    [
+      "relay-module-8-channel",
+      "Relay module, 8-channel",
+      "module",
+      "multiRelayModule",
+      { channels: 8 },
+      ["relay", "SRD-05VDC", "optocoupler"]
+    ],
     ["load-cell-amplifier", "Load cell amplifier", "module", "hx711Board", null, ["HX711", "scale"]],
     ["microsd-card-module", "microSD card module", "module", "microsdModule", null, ["SD card"]],
     ["regulator-module-3-3-v", "Regulator module, 3.3 V", "module", "ams1117Module", null, ["AMS1117", "LDO"]],

@@ -386,7 +386,7 @@ export function capacitor(props) {
   ]);
 }
 
-/** A 12 mm piezo buzzer from above, at the real size: a black can with its stepped top, the sound hole, the + mark over the positive leg (the left, pin 1), two tinned legs three pitches apart as on the real part (7.6 mm). live.flow runs up leg 1 and down leg 2. */
+/** A 12 mm piezo buzzer from above, at the real size: a black can with its stepped top, the sound hole, the + mark over the positive leg (the left, pin 1), two tinned legs three pitches apart as on the real part (7.6 mm). `sealed` draws the active buzzer, which carries its own oscillator: the same can with its sound hole under the round white seal it is sold with. live.flow runs up leg 1 and down leg 2. */
 export function buzzer(props) {
   props = props || {};
   const T = tokens();
@@ -403,8 +403,20 @@ export function buzzer(props) {
   s += tag('body', circle(cx, cy, r, T['plastic-black'], edge(T, T['plastic-black-edge'])));
   s += circle(cx, cy, r * 0.86, '#000000', { 'fill-opacity': 0.35 });
   s += circle(cx, cy, r * 0.86, 'none', { stroke: '#ffffff', 'stroke-width': 0.5, 'stroke-opacity': 0.12 });
-  s += circle(cx, cy, r * 0.5, T['plastic-black'], edge(T, T['plastic-black-edge'], T['stroke-fine']));
-  s += circle(cx, cy, 1.1 * mm, T.cavity);
+  if (props.sealed)
+    s += tag(
+      'seal',
+      circle(cx, cy, r * 0.6, T['plastic-white'], edge(T, T['plastic-white-edge'], T['stroke-fine'])) +
+        circle(cx, cy, r * 0.42, 'none', {
+          stroke: T['plastic-white-edge'],
+          'stroke-width': 0.4,
+          'stroke-opacity': 0.6,
+        }),
+    );
+  else {
+    s += circle(cx, cy, r * 0.5, T['plastic-black'], edge(T, T['plastic-black-edge'], T['stroke-fine']));
+    s += circle(cx, cy, 1.1 * mm, T.cavity);
+  }
   s += path(
     `M${r2(cx - r * 0.72)} ${r2(cy - r * 0.3)}A${r2(r * 0.78)} ${r2(r * 0.78)} 0 0 1 ${r2(cx - r * 0.3)} ${r2(cy - r * 0.72)}`,
     'none',
@@ -414,7 +426,7 @@ export function buzzer(props) {
   const live = props.live || {};
   s += flow(p, h, p, legTop, live.flow, 'flow-1') + flow(4 * p, legTop, 4 * p, h, live.flow, 'flow-2');
   if (live.probe) s += probe(live.probe === '-' || live.probe === '2' ? 4 * p : p, h);
-  return art(w, h, 'Buzzer', s, [
+  return art(w, h, props.sealed ? 'Active buzzer' : 'Buzzer', s, [
     { name: '+', x: p, y: h },
     { name: '-', x: 4 * p, y: h },
   ]);

@@ -10,6 +10,7 @@ K.setTokenMode("live");
 K.mount(root, K.buzzer(), { pins: true, caption: "12 mm buzzer" });
 K.mount(root, K.buzzer(), { scale: 1, grid: false, caption: "at 1:1" });
 K.mount(root, K.buzzer({ live: { flow: true, probe: "1" } }), { caption: "current flowing, the probe on +" });
+K.mount(root, K.buzzer({ sealed: true }), { caption: "active buzzer, sealed" });
 </script>
 </body>
 </html>

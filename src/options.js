@@ -348,7 +348,10 @@ export const OPTIONS = {
       default: 'square',
     },
   },
-  buzzer: { live: state({ type: 'object', label: 'Live layer', fields: { flow, probe: probe(['+', '-']) } }) },
+  buzzer: {
+    sealed: bool('Sealed (active buzzer)'),
+    live: state({ type: 'object', label: 'Live layer', fields: { flow, probe: probe(['+', '-']) } }),
+  },
   servo: { angle: state({ type: 'number', label: 'Angle', min: -90, max: 90, step: 1, unit: '°', default: 0 }) },
   stepper: {
     angle: state({ type: 'number', label: 'Angle', min: 0, max: 360, step: 1.8, unit: '°', default: 0 }),
@@ -366,6 +369,12 @@ export const OPTIONS = {
   relay: { energised: state(bool('Energised')) },
   // Modules.
   relayModule: { indicators: lamps({ power: 'Power LED', status: 'Status LED' }, ['power']), finish: finish('red') },
+  multiRelayModule: {
+    jumper: bool('JD-VCC jumper fitted', { default: true }),
+    indicators: lamps({ power: 'Power LED' }),
+    status: state({ type: 'list', label: 'Channel LEDs lit', items: { type: 'boolean' } }),
+    finish: finish('blue'),
+  },
   hx711Board: { finish: finish('red') },
   microsdModule: { finish: finish('blue') },
   rtcModule: { finish: finish('blue') },

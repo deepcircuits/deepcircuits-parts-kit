@@ -46,7 +46,8 @@ export interface SlideSwitchProps { contact?: 1 | 3 }
 export interface CapacitorProps { kind?: 'electrolytic' | 'ceramic'; code?: string }
 /** A battery holder from above with its two leads, + (red) one pitch and - (black) two pitches from the left at the top edge whatever the holder: 2, 4 or 6 AA cells, two 18650 cells, or a CR2032 coin cell. */
 export interface BatteryHolderProps { cells?: '2xAA' | '4xAA' | '6xAA' | '2x18650' | 'CR2032' }
-export interface BuzzerProps { live?: LiveState }
+/** sealed: the active buzzer, its sound hole under the white seal it is sold with. */
+export interface BuzzerProps { live?: LiveState; sealed?: boolean }
 export interface ModuleProps { label?: string; pins?: readonly string[]; finish?: Finish; part?: 'chip' | 'sensor' | 'can' | 'dual-can' | 'dome' | 'microsd' | 'rtc' | 'none'; /** A second row of pads along the top edge (the HX711's load-cell pads). */ extraPads?: readonly string[]; /** A can's diameter in pitches (2.6 by default; 6 for the HC-SR04's 16 mm cans). */ canPitches?: number; /** A dome's diameter in pitches (3 by default; 9 for the PIR's 23 mm lens). */ domePitches?: number; /** A sensor housing's vents: slots (DHT22) or holes (DHT11). */ vent?: 'slots' | 'holes'; /** The sensor housing's plastic: white (default) or the DHT11's blue. */ housing?: 'white' | 'blue'; /** A chip module's package: a SOIC with leads (default), a metal-lid LGA with its vent hole, or a QFN with pads on four sides. */ ic?: 'soic' | 'lga' | 'qfn'; widthPitches?: number; heightPitches?: number; /** The board's true width in mm, overriding widthPitches (the GY-521 is 21). */ width?: number; /** The board's true height in mm, overriding heightPitches (the GY-521 is 16). */ height?: number; holes?: boolean; description?: string; /** false hides the maker's mark. */ mark?: boolean }
 export interface DevBoardProps {
   label?: string; chipLabel?: string; finish?: Finish; pinKind?: 'socket' | 'pad'; widthPitches?: number; indicators?: { power?: Lit; user?: Lit }; description?: string;
@@ -147,6 +148,8 @@ export type MeterStatus = 'idle' | 'ok' | 'near' | 'over';
 /** A meter reading; without a status (or 'idle') the meter asks for a connection. */
 export interface NeopixelMeterProps { fps?: number; pixels?: number; amps?: number; watts?: number; peakAmps?: number; limitAmps?: number; status?: MeterStatus }
 export interface RelayModuleProps { /** The photographed board is red. */ finish?: Finish; label?: string | false; indicators?: { power?: boolean; status?: boolean } }
+/** The 2-, 4- or 8-channel relay module (4 by default): pins GND, IN1 … INn, VCC, JD-VCC, then each channel's NO, COM and NC. `jumper` (fitted by default) draws the cap joining VCC to JD-VCC; `indicators.power` lights the power LED and `status` the channel LEDs, from channel 1. */
+export interface MultiRelayModuleProps { channels?: 2 | 4 | 8; jumper?: boolean; finish?: Finish; indicators?: { power?: boolean }; status?: readonly boolean[] }
 export interface LogicAnalyzerProps { channels?: readonly string[]; lit?: readonly (boolean | 0 | 1)[]; samples?: number; state?: 'idle' | 'armed' | 'recording' | 'paused' | 'full' | 'error'; activity?: number; /** Accepted and ignored: the label prints the analyzer's own name and channel table. */ label?: string }
 export interface RfidModuleProps { finish?: Finish; pins?: readonly string[]; label?: string; indicators?: { power?: boolean } }
 /** The AMS1117-3.3 regulator module: VIN, GND and VOUT down the left edge; the power LED lit by `indicators.power`. */
@@ -529,6 +532,8 @@ export interface PartsKit {
   /** A current in amps as the meter prints it in milliamps. */
   formatMilliamps(amps: number): string;
   relayModule(props?: RelayModuleProps): Artwork;
+  /** The 2-, 4- or 8-channel relay module with optocoupled inputs and a JD-VCC jumper. */
+  multiRelayModule(props?: MultiRelayModuleProps): Artwork;
   logicAnalyzer(props?: LogicAnalyzerProps): Artwork;
   rfidModule(props?: RfidModuleProps): Artwork;
   picoBoardTemplate(props?: PicoBoardProps): Artwork;

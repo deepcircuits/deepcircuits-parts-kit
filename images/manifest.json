@@ -20080,6 +20080,32 @@
       ]
     },
     {
+      "id": "active-buzzer",
+      "name": "Active buzzer",
+      "family": "output",
+      "aliases": [
+        "beeper",
+        "KY-012"
+      ],
+      "width": 48,
+      "height": 61.44,
+      "pins": [
+        { "name": "+", "x": 9.6, "y": 61.44 },
+        { "name": "-", "x": 38.4, "y": 61.44 }
+      ],
+      "hooks": [
+        "flow-1",
+        "flow-2"
+      ],
+      "images": [
+        {
+          "file": "active-buzzer.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
       "id": "servo",
       "name": "Servo",
       "family": "output",
@@ -20291,6 +20317,310 @@
           "label": "White",
           "options": {
             "finish": "white"
+          }
+        }
+      ]
+    },
+    {
+      "id": "relay-module-2-channel",
+      "name": "Relay module, 2-channel",
+      "family": "module",
+      "aliases": [
+        "relay",
+        "SRD-05VDC",
+        "optocoupler"
+      ],
+      "width": 153.6,
+      "height": 201.6,
+      "pins": [
+        { "name": "GND", "x": 14.4, "y": 190.08 },
+        { "name": "IN1", "x": 24, "y": 190.08 },
+        { "name": "IN2", "x": 33.6, "y": 190.08 },
+        { "name": "VCC", "x": 43.2, "y": 190.08 },
+        { "name": "JD-VCC", "x": 139.2, "y": 190.08 },
+        { "name": "NO1", "x": 24, "y": 26.88 },
+        { "name": "COM1", "x": 43.2, "y": 26.88 },
+        { "name": "NC1", "x": 62.4, "y": 26.88 },
+        { "name": "NO2", "x": 91.2, "y": 26.88 },
+        { "name": "COM2", "x": 110.4, "y": 26.88 },
+        { "name": "NC2", "x": 129.6, "y": 26.88 }
+      ],
+      "hooks": [
+        "status-led-1",
+        "status-led-2",
+        "power-led"
+      ],
+      "images": [
+        {
+          "file": "relay-module-2-channel.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "relay-module-2-channel--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true
+            }
+          }
+        },
+        {
+          "file": "relay-module-2-channel--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "relay-module-2-channel--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "relay-module-2-channel--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "relay-module-2-channel--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "relay-module-2-channel--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "relay-module-2-channel--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "relay-module-4-channel",
+      "name": "Relay module, 4-channel",
+      "family": "module",
+      "aliases": [
+        "relay",
+        "SRD-05VDC",
+        "optocoupler"
+      ],
+      "width": 288,
+      "height": 201.6,
+      "pins": [
+        { "name": "GND", "x": 14.4, "y": 190.08 },
+        { "name": "IN1", "x": 24, "y": 190.08 },
+        { "name": "IN2", "x": 33.6, "y": 190.08 },
+        { "name": "IN3", "x": 43.2, "y": 190.08 },
+        { "name": "IN4", "x": 52.8, "y": 190.08 },
+        { "name": "VCC", "x": 62.4, "y": 190.08 },
+        { "name": "JD-VCC", "x": 273.6, "y": 190.08 },
+        { "name": "NO1", "x": 24, "y": 26.88 },
+        { "name": "COM1", "x": 43.2, "y": 26.88 },
+        { "name": "NC1", "x": 62.4, "y": 26.88 },
+        { "name": "NO2", "x": 91.2, "y": 26.88 },
+        { "name": "COM2", "x": 110.4, "y": 26.88 },
+        { "name": "NC2", "x": 129.6, "y": 26.88 },
+        { "name": "NO3", "x": 158.4, "y": 26.88 },
+        { "name": "COM3", "x": 177.6, "y": 26.88 },
+        { "name": "NC3", "x": 196.8, "y": 26.88 },
+        { "name": "NO4", "x": 225.6, "y": 26.88 },
+        { "name": "COM4", "x": 244.8, "y": 26.88 },
+        { "name": "NC4", "x": 264, "y": 26.88 }
+      ],
+      "hooks": [
+        "status-led-1",
+        "status-led-2",
+        "status-led-3",
+        "status-led-4",
+        "power-led"
+      ],
+      "images": [
+        {
+          "file": "relay-module-4-channel.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "relay-module-4-channel--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true
+            }
+          }
+        },
+        {
+          "file": "relay-module-4-channel--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "relay-module-4-channel--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "relay-module-4-channel--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "relay-module-4-channel--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "relay-module-4-channel--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "relay-module-4-channel--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "relay-module-8-channel",
+      "name": "Relay module, 8-channel",
+      "family": "module",
+      "aliases": [
+        "relay",
+        "SRD-05VDC",
+        "optocoupler"
+      ],
+      "width": 556.8,
+      "height": 201.6,
+      "pins": [
+        { "name": "GND", "x": 14.4, "y": 190.08 },
+        { "name": "IN1", "x": 24, "y": 190.08 },
+        { "name": "IN2", "x": 33.6, "y": 190.08 },
+        { "name": "IN3", "x": 43.2, "y": 190.08 },
+        { "name": "IN4", "x": 52.8, "y": 190.08 },
+        { "name": "IN5", "x": 62.4, "y": 190.08 },
+        { "name": "IN6", "x": 72, "y": 190.08 },
+        { "name": "IN7", "x": 81.6, "y": 190.08 },
+        { "name": "IN8", "x": 91.2, "y": 190.08 },
+        { "name": "VCC", "x": 100.8, "y": 190.08 },
+        { "name": "JD-VCC", "x": 542.4, "y": 190.08 },
+        { "name": "NO1", "x": 24, "y": 26.88 },
+        { "name": "COM1", "x": 43.2, "y": 26.88 },
+        { "name": "NC1", "x": 62.4, "y": 26.88 },
+        { "name": "NO2", "x": 91.2, "y": 26.88 },
+        { "name": "COM2", "x": 110.4, "y": 26.88 },
+        { "name": "NC2", "x": 129.6, "y": 26.88 },
+        { "name": "NO3", "x": 158.4, "y": 26.88 },
+        { "name": "COM3", "x": 177.6, "y": 26.88 },
+        { "name": "NC3", "x": 196.8, "y": 26.88 },
+        { "name": "NO4", "x": 225.6, "y": 26.88 },
+        { "name": "COM4", "x": 244.8, "y": 26.88 },
+        { "name": "NC4", "x": 264, "y": 26.88 },
+        { "name": "NO5", "x": 292.8, "y": 26.88 },
+        { "name": "COM5", "x": 312, "y": 26.88 },
+        { "name": "NC5", "x": 331.2, "y": 26.88 },
+        { "name": "NO6", "x": 360, "y": 26.88 },
+        { "name": "COM6", "x": 379.2, "y": 26.88 },
+        { "name": "NC6", "x": 398.4, "y": 26.88 },
+        { "name": "NO7", "x": 427.2, "y": 26.88 },
+        { "name": "COM7", "x": 446.4, "y": 26.88 },
+        { "name": "NC7", "x": 465.6, "y": 26.88 },
+        { "name": "NO8", "x": 494.4, "y": 26.88 },
+        { "name": "COM8", "x": 513.6, "y": 26.88 },
+        { "name": "NC8", "x": 532.8, "y": 26.88 }
+      ],
+      "hooks": [
+        "status-led-1",
+        "status-led-2",
+        "status-led-3",
+        "status-led-4",
+        "status-led-5",
+        "status-led-6",
+        "status-led-7",
+        "status-led-8",
+        "power-led"
+      ],
+      "images": [
+        {
+          "file": "relay-module-8-channel.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "relay-module-8-channel--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true
+            }
+          }
+        },
+        {
+          "file": "relay-module-8-channel--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "relay-module-8-channel--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "relay-module-8-channel--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "relay-module-8-channel--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "relay-module-8-channel--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "relay-module-8-channel--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
           }
         }
       ]
