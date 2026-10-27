@@ -8310,7 +8310,7 @@ var PartsKit = (() => {
     s += framed(T, f, "resistor", 13.4 * mm, top + 23.5 * mm, true) + framed(T, f, "capacitor", 17.4 * mm, top + 23.5 * mm, true) + framed(T, f, "resistor", 3.2 * mm, top + 25.5 * mm, true) + framed(T, f, "capacitor", 7.2 * mm, top + 25.5 * mm, true);
     s += line(1.2 * mm, top + 31 * mm, w - 1.2 * mm, top + 31 * mm, f.silk, 1.2, { "stroke-opacity": 0.9 });
     const ty = top + 58 * mm;
-    s += text(cx, ty, "Capacitive Soil Moisture Sensor v1.2", 5, f.silk, {
+    s += text(cx, ty, "v1.2 Capacitive Soil Moisture Sensor", 5, f.silk, {
       "dominant-baseline": "middle",
       transform: `rotate(-90 ${r2(cx)} ${r2(ty)})`
     });
