@@ -214,6 +214,12 @@ var CARDS = [
     K.mount(root, K.acs712Module(), { pins: true, scale: 3, caption: "ACS712, 5 A" });
     K.mount(root, K.acs712Module({ range: "30A", indicators: { power: true } }), { scale: 3, caption: "30 A, powered" });
   } },
+  { name: "DcMotor", intro: "A brushed DC motor in two forms", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.dcMotor(), { pins: true, scale: 1.5, caption: "130 motor" });
+    K.mount(root, K.dcMotor({ angle: 120 }), { scale: 1.5, caption: "130 motor, the fan at 120°" });
+    K.mount(root, K.dcMotor({ variant: "tt-gear", angle: 30 }), { pins: true, caption: "TT gear motor" });
+  } },
   { name: "DevBoard", intro: "A microcontroller board template in two layouts, drawn at the real board's size", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");
     K.mount(root, K.devBoardTemplate({ layout: "landscape", label: "UNO-CLASS", chipLabel: "ATMEGA328P", top: [["SCL", "SDA", "AREF", "GND", "13", "12", "11", "10", "9", "8"], ["7", "6", "5", "4", "3", "2", "1", "0"]], bottom: [["NC", "IOREF", "RESET", "3V3", "5V", "GND", "GND", "VIN"], ["A0", "A1", "A2", "A3", "A4", "A5"]], groupNames: { top: ["DIGITAL (PWM ~)"], bottom: ["POWER", "ANALOG IN"] }, pwm: ["3", "5", "6", "9", "10", "11"], indicators: { power: true, user: true } }), { scale: 2, pins: true, caption: "Uno-class: landscape, sockets, 68.6 × 53.4 mm" });
@@ -525,6 +531,12 @@ var CARDS = [
     K.mount(root, K.slideSwitch({ contact: 1 }), { pins: true, caption: "contact 1" });
     K.mount(root, K.slideSwitch({ contact: 3 }), { caption: "contact 3" });
   } },
+  { name: "Solenoid", intro: "The open-frame push-pull solenoid (JF-0530B class) from its side", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.solenoid(), { pins: true, scale: 2, caption: "released" });
+    K.mount(root, K.solenoid({ position: 0.5 }), { scale: 2, caption: "half way" });
+    K.mount(root, K.solenoid({ position: 1 }), { scale: 2, caption: "pulled in" });
+  } },
   { name: "Stepper", intro: "The stepper motor from above", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");
     K.mount(root, K.stepper({ angle: 20 }), { pins: true, scale: 0.9, caption: "NEMA 17" });
@@ -573,6 +585,11 @@ var CARDS = [
     var K = window.PartsKit, root = document.getElementById("root");
     K.mount(root, K.waterLevelSensor(), { pins: true, scale: 2, caption: "water level sensor" });
     K.mount(root, K.waterLevelSensor({ indicators: { power: true } }), { scale: 2, caption: "powered" });
+  } },
+  { name: "WaterPump", intro: "The mini submersible pump lying flat", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.waterPump(), { pins: true, scale: 2, caption: "off" });
+    K.mount(root, K.waterPump({ running: true }), { scale: 2, caption: "running" });
   } }
 ];
 </script>

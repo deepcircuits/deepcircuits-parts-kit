@@ -375,6 +375,9 @@ export const OPTIONS = {
     }),
   },
   relay: { energised: state(bool('Energised')) },
+  dcMotor: { angle: state({ type: 'number', label: 'Angle', min: 0, max: 360, step: 1, unit: '°', default: 0 }) },
+  waterPump: { running: state(bool('Running')) },
+  solenoid: { position: state(unit('Plunger travel', { step: 0.05, default: 0 })) },
   // Modules.
   relayModule: { indicators: lamps({ power: 'Power LED', status: 'Status LED' }, ['power']), finish: finish('red') },
   multiRelayModule: {

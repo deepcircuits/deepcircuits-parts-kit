@@ -434,6 +434,22 @@ export interface PartOptionsById {
   "dpdt-relay": {
     /** Energised. Default false. */ energised?: boolean;
   };
+  /** DC motor: dcMotor {"variant":"hobby-130"}. */
+  "dc-motor": {
+    /** Angle. 0 to 360 °. Default 0. */ angle?: number;
+  };
+  /** DC gear motor: dcMotor {"variant":"tt-gear"}. */
+  "dc-gear-motor": {
+    /** Angle. 0 to 360 °. Default 0. */ angle?: number;
+  };
+  /** Water pump: waterPump. */
+  "water-pump": {
+    /** Running. Default false. */ running?: boolean;
+  };
+  /** Solenoid: solenoid. */
+  "solenoid": {
+    /** Plunger travel. 0 to 1. Default 0. */ position?: number;
+  };
   /** Relay module: relayModule. */
   "relay-module": {
     /** Lamps. */ indicators?: { /** Power LED. Default true. */ power?: boolean; /** Status LED. Default false. */ status?: boolean };

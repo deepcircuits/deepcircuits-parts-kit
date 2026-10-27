@@ -218,6 +218,17 @@ const PARTS = [
   ['stepper-motor', 'Stepper motor', 'output', 'stepper', { biaxial: false }, ['NEMA 17']],
   ['biaxial-stepper', 'Biaxial stepper', 'output', 'stepper', { biaxial: true }, ['clock motor']],
   ['dpdt-relay', 'DPDT relay', 'output', 'relay', null, ['relay']],
+  ['dc-motor', 'DC motor', 'output', 'dcMotor', { variant: 'hobby-130' }, ['130 motor', 'hobby motor', 'brushed']],
+  [
+    'dc-gear-motor',
+    'DC gear motor',
+    'output',
+    'dcMotor',
+    { variant: 'tt-gear' },
+    ['TT motor', 'gearbox', 'robot wheel'],
+  ],
+  ['water-pump', 'Water pump', 'output', 'waterPump', null, ['submersible pump', 'mini pump']],
+  ['solenoid', 'Solenoid', 'output', 'solenoid', null, ['push-pull', 'JF-0530B', 'plunger']],
   ['relay-module', 'Relay module', 'module', 'relayModule', null, ['relay', 'SRD-05VDC']],
   [
     'relay-module-2-channel',

@@ -10020,6 +10020,338 @@ var PartsKit = (() => {
     s += circle(bx + 3, by + bh - 3, 1, T["plastic-black"], { "fill-opacity": 0.8 });
     return art(w, h, `DPDT relay${props.energised ? ", energised" : ""}`, s, pins);
   }
+  function twoLeads(T, names, from, x0, y) {
+    const p = T.pitch;
+    const hdr = header({
+      x: r2(x0),
+      y,
+      labels: names,
+      kind: "leg",
+      side: "above",
+      silk: "currentColor",
+      size: PIN_LABEL
+    });
+    let s = "";
+    [T["band-red"], T["band-black"]].forEach((col, i) => {
+      const pn = hdr.pins[i];
+      const f = from[i];
+      s += path(
+        `M${r2(f[0])} ${r2(f[1])}C${r2(f[0] - 1.2 * p)} ${r2(f[1] + 0.4 * p)} ${r2(pn.x)} ${r2(pn.y - 2.4 * p)} ${r2(pn.x)} ${r2(pn.y - 1 * p)}`,
+        "none",
+        { stroke: col, "stroke-width": 1.5, "stroke-linecap": "round" }
+      );
+    });
+    return { svg: s, pins: hdr.pins, header: hdr.svg };
+  }
+  function flatted(cx, cy, r, d, axis) {
+    const a = Math.sqrt(Math.max(0, r * r - d * d));
+    if (axis === "x")
+      return `M${r2(cx - d)} ${r2(cy - a)}A${r2(r)} ${r2(r)} 0 0 1 ${r2(cx + d)} ${r2(cy - a)}V${r2(cy + a)}A${r2(r)} ${r2(r)} 0 0 1 ${r2(cx - d)} ${r2(cy + a)}Z`;
+    return `M${r2(cx - a)} ${r2(cy - d)}H${r2(cx + a)}A${r2(r)} ${r2(r)} 0 0 1 ${r2(cx + a)} ${r2(cy + d)}H${r2(cx - a)}A${r2(r)} ${r2(r)} 0 0 1 ${r2(cx - a)} ${r2(cy - d)}Z`;
+  }
+  function dcMotor(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const tt = props.variant === "tt-gear";
+    const angle = Number(props.angle) || 0;
+    const names = props.pins || ["M+", "M-"];
+    let s = "";
+    let w;
+    let h;
+    let cx;
+    let cy;
+    let leads;
+    const rotor = (inner, x, y) => el(
+      "g",
+      {
+        "data-hook": "rotor",
+        "data-part": "rotor",
+        "data-angle": r2(angle),
+        "data-cx": r2(x),
+        "data-cy": r2(y),
+        transform: `rotate(${r2(angle)} ${r2(x)} ${r2(y)})`
+      },
+      inner
+    );
+    if (!tt) {
+      const R = 10.2 * mm;
+      const fan = 16 * mm;
+      w = 13 * p;
+      cx = w / 2;
+      cy = 0.5 * p + fan;
+      h = cy + fan + 2.2 * p;
+      leads = twoLeads(
+        T,
+        names,
+        [
+          [cx - 1.5 * mm, cy + 4 * mm],
+          [cx + 1.5 * mm, cy + 4 * mm]
+        ],
+        cx - p / 2,
+        h - 0.6 * p
+      );
+      s += leads.svg;
+      s += tag("body", path(flatted(cx, cy, R, 7.55 * mm, "y"), T.metal, edge(T, T["metal-edge"])));
+      s += path(flatted(cx, cy, R - 0.8, 7.55 * mm - 0.8, "y"), sheen("metal"), { "fill-opacity": 0.5 });
+      [-1, 1].forEach((k) => {
+        s += circle(cx + k * 6 * mm, cy, 0.9 * mm, T.cavity, edge(T, T["metal-edge"], T["stroke-fine"]));
+      });
+      s += circle(cx, cy, 3.2 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-detail"]));
+      const blade = path(
+        `M${r2(cx - 1.4 * mm)} ${r2(cy - 2.6 * mm)}C${r2(cx - 4.6 * mm)} ${r2(cy - 7 * mm)} ${r2(cx - 4.2 * mm)} ${r2(cy - fan + 0.6 * mm)} ${r2(cx)} ${r2(cy - fan)}C${r2(cx + 3.2 * mm)} ${r2(cy - fan + 0.4 * mm)} ${r2(cx + 3.6 * mm)} ${r2(cy - 8 * mm)} ${r2(cx + 1.4 * mm)} ${r2(cy - 2.6 * mm)}Z`,
+        T["plastic-red"],
+        Object.assign({ "stroke-linejoin": "round" }, edge(T, T["plastic-red-edge"], T["stroke-detail"]))
+      );
+      s += rotor(
+        blade + el("g", { transform: `rotate(180 ${r2(cx)} ${r2(cy)})` }, blade) + circle(cx, cy, 3.4 * mm, T["plastic-red"], edge(T, T["plastic-red-edge"], T["stroke-detail"])) + circle(cx, cy, 0.8 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])),
+        cx,
+        cy
+      );
+    } else {
+      const gh = 22.5 * mm;
+      const ch = 15.1 * mm;
+      const cap2 = 2.4 * mm;
+      const canX = 1.6 * p;
+      const canL = 25 * mm;
+      const gx = canX + cap2 + canL;
+      const gl = 37 * mm;
+      w = Math.ceil((gx + gl + 0.5 * p) / p) * p;
+      cy = 0.5 * p + gh / 2;
+      h = 0.5 * p + gh + 2.7 * p;
+      cx = gx + gl - 11.3 * mm;
+      leads = twoLeads(
+        T,
+        names,
+        [
+          [canX - 0.4 * mm, cy - 2.2 * mm],
+          [canX - 0.4 * mm, cy + 2.2 * mm]
+        ],
+        p,
+        h - 0.6 * p
+      );
+      s += leads.svg;
+      s += tag(
+        "body",
+        rect(
+          canX,
+          cy - ch / 2 + 0.6 * mm,
+          cap2,
+          ch - 1.2 * mm,
+          T["plastic-black"],
+          Object.assign({ rx: 0.6 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
+        ) + rect(canX + cap2, cy - ch / 2, canL, ch, T.metal, Object.assign({ rx: 1.2 }, edge(T, T["metal-edge"]))) + rect(gx, cy - gh / 2, gl, gh, T["band-yellow"], Object.assign({ rx: 1.4 }, edge(T, T["brass-edge"])))
+      );
+      s += rect(canX + cap2 + 1, cy - ch / 2 + 0.8, canL - 2, ch - 1.6, sheen("metal"), { rx: 1, "fill-opacity": 0.5 });
+      [-1, 1].forEach((k) => {
+        s += rect(
+          canX - 1 * mm,
+          cy + k * 2.2 * mm - 0.5 * mm,
+          1.4 * mm,
+          1 * mm,
+          T.brass,
+          edge(T, T["brass-edge"], T["stroke-fine"])
+        );
+      });
+      s += bevel(T, gx, cy - gh / 2, gl, gh, 1.8);
+      [
+        [gx + 2.6 * mm, cy - gh / 2 + 2.6 * mm],
+        [gx + 2.6 * mm, cy + gh / 2 - 2.6 * mm],
+        [gx + gl - 2.6 * mm, cy - gh / 2 + 2.6 * mm],
+        [gx + gl - 2.6 * mm, cy + gh / 2 - 2.6 * mm]
+      ].forEach((c) => {
+        s += circle(c[0], c[1], 1.1 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-fine"]));
+      });
+      s += circle(gx + 14 * mm, cy, 1.6 * mm, T.cavity, edge(T, T["brass-edge"], T["stroke-detail"]));
+      s += text(gx + 14 * mm, cy - 3.6 * mm, "1:48", PIN_LABEL, T["brass-edge"], { "font-weight": 600 });
+      s += circle(cx, cy, 4.6 * mm, T["band-yellow"], edge(T, T["brass-edge"], T["stroke-detail"]));
+      s += rotor(
+        path(
+          flatted(cx, cy, 2.7 * mm, 1.85 * mm, "x"),
+          T["plastic-white"],
+          edge(T, T["plastic-white-edge"], T["stroke-detail"])
+        ) + path(`M${r2(cx)} ${r2(cy - 0.5 * mm)}V${r2(cy - 2.1 * mm)}`, "none", {
+          stroke: T["plastic-white-edge"],
+          "stroke-width": 0.8,
+          "stroke-linecap": "round"
+        }),
+        cx,
+        cy
+      );
+    }
+    s += leads.header;
+    return art(w, h, `${tt ? "TT gear motor" : "DC motor"} at ${r2(angle)}°`, s, leads.pins);
+  }
+  function waterPump(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const running = props.running === true;
+    const names = props.pins || ["M+", "M-"];
+    const bl = 34 * mm;
+    const bh = 24 * mm;
+    const bx = 1.6 * p;
+    const by = 5.2 * p;
+    const cy = by + bh / 2;
+    const w = Math.ceil((bx + bl + 0.5 * p) / p) * p;
+    const h = by + bh + 2.7 * p;
+    const ox = bx + bl - 8 * mm;
+    const nozzle = 9 * mm;
+    let s = "";
+    const leads = twoLeads(
+      T,
+      names,
+      [
+        [bx - 0.6 * mm, cy - 1.6 * mm],
+        [bx - 0.6 * mm, cy + 1.6 * mm]
+      ],
+      p,
+      h - 0.6 * p
+    );
+    s += leads.svg;
+    if (running) {
+      let d = "";
+      [-1, 0, 1].forEach((k) => {
+        const x = ox + k * 1.6 * mm;
+        d += `M${r2(x)} ${r2(by - nozzle - 0.8 * mm)}C${r2(x + k * 1.2 * mm - 1 * mm)} ${r2(by - nozzle - 2.4 * mm)} ${r2(x + k * 2.4 * mm + 1 * mm)} ${r2(by - nozzle - 3.6 * mm)} ${r2(x + k * 3.2 * mm)} ${r2(0.4 * p)}`;
+      });
+      s += tag(
+        "flow",
+        path(d, "none", {
+          stroke: T["lens-blue"],
+          "stroke-width": 1.2,
+          "stroke-linecap": "round",
+          "stroke-dasharray": "2.4 1.6",
+          "stroke-opacity": T["opacity-flow"]
+        }),
+        { "data-hook": "flow" }
+      );
+    }
+    s += tag(
+      "body",
+      rect(
+        ox - 3.75 * mm,
+        by - nozzle,
+        7.5 * mm,
+        nozzle + 1.5 * mm,
+        T["plastic-black"],
+        Object.assign({ rx: 0.8 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
+      ) + rect(
+        bx - 1.2 * mm,
+        cy - 3.2 * mm,
+        1.6 * mm,
+        6.4 * mm,
+        T["plastic-black"],
+        Object.assign({ rx: 0.6 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
+      ) + rect(bx, by, bl, bh, T["plastic-black"], Object.assign({ rx: 5 * mm }, edge(T, T["plastic-black-edge"]))),
+      { "data-hook": "pump", "data-running": running ? "true" : "false" }
+    );
+    s += bevel(T, bx, by, bl, bh, 2.2, 5 * mm);
+    s += rect(ox - 2.6 * mm, by - nozzle + 0.6 * mm, 5.2 * mm, 1.2 * mm, T.cavity, { rx: 0.5 });
+    s += path(`M${r2(bx + bl - 15 * mm)} ${r2(by + 0.6)}V${r2(by + bh - 0.6)}`, "none", {
+      stroke: T["plastic-black-edge"],
+      "stroke-width": T["stroke-detail"]
+    });
+    [-1, 0, 1].forEach((k) => {
+      s += rect(bx + bl - 3.4 * mm, cy + k * 3 * mm - 0.6 * mm, 2.2 * mm, 1.2 * mm, T.cavity, { rx: 0.5 });
+    });
+    s += rect(bx + 3 * mm, by + 1.6 * mm, bl - 6 * mm, 1.4 * mm, "#ffffff", {
+      rx: 0.7,
+      "fill-opacity": T["opacity-light"] * 0.4
+    });
+    s += leads.header;
+    return art(w, h, `Water pump${running ? ", running" : ""}`, s, leads.pins);
+  }
+  function solenoid(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const position = Math.max(0, Math.min(1, Number(props.position) || 0));
+    const names = props.pins || ["1", "2"];
+    const fl = 27 * mm;
+    const fh = 14 * mm;
+    const fx = 1.6 * p;
+    const fy = 0.5 * p;
+    const cy = fy + fh / 2;
+    const plate = 1.5 * mm;
+    const out = 14 * mm - 10 * mm * position;
+    const w = Math.ceil((fx + fl + 14 * mm + 1.6 * mm + 0.5 * p) / p) * p;
+    const h = fy + fh + 2.7 * p;
+    let s = "";
+    const leads = twoLeads(
+      T,
+      names,
+      [
+        [fx - 0.6 * mm, cy - 1.8 * mm],
+        [fx - 0.6 * mm, cy + 1.8 * mm]
+      ],
+      p,
+      h - 0.6 * p
+    );
+    s += leads.svg;
+    const fe = fx + fl;
+    s += tag(
+      "body",
+      rect(fx, fy, fl, fh, T.metal, Object.assign({ rx: 0.6 }, edge(T, T["metal-edge"]))) + rect(
+        fx + plate,
+        fy + plate,
+        fl - 2 * plate,
+        fh - 2 * plate,
+        T["plastic-black"],
+        Object.assign({ rx: 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
+      ) + rect(
+        fx + plate + 0.8 * mm,
+        fy + plate + 0.6 * mm,
+        fl - 2 * plate - 1.6 * mm,
+        fh - 2 * plate - 1.2 * mm,
+        T["band-yellow"],
+        Object.assign({ rx: 0.6 }, edge(T, T["brass-edge"], T["stroke-fine"]))
+      )
+    );
+    s += rect(fx + plate + 1.6 * mm, fy + plate + 1.2 * mm, fl - 2 * plate - 3.2 * mm, 1.2 * mm, "#ffffff", {
+      rx: 0.6,
+      "fill-opacity": T["opacity-light"] * 0.6
+    });
+    s += text(fx + fl / 2, cy + 1.2 * mm, "12V", PIN_LABEL, T["plastic-black"], { "font-weight": 600 });
+    const sx0 = fe + 0.4 * mm;
+    const sx1 = fe + out - 1.8 * mm;
+    const turns = 6;
+    let d = `M${r2(sx0)} ${r2(cy)}`;
+    for (let i = 0; i < turns; i++) {
+      const x = sx0 + (i + 0.5) * (sx1 - sx0) / turns;
+      d += `L${r2(x)} ${r2(cy + (i % 2 ? 1 : -1) * 2.6 * mm)}`;
+    }
+    d += `L${r2(sx1)} ${r2(cy)}`;
+    s += path(d, "none", { stroke: T["metal-edge"], "stroke-width": 0.8, "stroke-linejoin": "round" });
+    s += el(
+      "g",
+      {
+        "data-hook": "plunger",
+        "data-part": "plunger",
+        "data-position": r2(position)
+      },
+      rect(
+        fe,
+        cy - 2.25 * mm,
+        out,
+        4.5 * mm,
+        T.metal,
+        Object.assign({ rx: 0.4 }, edge(T, T["metal-edge"], T["stroke-detail"]))
+      ) + rect(
+        fe + out - 1.6 * mm,
+        cy - 3.6 * mm,
+        1.6 * mm,
+        7.2 * mm,
+        T.metal,
+        Object.assign({ rx: 0.4 }, edge(T, T["metal-edge"], T["stroke-detail"]))
+      )
+    );
+    s += leads.header;
+    return art(w, h, `Solenoid, ${position >= 1 ? "pulled in" : position <= 0 ? "released" : "moving"}`, s, leads.pins);
+  }
   var init_actuators = __esm({
     "src/actuators.js"() {
       init_core();
@@ -10030,6 +10362,7 @@ var PartsKit = (() => {
   var outputs_exports = {};
   __export(outputs_exports, {
     buzzer: () => buzzer,
+    dcMotor: () => dcMotor,
     led: () => led,
     ledBarGraph: () => ledBarGraph,
     ledStrip: () => ledStrip,
@@ -10037,7 +10370,9 @@ var PartsKit = (() => {
     relay: () => relay,
     rgbLed: () => rgbLed,
     servo: () => servo,
-    stepper: () => stepper
+    solenoid: () => solenoid,
+    stepper: () => stepper,
+    waterPump: () => waterPump
   });
   var init_outputs = __esm({
     "src/families/outputs.js"() {
@@ -10639,6 +10974,7 @@ var PartsKit = (() => {
     chipTemplate: () => chipTemplate,
     clockGenerator: () => clockGenerator,
     comparatorBoardTemplate: () => comparatorBoardTemplate,
+    dcMotor: () => dcMotor,
     definePartElement: () => definePartElement,
     detentsTurned: () => detentsTurned,
     devBoardTemplate: () => devBoardTemplate,
@@ -10767,6 +11103,7 @@ var PartsKit = (() => {
     slideSwitch: () => slideSwitch,
     smallSensorBoardTemplate: () => smallSensorBoardTemplate,
     soilMoistureSensor: () => soilMoistureSensor,
+    solenoid: () => solenoid,
     soundSensor: () => soundSensor,
     ssd1306Module: () => ssd1306Module,
     stepper: () => stepper,
@@ -10795,6 +11132,7 @@ var PartsKit = (() => {
     vl53l0xModule: () => vl53l0xModule,
     voltageSensorModule: () => voltageSensorModule,
     waterLevelSensor: () => waterLevelSensor,
+    waterPump: () => waterPump,
     wire: () => wire
   });
 
@@ -11156,6 +11494,9 @@ var PartsKit = (() => {
       })
     },
     relay: { energised: state(bool("Energised")) },
+    dcMotor: { angle: state({ type: "number", label: "Angle", min: 0, max: 360, step: 1, unit: "°", default: 0 }) },
+    waterPump: { running: state(bool("Running")) },
+    solenoid: { position: state(unit("Plunger travel", { step: 0.05, default: 0 })) },
     // Modules.
     relayModule: { indicators: lamps2({ power: "Power LED", status: "Status LED" }, ["power"]), finish: finish2("red") },
     multiRelayModule: {
@@ -11560,6 +11901,17 @@ var PartsKit = (() => {
     ["stepper-motor", "Stepper motor", "output", "stepper", { biaxial: false }, ["NEMA 17"]],
     ["biaxial-stepper", "Biaxial stepper", "output", "stepper", { biaxial: true }, ["clock motor"]],
     ["dpdt-relay", "DPDT relay", "output", "relay", null, ["relay"]],
+    ["dc-motor", "DC motor", "output", "dcMotor", { variant: "hobby-130" }, ["130 motor", "hobby motor", "brushed"]],
+    [
+      "dc-gear-motor",
+      "DC gear motor",
+      "output",
+      "dcMotor",
+      { variant: "tt-gear" },
+      ["TT motor", "gearbox", "robot wheel"]
+    ],
+    ["water-pump", "Water pump", "output", "waterPump", null, ["submersible pump", "mini pump"]],
+    ["solenoid", "Solenoid", "output", "solenoid", null, ["push-pull", "JF-0530B", "plunger"]],
     ["relay-module", "Relay module", "module", "relayModule", null, ["relay", "SRD-05VDC"]],
     [
       "relay-module-2-channel",

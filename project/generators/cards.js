@@ -119,6 +119,15 @@ export const CARDS = [
     },
   },
   {
+    name: "DcMotor",
+    intro: "A brushed DC motor in two forms",
+    draw(K, root) {
+      K.mount(root, K.dcMotor(), { pins: true, scale: 1.5, caption: "130 motor" });
+      K.mount(root, K.dcMotor({ angle: 120 }), { scale: 1.5, caption: "130 motor, the fan at 120°" });
+      K.mount(root, K.dcMotor({ variant: "tt-gear", angle: 30 }), { pins: true, caption: "TT gear motor" });
+    },
+  },
+  {
     name: "DevBoard",
     intro: "A microcontroller board template in two layouts, drawn at the real board's size",
     draw(K, root) {
@@ -572,6 +581,15 @@ export const CARDS = [
     },
   },
   {
+    name: "Solenoid",
+    intro: "The open-frame push-pull solenoid (JF-0530B class) from its side",
+    draw(K, root) {
+      K.mount(root, K.solenoid(), { pins: true, scale: 2, caption: "released" });
+      K.mount(root, K.solenoid({ position: 0.5 }), { scale: 2, caption: "half way" });
+      K.mount(root, K.solenoid({ position: 1 }), { scale: 2, caption: "pulled in" });
+    },
+  },
+  {
     name: "Stepper",
     intro: "The stepper motor from above",
     draw(K, root) {
@@ -642,6 +660,14 @@ export const CARDS = [
     draw(K, root) {
       K.mount(root, K.waterLevelSensor(), { pins: true, scale: 2, caption: "water level sensor" });
       K.mount(root, K.waterLevelSensor({ indicators: { power: true } }), { scale: 2, caption: "powered" });
+    },
+  },
+  {
+    name: "WaterPump",
+    intro: "The mini submersible pump lying flat",
+    draw(K, root) {
+      K.mount(root, K.waterPump(), { pins: true, scale: 2, caption: "off" });
+      K.mount(root, K.waterPump({ running: true }), { scale: 2, caption: "running" });
     },
   },
 ];
