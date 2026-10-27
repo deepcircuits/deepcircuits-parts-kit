@@ -393,3 +393,49 @@ export function wire(x1, y1, x2, y2) {
     line(x1, y1, x2, y2, T['lead-edge'], T['leg-width'] + 0.6) + line(x1, y1, x2, y2, T.lead, T['leg-width'] - 0.4)
   );
 }
+
+/** A leg drawn as a lead: a lead-edge stroke under a lead stroke 1px narrower, along the path `d`. */
+export function leadPath(T, d) {
+  const round = { 'stroke-linejoin': 'round', 'stroke-linecap': 'round' };
+  return (
+    path(d, 'none', Object.assign({ stroke: T['lead-edge'], 'stroke-width': 2.9 }, round)) +
+    path(d, 'none', Object.assign({ stroke: T.lead, 'stroke-width': 1.9 }, round))
+  );
+}
+
+/**
+ * A TO-92 package in elevation, flat face to the viewer, centred on cx with its body's top at y: three legs from the
+ * real 1.27 mm under the body, bent out to one pitch and down to `bottom`; the 4.7 × 4.6 mm black body with its
+ * rounded shoulders and a light along its top; the print in two lines. With `heat` (0..1) the body carries the `heat`
+ * hook, the body's outline in red at that share of `opacity-heat`.
+ */
+export function to92Package(T, cx, y, bottom, lines, heat) {
+  const p = T.pitch;
+  const bw = 4.7 * (p / 2.54);
+  const bh = 4.6 * (p / 2.54);
+  const bx = cx - bw / 2;
+  let s = '';
+  // Legs first, under the body: from the body's bottom to the pins, bent out to one pitch.
+  for (let i = 0; i < 3; i++) {
+    const x = cx + (i - 1) * p;
+    const dx = (i - 1) * 1.27 * (p / 2.54);
+    const d = `M${r2(cx + dx)} ${r2(y + bh - 1)}V${r2(y + bh + 0.9 * p)}L${r2(x)} ${r2(y + bh + 1.7 * p)}V${r2(bottom)}`;
+    s += tag('leg', leadPath(T, d));
+  }
+  const outline = `M${r2(bx)} ${r2(y + bh)}V${r2(y + 2.2)}a2.2 2.2 0 0 1 2.2 -2.2H${r2(bx + bw - 2.2)}a2.2 2.2 0 0 1 2.2 2.2V${r2(y + bh)}Z`;
+  s += tag(
+    'body',
+    path(outline, T['plastic-black'], Object.assign({ 'stroke-linejoin': 'round' }, edge(T, T['plastic-black-edge']))),
+  );
+  if (heat !== undefined)
+    s += path(outline, T['band-red'], {
+      'data-hook': 'heat',
+      'data-live': 'heat',
+      'fill-opacity': r2(T['opacity-heat'] * heat),
+    });
+  s += rect(bx + 1.2, y + 1.2, bw - 2.4, 1.6, '#ffffff', { rx: 0.8, 'fill-opacity': T['opacity-light'] * 0.5 });
+  s +=
+    text(cx, y + bh / 2 - 0.4, lines[0], PIN_LABEL, T['chip-print'], { 'font-weight': 600 }) +
+    text(cx, y + bh / 2 + PIN_LABEL + 0.2, lines[1], PIN_LABEL, T['chip-print']);
+  return s;
+}

@@ -545,4 +545,15 @@ export const CARDS = [
       K.mount(root, K.to92Template({ label: "LM35", pins: ["VCC", "OUT", "GND"] }), { scale: 3, caption: "LM35" });
     },
   },
+  {
+    name: "Transistor",
+    intro: "A transistor standing on the bench in its package, legs down, in a 4 × 8 pitch box",
+    draw(K, root) {
+      K.mount(root, K.transistor(), { pins: true, scale: 3, caption: "PN2222A, TO-92" });
+      K.mount(root, K.transistor({ label: "BC547B", pins: ["C", "B", "E"] }), { scale: 3, caption: "BC547B" });
+      K.mount(root, K.transistor({ label: "2N7000", pins: ["S", "G", "D"] }), { scale: 3, caption: "2N7000" });
+      K.mount(root, K.transistor({ package: "to-220" }), { pins: true, scale: 3, caption: "IRLZ44N, TO-220" });
+      K.mount(root, K.transistor({ package: "to-220", label: "NDP6020P", live: { heat: 0.7 } }), { scale: 3, caption: "live: warm" });
+    },
+  },
 ];

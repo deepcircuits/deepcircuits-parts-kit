@@ -8,7 +8,7 @@ The first public release.
 
 ### Parts
 
-- 101 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
+- 103 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
 - The templates behind them (`devBoardTemplate`, `moduleTemplate`, `sensorModuleTemplate`, `chipTemplate` and others, in `@deepcircuits/parts-kit/templates`) for parts of your own.
 - The Blue Pill, the ESP32-DevKitC V4 and the character LCDs checked against photographs and data sheets: the Blue Pill's rows and parts as the real board has them, the DevKitC V4 at its real length with the module over the rows, the LCD's mount holes and header where the module has them.
 - Every catalog part checked against photographs and data sheets for its pin order, which pins face each other, where its parts sit, its size, its holes and its pin-1 offset. Corrected:
@@ -29,6 +29,7 @@ The first public release.
 - State options with the same names on every part (`on`, `indicators`, `levels`, `colors`, `value`, `pressed`, `position`, `contact`, `angle`, `energised`, `live` and others), and `data-hook` attributes on the moving parts for changing state in place. Hooks are attributes, not ids, so two parts on one page never clash; the gradient ids are `pk-` ids whose content is the same wherever one repeats.
 - Every catalog part's pin names follow its data sheet or silk print, and a name that repeats is bare once and `.2`, `.3` after.
 - The DS18B20 has its own generator, `ds18b20Sensor`, with the data sheet's pin names GND, DQ, VDD.
+- `transistor`, a transistor standing in its package in the chip family: TO-92 (`transistor-to-92`, PN2222A by default) with the TO-92 body the DS18B20 uses, or TO-220 (`transistor-to-220`, IRLZ44N by default) with its tab, hole and shouldered legs. Both draw in one 4 × 8 pitch box with the legs at the same three places, so a host can change the package without moving a pin; `label` prints the part number, `pins` names the legs from the left, and `live.heat` warms the body.
 
 ### API
 

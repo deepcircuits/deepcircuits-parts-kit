@@ -2,7 +2,7 @@
 
 [Parts Kit](../README.md) › The catalog
 
-101 parts in ten families. The [gallery](https://deepcircuits.io/parts) shows every part and every generator's card.
+103 parts in ten families. The [gallery](https://deepcircuits.io/parts) shows every part and every generator's card.
 
 | Family | Parts |
 | --- | --- |
@@ -12,7 +12,7 @@
 | Inputs (11) | Two pushbuttons, rotary and slide potentiometers, slide switch, rotary encoder, joystick, 4×4 keypad, 8-way DIP switch, IR remote, rotary dialer |
 | Outputs (10) | 5 mm LED, RGB LED, LED bar graph, addressable LED and strip, piezo buzzer, servo, stepper and biaxial stepper, DPDT relay |
 | Modules (7) | Relay module, load cell amplifier, microSD card, real-time clock, RFID reader, logic analyzer, pixel meter |
-| Chips (5) | NE555, 74HC595, 74HC165, NLSF595, ATtiny85, each in DIP, SOIC or TSSOP |
+| Chips (7) | NE555, 74HC595, 74HC165, NLSF595, ATtiny85, each in DIP, SOIC or TSSOP; transistors in TO-92 and TO-220 |
 | Passives (3) | Resistor, electrolytic and ceramic capacitors |
 | Breadboards (3) | Mini, half and full, in nine colours |
 | Symbols (13) | Eight logic gates, multiplexer, two D flip-flops, clock source, supply |

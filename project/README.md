@@ -93,6 +93,8 @@ One pitch is 2.54 mm, so a millimetre is 3.78 px (`pitch / 2.54`). Each template
 | Ceramic disc | 5 mm disc, legs 5 mm apart | Capacitor: 5.2 mm disc, legs bent in to one pitch |
 | 12 mm buzzer | 12 mm can, legs 7.6 mm apart | Buzzer: 12 mm can, legs three pitches |
 | DIP chip | 0.1 inch pins, rows 0.3 inch apart | Chip: as the real part, so it straddles the breadboard channel |
+| TO-92 transistor | 4.7 × 4.6 mm body, legs 1.27 mm apart and about 14 mm long untrimmed | Transistor: the body at size, the legs bent out to one pitch and run to the foot of a 4 × 8 pitch box |
+| TO-220 transistor | TO-220AB: 9.66 to 10.67 mm wide, the tab 6.5 mm above a 9 mm moulding with a 3.6 mm hole, legs 2.54 mm apart with a 1.3 mm shoulder | Transistor `package: 'to-220'`: the moulding 10 mm wide so its edge stays inside four pitches, the legs trimmed to the same box as the TO-92, so both put their pins in the same holes |
 | HC-SR04 | 45 × 20 mm board, two 16 mm transducers, the pins on a right-angle header behind the board, 8.5 mm past its edge | ultrasonicRanger: the board's size, the box running to the pins' tips |
 | DHT22 | 15.1 × 25.1 mm housing, the tab with its hole, the square vents, 4 legs | dht22Sensor: the bare sensor in a 6.5 × 12 pitch box |
 | Photographed breakouts | DHT11 carrier 14 × 28, BMP180 15 × 13 and GY-68 10 × 12.5, LM393 boards 14 × 32 (KY-037 15 × 34), KY-013 and KY-022 15 × 18.5, each small board's right-angle header 6 mm past its edge, GY-521 21 × 16, PIR 32 × 25, MQ 20 × 32, HX711 30 × 24, microSD 42 × 24, DS1307 38 × 22, RC522 60 × 40, relay 50 × 25, pulse 16 round, KY-040 encoder 26.2 × 18.63, KY-023 joystick 34 × 26, slide pot 20 × (travel + 30) mm | their own generators on the Module, RelayModule, PulseSensor, RotaryEncoder, SlidePotentiometer and RfidModule cards, each laid out from a product photograph |
@@ -156,7 +158,7 @@ A part is production ready when six checks pass, not when it looks right at one 
 
 Build a new part from the nearest template rather than from a blank box:
 
-- **Chip** for any bare IC (DIP, SOIC, TSSOP); **Module** for a breakout with one header row and a part on it (`chip`, `sensor`, `can`, `dual-can`, `dome`), and the photographed breakouts beside it (`dht22Sensor`, `dht11Module`, `ultrasonicRanger`, `bmp180Board`, `pirModule`, `gasModuleTemplate`, `hx711Board`, `microsdModule`, `rtcModule`); **DevBoard** for a microcontroller board with two header rows; **CharacterLcd** and **SevenSegment** for displays; **LogicSymbol** for gates.
+- **Chip** for any bare IC (DIP, SOIC, TSSOP); **Transistor** for a three-leg part standing in TO-92 or TO-220; **Module** for a breakout with one header row and a part on it (`chip`, `sensor`, `can`, `dual-can`, `dome`), and the photographed breakouts beside it (`dht22Sensor`, `dht11Module`, `ultrasonicRanger`, `bmp180Board`, `pirModule`, `gasModuleTemplate`, `hx711Board`, `microsdModule`, `rtcModule`); **DevBoard** for a microcontroller board with two header rows; **CharacterLcd** and **SevenSegment** for displays; **LogicSymbol** for gates.
 - **Resistor**, **Led**, **Capacitor**, **Buzzer** for two-leg parts; **Pushbutton**, **Potentiometer**, **SlideSwitch** for inputs. A new input with a moving part gets an `id` on the part that moves.
 - Compose from the primitives (**Pin**, **Header**, **Board**, **Lens**, an indicator, the **Live** layer) when no template fits, and add the result to the kit as a new template with a README that says what the consumer provides.
 

@@ -66,6 +66,7 @@ export function suite(K) {
   'vcc': K.supplySymbol({voltage:5}),
   'note': K.noteSymbol(),
   'to92': K.to92Template(),
+  'transistor to92': K.transistor(), 'transistor to92 hot': K.transistor({label:'P2N2222A',pins:['C','B','E'],live:{heat:1}}), 'transistor to220': K.transistor({package:'to-220'}), 'transistor to220 hot': K.transistor({package:'to-220',label:'NDP6020P',live:{heat:1}}),
   'strip 8': K.ledStrip({colors:['#ff0000','#00ff00','#0000ff']}),
   'strip round': K.ledStrip({pixels:4,pixelShape:'round',pixelSize:'3535'}),
   'meter': K.neopixelMeter({fps:60,pixels:16,amps:0.31,watts:1.55,peakAmps:0.42,limitAmps:0.5,status:'near'}),
