@@ -18834,6 +18834,566 @@
       ]
     },
     {
+      "id": "hall-sensor",
+      "name": "Hall sensor",
+      "family": "sensor",
+      "aliases": [
+        "KY-003",
+        "A3144",
+        "magnet"
+      ],
+      "width": 56.69,
+      "height": 92.6,
+      "pins": [
+        { "name": "SIG", "x": 18.75, "y": 92.6 },
+        { "name": "VCC", "x": 28.35, "y": 92.6 },
+        { "name": "GND", "x": 37.95, "y": 92.6 }
+      ],
+      "hooks": [
+        "out-led"
+      ],
+      "images": [
+        {
+          "file": "hall-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "hall-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "out": true
+            }
+          }
+        },
+        {
+          "file": "hall-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "hall-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "hall-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "hall-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "hall-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "hall-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "linear-hall-sensor",
+      "name": "Linear hall sensor",
+      "family": "sensor",
+      "aliases": [
+        "49E",
+        "LM393",
+        "magnet"
+      ],
+      "width": 52.91,
+      "height": 168.19,
+      "pins": [
+        { "name": "VCC", "x": 12.06, "y": 168.19 },
+        { "name": "GND", "x": 21.66, "y": 168.19 },
+        { "name": "DO", "x": 31.26, "y": 168.19 },
+        { "name": "AO", "x": 40.86, "y": 168.19 }
+      ],
+      "hooks": [
+        "power-led",
+        "out-led"
+      ],
+      "images": [
+        {
+          "file": "linear-hall-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "linear-hall-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true,
+              "out": true
+            }
+          }
+        },
+        {
+          "file": "linear-hall-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "linear-hall-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "linear-hall-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "linear-hall-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "linear-hall-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "linear-hall-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "touch-sensor",
+      "name": "Touch sensor",
+      "family": "sensor",
+      "aliases": [
+        "TTP223",
+        "capacitive touch"
+      ],
+      "width": 56.69,
+      "height": 92.6,
+      "pins": [
+        { "name": "SIG", "x": 18.75, "y": 92.6 },
+        { "name": "VCC", "x": 28.35, "y": 92.6 },
+        { "name": "GND", "x": 37.95, "y": 92.6 }
+      ],
+      "hooks": [
+        "out-led"
+      ],
+      "images": [
+        {
+          "file": "touch-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "touch-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "out": true
+            }
+          }
+        },
+        {
+          "file": "touch-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "touch-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "touch-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "touch-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "touch-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "touch-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vibration-sensor",
+      "name": "Vibration sensor",
+      "family": "sensor",
+      "aliases": [
+        "SW-420",
+        "shake"
+      ],
+      "width": 52.91,
+      "height": 168.19,
+      "pins": [
+        { "name": "VCC", "x": 16.86, "y": 168.19 },
+        { "name": "GND", "x": 26.46, "y": 168.19 },
+        { "name": "DO", "x": 36.06, "y": 168.19 }
+      ],
+      "hooks": [
+        "power-led",
+        "out-led"
+      ],
+      "images": [
+        {
+          "file": "vibration-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "vibration-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true,
+              "out": true
+            }
+          }
+        },
+        {
+          "file": "vibration-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "vibration-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "vibration-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "vibration-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "vibration-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "vibration-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "reed-switch",
+      "name": "Reed switch",
+      "family": "sensor",
+      "aliases": [
+        "magnet",
+        "KY-021",
+        "KY-025"
+      ],
+      "width": 76.8,
+      "height": 19.2,
+      "pins": [
+        { "name": "1", "x": 0, "y": 9.6 },
+        { "name": "2", "x": 76.8, "y": 9.6 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "reed-switch.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "reed-switch--closed.svg",
+          "label": "Closed",
+          "options": {
+            "closed": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "digital-temperature-sensor",
+      "name": "Digital temperature sensor",
+      "family": "sensor",
+      "aliases": [
+        "KY-028",
+        "NTC",
+        "thermistor"
+      ],
+      "width": 56.69,
+      "height": 177.64,
+      "pins": [
+        { "name": "AO", "x": 13.95, "y": 177.64 },
+        { "name": "GND", "x": 23.55, "y": 177.64 },
+        { "name": "VCC", "x": 33.15, "y": 177.64 },
+        { "name": "DO", "x": 42.75, "y": 177.64 }
+      ],
+      "hooks": [
+        "power-led",
+        "out-led"
+      ],
+      "images": [
+        {
+          "file": "digital-temperature-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "digital-temperature-sensor--indicators-lit.svg",
+          "label": "Lamps, lit",
+          "options": {
+            "indicators": {
+              "power": true,
+              "out": true
+            }
+          }
+        },
+        {
+          "file": "digital-temperature-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "digital-temperature-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "digital-temperature-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "digital-temperature-sensor--black.svg",
+          "label": "Black",
+          "options": {
+            "finish": "black"
+          }
+        },
+        {
+          "file": "digital-temperature-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "digital-temperature-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        }
+      ]
+    },
+    {
+      "id": "photo-interrupter",
+      "name": "Photo interrupter",
+      "family": "sensor",
+      "aliases": [
+        "KY-010",
+        "slotted optocoupler"
+      ],
+      "width": 56.69,
+      "height": 92.6,
+      "pins": [
+        { "name": "SIG", "x": 18.75, "y": 92.6 },
+        { "name": "VCC", "x": 28.35, "y": 92.6 },
+        { "name": "GND", "x": 37.95, "y": 92.6 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "photo-interrupter.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "photo-interrupter--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "photo-interrupter--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "photo-interrupter--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "photo-interrupter--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "photo-interrupter--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "photo-interrupter--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
+      "id": "knock-sensor",
+      "name": "Knock sensor",
+      "family": "sensor",
+      "aliases": [
+        "KY-031",
+        "shock",
+        "spring"
+      ],
+      "width": 56.69,
+      "height": 92.6,
+      "pins": [
+        { "name": "SIG", "x": 18.75, "y": 92.6 },
+        { "name": "VCC", "x": 28.35, "y": 92.6 },
+        { "name": "GND", "x": 37.95, "y": 92.6 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "knock-sensor.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "knock-sensor--blue.svg",
+          "label": "Blue",
+          "options": {
+            "finish": "blue"
+          }
+        },
+        {
+          "file": "knock-sensor--green.svg",
+          "label": "Green",
+          "options": {
+            "finish": "green"
+          }
+        },
+        {
+          "file": "knock-sensor--teal.svg",
+          "label": "Teal",
+          "options": {
+            "finish": "teal"
+          }
+        },
+        {
+          "file": "knock-sensor--purple.svg",
+          "label": "Purple",
+          "options": {
+            "finish": "purple"
+          }
+        },
+        {
+          "file": "knock-sensor--white.svg",
+          "label": "White",
+          "options": {
+            "finish": "white"
+          }
+        },
+        {
+          "file": "knock-sensor--red.svg",
+          "label": "Red",
+          "options": {
+            "finish": "red"
+          }
+        }
+      ]
+    },
+    {
       "id": "pushbutton",
       "name": "Pushbutton",
       "family": "input",

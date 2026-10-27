@@ -288,6 +288,43 @@ export interface PartOptionsById {
     /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
     /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
   };
+  /** Hall sensor: hallSensor. */
+  "hall-sensor": {
+    /** Lamps. */ indicators?: { /** Signal LED. Default false. */ out?: boolean };
+    /** Board colour. Default "black". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Linear hall sensor: linearHallSensor. */
+  "linear-hall-sensor": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** Output LED. Default false. */ out?: boolean };
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Touch sensor: touchSensor. */
+  "touch-sensor": {
+    /** Lamps. */ indicators?: { /** Touch LED. Default false. */ out?: boolean };
+    /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Vibration sensor: vibrationSensor. */
+  "vibration-sensor": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** Output LED. Default false. */ out?: boolean };
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Reed switch: reedSwitch. */
+  "reed-switch": {
+    /** Closed. Default false. */ closed?: boolean;
+  };
+  /** Digital temperature sensor: digitalTemperatureSensor. */
+  "digital-temperature-sensor": {
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** Output LED. Default false. */ out?: boolean };
+    /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Photo interrupter: photoInterrupter. */
+  "photo-interrupter": {
+    /** Board colour. Default "black". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Knock sensor: knockSensor. */
+  "knock-sensor": {
+    /** Board colour. Default "black". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
   /** Pushbutton: pushbutton {"size":12}. */
   "pushbutton": {
     /** Pressed. Default false. */ pressed?: boolean;

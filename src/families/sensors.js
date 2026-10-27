@@ -1,4 +1,4 @@
-/** Sensors: distance, temperature and humidity, pressure, light, flame, sound, tilt, gas, IR, motion, acceleration, pulse, soil, water, rain, obstacle, line, voltage and current. Import a family on its own to load only its parts. */
+/** Sensors: distance, temperature and humidity, pressure, light, flame, sound, tilt, gas, IR, motion, acceleration, pulse, soil, water, rain, obstacle, line, voltage, current, hall, touch, vibration, reed, photo-interrupter and knock. Import a family on its own to load only its parts. */
 export {
   ultrasonicRanger,
   dht22Sensor,
@@ -28,4 +28,12 @@ export {
   lineTracker,
   voltageSensorModule,
   acs712Module,
+  hallSensor,
+  linearHallSensor,
+  touchSensor,
+  vibrationSensor,
+  reedSwitch,
+  digitalTemperatureSensor,
+  photoInterrupter,
+  knockSensor,
 } from '../sensors.js';
