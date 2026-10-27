@@ -55,6 +55,7 @@ export const CARDS = [
       K.mount(root, K.buzzer(), { pins: true, caption: "12 mm buzzer" });
       K.mount(root, K.buzzer(), { scale: 1, grid: false, caption: "at 1:1" });
       K.mount(root, K.buzzer({ live: { flow: true, probe: "1" } }), { caption: "current flowing, the probe on +" });
+      K.mount(root, K.buzzer({ sealed: true }), { caption: "active buzzer, sealed" });
     },
   },
   {
@@ -307,6 +308,15 @@ export const CARDS = [
       K.mount(root, K.microsdModule(), { scale: 1.5, caption: "microsdModule" });
       K.mount(root, K.rtcModule(), { scale: 1.5, caption: "rtcModule" });
       K.mount(root, K.ds3231Module({ indicators: { power: true } }), { scale: 1.5, caption: "ds3231Module, ZS-042" });
+    },
+  },
+  {
+    name: "MultiRelayModule",
+    intro: "`multiRelayModule`: the 2-, 4- and 8-channel relay modules (`channels`, 4 by default) on a `pcb-blue` board, 7 × channels + 2 by 21 pitches",
+    draw(K, root) {
+      K.mount(root, K.multiRelayModule({ channels: 2 }), { pins: true, scale: 1.2, caption: "2 channels" });
+      K.mount(root, K.multiRelayModule({ indicators: { power: true }, status: [true, false, true, false] }), { scale: 1.2, caption: "4 channels, 1 and 3 energised" });
+      K.mount(root, K.multiRelayModule({ channels: 8, jumper: false }), { scale: 0.8, caption: "8 channels, jumper off" });
     },
   },
   {

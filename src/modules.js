@@ -1118,6 +1118,154 @@ export function relayModule(props) {
   return art(w, h, 'Relay module with an SPDT changeover contact', s, pins);
 }
 
+/** A screw of a terminal block from above, at (x, y): the slotted metal head. */
+function terminalScrew(T, x, y) {
+  const p = T.pitch;
+  return (
+    circle(x, y, 0.5 * p, T.metal, edge(T, T['metal-edge'], T['stroke-fine'])) +
+    circle(x, y, 0.5 * p, sheen('metal'), { 'fill-opacity': 0.6 }) +
+    line(x - 0.3 * p, y - 0.3 * p, x + 0.3 * p, y + 0.3 * p, T['metal-edge'], 0.9) +
+    line(x + 0.3 * p, y - 0.3 * p, x - 0.3 * p, y + 0.3 * p, T['metal-edge'], 0.9)
+  );
+}
+
+/**
+ * The 2-, 4- and 8-channel relay modules (`channels`): one SRD-05VDC-SL-C relay a channel, side by side seven
+ * pitches apart, each with its blue screw terminal (NO, COM, NC) along the top edge and its driver below it: the
+ * PC817 optocoupler, the transistor, the resistors and the channel's status LED, printed with its input's name. The
+ * input header runs along the bottom edge from the left (GND, IN1 … INn, VCC) with the power LED beside it; the
+ * three-pin block at the bottom right (GND, VCC, JD-VCC) carries the jumper that joins VCC to JD-VCC (`jumper`,
+ * fitted by default). Its GND and VCC pads are the header's own nets, so only JD-VCC is a pin. Pins: GND, IN1 … INn,
+ * VCC, JD-VCC, then each channel's NO, COM and NC. `indicators.power` lights the power LED; `status` lights the
+ * channel LEDs, from channel 1. The box is 7 × channels + 2 by 21 pitches.
+ */
+export function multiRelayModule(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const n = [2, 4, 8].includes(Number(props.channels)) ? Number(props.channels) : 4;
+  const fin = props.finish || 'blue';
+  const f = finish(T, fin);
+  const w = (7 * n + 2) * p;
+  const h = 21 * p;
+  const ind = { power: false, ...props.indicators };
+  const status = props.status || [];
+  let s = '';
+  s += board({ width: w, height: h, finish: fin, holes: true });
+  const contacts = [];
+  for (let i = 0; i < n; i++) {
+    const k = i + 1;
+    const cx = (4.5 + 7 * i) * p;
+    // The screw terminal: a blue block with NO, COM and NC two pitches apart, their names below it.
+    const ty = 1.2 * p;
+    const th = 3.2 * p;
+    s += tag(
+      'terminal',
+      rect(cx - 3 * p, ty, 6 * p, th, T['plastic-blue'], Object.assign({ rx: 1 }, edge(T, T['plastic-blue-edge']))) +
+        bevel(T, cx - 3 * p, ty, 6 * p, th, 1.6, 1),
+    );
+    ['NO', 'COM', 'NC'].forEach((name, j) => {
+      const x = cx + (j - 1) * 2 * p;
+      s += terminalScrew(T, x, 2.8 * p) + text(x, 5.3 * p, name, PIN_LABEL, f.silk);
+      contacts.push({ name: `${name}${k}`, x, y: 2.8 * p });
+    });
+    // The relay, 15.5 x 19 mm, its long side running from the terminal to the driver.
+    const rw = 15.5 * mm;
+    const rh = 19 * mm;
+    const rx = cx - rw / 2;
+    const ry = 6.0 * p;
+    s += tag(
+      'body',
+      rect(rx, ry, rw, rh, T['plastic-blue'], Object.assign({ rx: 1.2 }, edge(T, T['plastic-blue-edge']))),
+    );
+    s += bevel(T, rx, ry, rw, rh, 1.8, 1.2);
+    s += text(cx, ry + 1.6 * p, 'RELAY', 5, T['chip-print'], { 'font-weight': 700 });
+    s +=
+      text(cx, ry + 2.8 * p, '10A 250VAC  10A 125VAC', PIN_LABEL, T['chip-print']) +
+      text(cx, ry + 3.4 * p, '10A 30VDC   10A 28VDC', PIN_LABEL, T['chip-print']);
+    s += text(cx, ry + 4.8 * p, 'SRD-05VDC-SL-C', 5, T['chip-print'], { 'font-weight': 600 });
+    s += text(cx, ry + 5.9 * p, lotCode(`SRD${k}`), PIN_LABEL, T['chip-print'], { 'fill-opacity': 0.8 });
+    // The driver: base resistor, transistor, optocoupler, then the status LED with its resistor.
+    s += framed(T, f, 'resistor', cx - 2.9 * p, 14.4 * p, true);
+    s += sot23(T, cx - 0.9 * p, 14.2 * p, 3);
+    s += soicAcross(T, cx + 0.8 * p, 14.7 * p, 1.6 * p, 1.4 * p, 2, '817');
+    s +=
+      silkFrame(T, f, cx - 2.8 * p, 16.3 * p, 0.7 * p, 0.7 * p) +
+      indicator({
+        x: cx - 2.8 * p,
+        y: 16.3 * p,
+        size: 0.7 * p,
+        color: 'red',
+        on: !!status[i],
+        hook: `status-led-${k}`,
+        state: `status-led-${k}`,
+        finish: fin,
+        label: `IN${k}`,
+      });
+    s += framed(T, f, 'resistor', cx - 1.3 * p, 16.6 * p, true);
+  }
+  // The input header and the power LED beside it.
+  const inputs = ['GND', ...Array.from({ length: n }, (_, i) => `IN${i + 1}`), 'VCC'];
+  const hdr = header({
+    x: 1.5 * p,
+    y: 19.8 * p,
+    axis: 'x',
+    labels: inputs,
+    kind: 'pad',
+    side: 'above',
+    silk: f.silk,
+    size: PIN_LABEL,
+  });
+  const lx = (n + 3.8) * p;
+  s +=
+    silkFrame(T, f, lx, 19.45 * p, 0.7 * p, 0.7 * p) +
+    indicator({
+      x: lx,
+      y: 19.45 * p,
+      size: 0.7 * p,
+      color: 'red',
+      on: !!ind.power,
+      hook: 'power-led',
+      state: 'power-led',
+      finish: fin,
+    }) +
+    text(lx + 0.9 * p, 20.05 * p, 'PWR', PIN_LABEL, f.silk, { 'text-anchor': 'start' });
+  // The JD-VCC block, its names standing on end, and the jumper cap over VCC and JD-VCC.
+  const jx = w - 3.5 * p;
+  const block = header({
+    x: jx,
+    y: 19.8 * p,
+    axis: 'x',
+    labels: ['GND', 'VCC', 'JD-VCC'],
+    kind: 'pad',
+    side: 'above',
+    rotate: true,
+    silk: f.silk,
+    size: PIN_LABEL,
+  });
+  s += text((n + 6 + 7 * n - 1.6) * 0.5 * p, 20.15 * p, `${n}-CH RELAY`, PIN_LABEL, f.silk, { 'font-weight': 600 });
+  s += hdr.svg + block.svg;
+  if (props.jumper !== false)
+    s += tag(
+      'jumper',
+      rect(
+        jx + 0.55 * p,
+        19.45 * p,
+        1.9 * p,
+        0.75 * p,
+        T['plastic-black'],
+        Object.assign({ rx: 0.3 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
+      ) + rect(jx + 0.7 * p, 19.55 * p, 1.6 * p, 0.25 * p, '#ffffff', { rx: 0.2, 'fill-opacity': 0.18 }),
+    );
+  const jd = block.pins[2];
+  return art(w, h, `${n}-channel relay module with optocoupled inputs`, s, [
+    ...hdr.pins,
+    { name: 'JD-VCC', x: jd.x, y: jd.y },
+    ...contacts,
+  ]);
+}
+
 /**
  * A SOT-223 regulator from above, its body's top-left at (x, y): the 6.5 x 3.5 mm black body, the wide tab above it
  * and three leads below, and the part number in two lines.

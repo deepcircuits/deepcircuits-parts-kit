@@ -366,6 +366,12 @@ export const OPTIONS = {
   relay: { energised: state(bool('Energised')) },
   // Modules.
   relayModule: { indicators: lamps({ power: 'Power LED', status: 'Status LED' }, ['power']), finish: finish('red') },
+  multiRelayModule: {
+    jumper: bool('JD-VCC jumper fitted', { default: true }),
+    indicators: lamps({ power: 'Power LED' }),
+    status: state({ type: 'list', label: 'Channel LEDs lit', items: { type: 'boolean' } }),
+    finish: finish('blue'),
+  },
   hx711Board: { finish: finish('red') },
   microsdModule: { finish: finish('blue') },
   rtcModule: { finish: finish('blue') },

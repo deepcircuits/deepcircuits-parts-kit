@@ -375,6 +375,10 @@ export interface PartOptionsById {
   "piezo-buzzer": {
     /** Live layer. */ live?: { /** Current. Default false. */ flow?: false | true | "reverse"; /** Probe on pin. Default "". */ probe?: "" | "+" | "-" };
   };
+  /** Active buzzer: buzzer {"sealed":true}. */
+  "active-buzzer": {
+    /** Live layer. */ live?: { /** Current. Default false. */ flow?: false | true | "reverse"; /** Probe on pin. Default "". */ probe?: "" | "+" | "-" };
+  };
   /** Servo: servo. */
   "servo": {
     /** Angle. -90 to 90 °. Default 0. */ angle?: number;
@@ -396,6 +400,27 @@ export interface PartOptionsById {
   "relay-module": {
     /** Lamps. */ indicators?: { /** Power LED. Default true. */ power?: boolean; /** Status LED. Default false. */ status?: boolean };
     /** Board colour. Default "red". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Relay module, 2-channel: multiRelayModule {"channels":2}. */
+  "relay-module-2-channel": {
+    /** JD-VCC jumper fitted. Default true. */ jumper?: boolean;
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
+    /** Channel LEDs lit. */ status?: readonly (boolean)[];
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Relay module, 4-channel: multiRelayModule {"channels":4}. */
+  "relay-module-4-channel": {
+    /** JD-VCC jumper fitted. Default true. */ jumper?: boolean;
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
+    /** Channel LEDs lit. */ status?: readonly (boolean)[];
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
+  };
+  /** Relay module, 8-channel: multiRelayModule {"channels":8}. */
+  "relay-module-8-channel": {
+    /** JD-VCC jumper fitted. Default true. */ jumper?: boolean;
+    /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean };
+    /** Channel LEDs lit. */ status?: readonly (boolean)[];
+    /** Board colour. Default "blue". */ finish?: "blue" | "green" | "teal" | "black" | "purple" | "white" | "red";
   };
   /** Load cell amplifier: hx711Board. */
   "load-cell-amplifier": {

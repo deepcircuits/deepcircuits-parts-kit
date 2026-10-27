@@ -1,6 +1,7 @@
-/** Modules: relay, load cell, microSD, two clocks, RFID, logic analyzer, pixel meter, regulator and breadboard power. Import a family on its own to load only its parts. */
+/** Modules: relays, load cell, microSD, two clocks, RFID, logic analyzer, pixel meter, regulator and breadboard power. Import a family on its own to load only its parts. */
 export {
   relayModule,
+  multiRelayModule,
   microsdModule,
   rtcModule,
   ds3231Module,

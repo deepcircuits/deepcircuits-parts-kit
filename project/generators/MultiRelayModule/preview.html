@@ -1,0 +1,15 @@
+<!-- @dsCard group="Templates" height=320 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>MultiRelayModule — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.multiRelayModule({ channels: 2 }), { pins: true, scale: 1.2, caption: "2 channels" });
+K.mount(root, K.multiRelayModule({ indicators: { power: true }, status: [true, false, true, false] }), { scale: 1.2, caption: "4 channels, 1 and 3 energised" });
+K.mount(root, K.multiRelayModule({ channels: 8, jumper: false }), { scale: 0.8, caption: "8 channels, jumper off" });
+</script>
+</body>
+</html>
