@@ -28,7 +28,7 @@ export type LabelSide = 'above' | 'below' | 'left' | 'right';
 export interface PinProps { x: number; y: number; kind?: PinKind; label?: string; side?: LabelSide; silk?: string; size?: number; /** Stand a long label on end, reading away from the pin. */ rotate?: boolean }
 export interface HeaderProps { x: number; y: number; labels?: readonly string[]; /** The pins' names, where they differ from the printed labels. */ names?: readonly string[]; count?: number; axis?: 'x' | 'y'; kind?: PinKind; side?: LabelSide; silk?: string; size?: number; rotate?: boolean }
 export interface BoardProps { width: number; height: number; finish?: Finish; title?: string; titleX?: number; titleY?: number; titleSize?: number; titleAnchor?: 'start' | 'middle' | 'end'; holes?: boolean; /** The maker's mark on the silk: its top-left corner and width. */ mark?: { x: number; y: number; size?: number } }
-export interface ChipProps { pins: readonly string[]; label: string; package?: 'dip' | 'soic' | 'tssop' }
+export interface ChipProps { pins: readonly string[]; label: string; package?: 'dip' | 'soic' | 'tssop'; /** The print beside each pin, where it differs from the pin's name (one per pin). */ labels?: readonly string[] }
 /** `hook` names the lens for state (data-hook, `lens` by default; its glow is `<hook>-glow`). */
 export interface LensProps { cx: number; cy: number; r?: number; color?: LensColor; on?: boolean; brightness?: number; hook?: string }
 /** A board indicator's state: true lit, false off, or a level from 0 to 1 that dims its glow (an LED driven by PWM). */
