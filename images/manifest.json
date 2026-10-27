@@ -19952,6 +19952,63 @@
       ]
     },
     {
+      "id": "transistor-to-92",
+      "name": "Transistor, TO-92",
+      "family": "chip",
+      "aliases": [
+        "BJT",
+        "MOSFET",
+        "2N2222A",
+        "PN2222A",
+        "BC547",
+        "2N7000"
+      ],
+      "width": 38.4,
+      "height": 76.8,
+      "pins": [
+        { "name": "E", "x": 9.6, "y": 76.8 },
+        { "name": "B", "x": 19.2, "y": 76.8 },
+        { "name": "C", "x": 28.8, "y": 76.8 }
+      ],
+      "hooks": [
+        "heat"
+      ],
+      "images": [
+        {
+          "file": "transistor-to-92.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
+      "id": "transistor-to-220",
+      "name": "Transistor, TO-220",
+      "family": "chip",
+      "aliases": [
+        "MOSFET",
+        "IRLZ44N",
+        "power"
+      ],
+      "width": 38.4,
+      "height": 76.8,
+      "pins": [
+        { "name": "G", "x": 9.6, "y": 76.8 },
+        { "name": "D", "x": 19.2, "y": 76.8 },
+        { "name": "S", "x": 28.8, "y": 76.8 }
+      ],
+      "hooks": [
+        "heat"
+      ],
+      "images": [
+        {
+          "file": "transistor-to-220.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
       "id": "resistor",
       "name": "Resistor",
       "family": "passive",

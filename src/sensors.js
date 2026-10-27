@@ -23,7 +23,7 @@ import {
   tokens,
   trace,
 } from './core.js';
-import { edgeHeader, framed, mountHole, padRow, silkFrame, smd, soicAcross, wire } from './pieces.js';
+import { edgeHeader, framed, mountHole, padRow, silkFrame, smd, soicAcross, to92Package, wire } from './pieces.js';
 import { moduleTemplate } from './modules.js';
 
 /**
@@ -711,48 +711,14 @@ export function to92Template(props) {
   const h = 5 * p;
   const names = props.pins || ['GND', 'DQ', 'VCC'];
   const label = props.label || 'DS18B20';
-  let s = '';
-  const cx = 2 * p;
-  const bw = 4.7 * (p / 2.54);
-  const bh = 4.6 * (p / 2.54);
-  const bx = cx - bw / 2;
-  const by = 0.9 * p;
-  // Legs first, under the body: from the body's bottom to the pins, bent out to one pitch.
-  names.forEach((_, i) => {
-    const x = (i + 1) * p;
-    const dx = (i - 1) * 1.27 * (p / 2.54);
-    const d = `M${r2(cx + dx)} ${r2(by + bh - 1)}V${r2(by + bh + 0.9 * p)}L${r2(x)} ${r2(by + bh + 1.7 * p)}V${r2(h)}`;
-    s += tag(
-      'leg',
-      path(d, 'none', {
-        stroke: T['lead-edge'],
-        'stroke-width': 2.9,
-        'stroke-linejoin': 'round',
-        'stroke-linecap': 'round',
-      }) +
-        path(d, 'none', { stroke: T.lead, 'stroke-width': 1.9, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }),
-    );
-  });
-  s += tag(
-    'body',
-    path(
-      `M${r2(bx)} ${r2(by + bh)}V${r2(by + 2.2)}a2.2 2.2 0 0 1 2.2 -2.2H${r2(bx + bw - 2.2)}a2.2 2.2 0 0 1 2.2 2.2V${r2(by + bh)}Z`,
-      T['plastic-black'],
-      Object.assign({ 'stroke-linejoin': 'round' }, edge(T, T['plastic-black-edge'])),
-    ),
-  );
-  s += rect(bx + 1.2, by + 1.2, bw - 2.4, 1.6, '#ffffff', { rx: 0.8, 'fill-opacity': T['opacity-light'] * 0.5 });
   const cut = /^[A-Za-z]+(?=\d)/.exec(label);
   const a = cut ? label.slice(0, cut[0].length) : label.slice(0, 3);
   const b = cut ? label.slice(cut[0].length) : label.slice(3);
-  s +=
-    text(cx, by + bh / 2 - 0.4, a, PIN_LABEL, T['chip-print'], { 'font-weight': 600 }) +
-    text(cx, by + bh / 2 + PIN_LABEL + 0.2, b, PIN_LABEL, T['chip-print']);
   return art(
     w,
     h,
     `${label} in a TO-92 package`,
-    s,
+    to92Package(T, 2 * p, 0.9 * p, h, [a, b]),
     names.map((n, i) => {
       return { name: n, x: (i + 1) * p, y: h };
     }),

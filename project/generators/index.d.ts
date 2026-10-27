@@ -137,6 +137,8 @@ export interface ClockGeneratorProps { label?: string }
 export interface SupplySymbolProps { voltage?: number }
 /** A TO-92 part in elevation (DS18B20 by default): the print splits before its digits. */
 export interface To92Props { label?: string; pins?: readonly [string, string, string] }
+/** A transistor standing in its package in a 4 × 8 pitch box, legs one, two and three pitches from the left at the bottom edge: `label` the part number (PN2222A in TO-92, IRLZ44N in TO-220), `pins` the legs from the left (E, B, C in TO-92, G, D, S in TO-220), `live.heat` (0..1) warms the body. */
+export interface TransistorProps { package?: 'to-92' | 'to-220'; label?: string; pins?: readonly [string, string, string]; live?: { heat?: number } }
 /** The WS2812 strip: pixels 1 to 1024, three pitches apart ('5050') or two ('3535'); colors by pixel index. */
 export interface LedStripProps { /** 1 to 1024. */ pixels?: number; pixelSize?: '5050' | '3535' | '2020'; pixelShape?: 'square' | 'round' | 'circle'; colors?: readonly PixelColor[] }
 export type MeterStatus = 'idle' | 'ok' | 'near' | 'over';
@@ -467,6 +469,8 @@ export interface PartsKit {
   shiftRegister165(state?: CatalogChipState): Artwork;
   ledDriver595(state?: CatalogChipState): Artwork;
   attiny85(state?: CatalogChipState): Artwork;
+  /** A transistor in TO-92 (PN2222A: E, B, C) or TO-220 (IRLZ44N: G, D, S), the same pins whatever the package. */
+  transistor(props?: TransistorProps): Artwork;
   ssd1306Module(state?: CatalogScreenState): Artwork;
   sh1107Module(state?: CatalogScreenState): Artwork;
   ili9341TouchDisplay(state?: CatalogScreenState): Artwork;

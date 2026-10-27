@@ -5,3 +5,4 @@ export declare const ledDriver595: PartsKit['ledDriver595'];
 export declare const ne555Timer: PartsKit['ne555Timer'];
 export declare const shiftRegister165: PartsKit['shiftRegister165'];
 export declare const shiftRegister595: PartsKit['shiftRegister595'];
+export declare const transistor: PartsKit['transistor'];

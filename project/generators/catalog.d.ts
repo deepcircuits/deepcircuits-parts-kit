@@ -394,6 +394,16 @@ export interface PartOptionsById {
   "attiny85": {
     /** Package. Default "dip". */ package?: "dip" | "soic" | "tssop";
   };
+  /** Transistor, TO-92: transistor {"package":"to-92"}. */
+  "transistor-to-92": {
+    /** Part number. */ label?: string;
+    /** Live layer. */ live?: { /** Heat. 0 to 1. Default 0. */ heat?: number };
+  };
+  /** Transistor, TO-220: transistor {"package":"to-220"}. */
+  "transistor-to-220": {
+    /** Part number. */ label?: string;
+    /** Live layer. */ live?: { /** Heat. 0 to 1. Default 0. */ heat?: number };
+  };
   /** Resistor: resistor. */
   "resistor": {
     /** Resistance. Default 1000. */ ohms?: number;

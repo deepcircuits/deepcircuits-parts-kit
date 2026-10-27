@@ -103,5 +103,6 @@ export declare const tm1637Module: PartsKit['tm1637Module'];
 export declare const toDataUrl: PartsKit['toDataUrl'];
 export declare const tokenMode: PartsKit['tokenMode'];
 export declare const tokens: PartsKit['tokens'];
+export declare const transistor: PartsKit['transistor'];
 export declare const ultrasonicRanger: PartsKit['ultrasonicRanger'];
 export declare const unoClassBoard: PartsKit['unoClassBoard'];

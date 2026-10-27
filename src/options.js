@@ -418,6 +418,17 @@ export const OPTIONS = {
   shiftRegister165: { package: pkg('dip') },
   ledDriver595: { package: pkg('tssop') },
   attiny85: { package: pkg('dip') },
+  transistor: {
+    package: {
+      type: 'enum',
+      label: 'Package',
+      choices: [choice('to-92', 'TO-92'), choice('to-220', 'TO-220')],
+      default: 'to-92',
+    },
+    // No default: each package prints its own part (PN2222A in TO-92, IRLZ44N in TO-220) unless given one.
+    label: { type: 'text', label: 'Part number', maxLength: 10 },
+    live: state({ type: 'object', label: 'Live layer', fields: { heat: unit('Heat') } }),
+  },
   // Passives.
   resistor: {
     ohms: {

@@ -77,6 +77,8 @@ const SPEC = [
   ['Symbols clock', K.clockGenerator(), {}, [/data-level-pin="0"/, />CLK</]],
   ['Symbols supply', K.supplySymbol({voltage:5}), {}, [/>5V</]],
   ['To92', K.to92Template(), {leg: 3, body: 1}, [/>DS</, />18B20</]],
+  ['Transistor TO-92', K.transistor({ live: { heat: 0.5 } }), {leg: 3, body: 1}, [/>PN</, />2222A</, /data-hook="heat"/]],
+  ['Transistor TO-220', K.transistor({ package: 'to-220' }), {leg: 3, body: 1, tab: 1}, [/IRLZ44N/, /DC\d\d[A-Z]\d{3}/ /* lot code */, /data-hook="heat"/]],
   ['LedStrip', K.ledStrip({colors:['#ff0000','#00ff00','#0000ff']}), {board: 1, pad: 27, body: 8}, [/data-pixel="7"/, /data-hook="px-0"/, /data-level=/, />DIN</, />DOUT</]],
   ['NeopixelMeter', K.neopixelMeter({fps:60,pixels:16,amps:0.31,watts:1.55,peakAmps:0.42,limitAmps:0.5,status:'near'}), {body: 1}, [/data-status="near"/, /data-fps="60"/, /data-amps=/, />DIN</, />peak 420 mA of 0.5 A</]],
   ['RelayModule', K.relayModule({indicators:{power:true,status:true}}), {board: 1, mark: 1, hole: 4, body: 1, smd: 5, chip: 1, indicator: 2, terminal: 1, jumper: 1, pin: 3, trace: 3}, [/SRD-05VDC/, /data-lit-state="power-led"/, /data-lit-state="status-led"/, />NC</, />COM</, />NO</, />IN</]],

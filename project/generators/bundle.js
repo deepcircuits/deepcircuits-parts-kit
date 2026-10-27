@@ -1002,6 +1002,37 @@ var PartsKit = (() => {
     const T = tokens();
     return line(x1, y1, x2, y2, T["lead-edge"], T["leg-width"] + 0.6) + line(x1, y1, x2, y2, T.lead, T["leg-width"] - 0.4);
   }
+  function leadPath(T, d) {
+    const round = { "stroke-linejoin": "round", "stroke-linecap": "round" };
+    return path(d, "none", Object.assign({ stroke: T["lead-edge"], "stroke-width": 2.9 }, round)) + path(d, "none", Object.assign({ stroke: T.lead, "stroke-width": 1.9 }, round));
+  }
+  function to92Package(T, cx, y, bottom, lines, heat) {
+    const p = T.pitch;
+    const bw = 4.7 * (p / 2.54);
+    const bh = 4.6 * (p / 2.54);
+    const bx = cx - bw / 2;
+    let s = "";
+    for (let i = 0; i < 3; i++) {
+      const x = cx + (i - 1) * p;
+      const dx = (i - 1) * 1.27 * (p / 2.54);
+      const d = `M${r2(cx + dx)} ${r2(y + bh - 1)}V${r2(y + bh + 0.9 * p)}L${r2(x)} ${r2(y + bh + 1.7 * p)}V${r2(bottom)}`;
+      s += tag("leg", leadPath(T, d));
+    }
+    const outline = `M${r2(bx)} ${r2(y + bh)}V${r2(y + 2.2)}a2.2 2.2 0 0 1 2.2 -2.2H${r2(bx + bw - 2.2)}a2.2 2.2 0 0 1 2.2 2.2V${r2(y + bh)}Z`;
+    s += tag(
+      "body",
+      path(outline, T["plastic-black"], Object.assign({ "stroke-linejoin": "round" }, edge(T, T["plastic-black-edge"])))
+    );
+    if (heat !== void 0)
+      s += path(outline, T["band-red"], {
+        "data-hook": "heat",
+        "data-live": "heat",
+        "fill-opacity": r2(T["opacity-heat"] * heat)
+      });
+    s += rect(bx + 1.2, y + 1.2, bw - 2.4, 1.6, "#ffffff", { rx: 0.8, "fill-opacity": T["opacity-light"] * 0.5 });
+    s += text(cx, y + bh / 2 - 0.4, lines[0], PIN_LABEL, T["chip-print"], { "font-weight": 600 }) + text(cx, y + bh / 2 + PIN_LABEL + 0.2, lines[1], PIN_LABEL, T["chip-print"]);
+    return s;
+  }
   var init_pieces = __esm({
     "src/pieces.js"() {
       init_core();
@@ -7030,44 +7061,14 @@ var PartsKit = (() => {
     const h = 5 * p;
     const names = props.pins || ["GND", "DQ", "VCC"];
     const label = props.label || "DS18B20";
-    let s = "";
-    const cx = 2 * p;
-    const bw = 4.7 * (p / 2.54);
-    const bh = 4.6 * (p / 2.54);
-    const bx = cx - bw / 2;
-    const by = 0.9 * p;
-    names.forEach((_, i) => {
-      const x = (i + 1) * p;
-      const dx = (i - 1) * 1.27 * (p / 2.54);
-      const d = `M${r2(cx + dx)} ${r2(by + bh - 1)}V${r2(by + bh + 0.9 * p)}L${r2(x)} ${r2(by + bh + 1.7 * p)}V${r2(h)}`;
-      s += tag(
-        "leg",
-        path(d, "none", {
-          stroke: T["lead-edge"],
-          "stroke-width": 2.9,
-          "stroke-linejoin": "round",
-          "stroke-linecap": "round"
-        }) + path(d, "none", { stroke: T.lead, "stroke-width": 1.9, "stroke-linejoin": "round", "stroke-linecap": "round" })
-      );
-    });
-    s += tag(
-      "body",
-      path(
-        `M${r2(bx)} ${r2(by + bh)}V${r2(by + 2.2)}a2.2 2.2 0 0 1 2.2 -2.2H${r2(bx + bw - 2.2)}a2.2 2.2 0 0 1 2.2 2.2V${r2(by + bh)}Z`,
-        T["plastic-black"],
-        Object.assign({ "stroke-linejoin": "round" }, edge(T, T["plastic-black-edge"]))
-      )
-    );
-    s += rect(bx + 1.2, by + 1.2, bw - 2.4, 1.6, "#ffffff", { rx: 0.8, "fill-opacity": T["opacity-light"] * 0.5 });
     const cut = /^[A-Za-z]+(?=\d)/.exec(label);
     const a = cut ? label.slice(0, cut[0].length) : label.slice(0, 3);
     const b = cut ? label.slice(cut[0].length) : label.slice(3);
-    s += text(cx, by + bh / 2 - 0.4, a, PIN_LABEL, T["chip-print"], { "font-weight": 600 }) + text(cx, by + bh / 2 + PIN_LABEL + 0.2, b, PIN_LABEL, T["chip-print"]);
     return art(
       w,
       h,
       `${label} in a TO-92 package`,
-      s,
+      to92Package(T, 2 * p, 0.9 * p, h, [a, b]),
       names.map((n, i) => {
         return { name: n, x: (i + 1) * p, y: h };
       })
@@ -8911,6 +8912,98 @@ var PartsKit = (() => {
     }
   });
 
+  // src/discretes.js
+  function printLines(label) {
+    const cut = /^[A-Za-z]*\d?[A-Za-z]+(?=\d)/.exec(label);
+    return cut ? [cut[0], label.slice(cut[0].length)] : [label.slice(0, 3), label.slice(3)];
+  }
+  function to220Package(T, cx, bottom, label, heat) {
+    const mm = T.pitch / 2.54;
+    const bw = 10 * mm;
+    const x0 = cx - bw / 2;
+    const tabTop = 0.4 * mm;
+    const bodyTop = tabTop + 6.5 * mm;
+    const bh = 9 * mm;
+    const bodyBottom = bodyTop + bh;
+    let s = "";
+    for (let i = 0; i < 3; i++) {
+      const x = cx + (i - 1) * T.pitch;
+      const shoulder = bodyBottom + 2.2 * mm;
+      s += tag(
+        "leg",
+        leadPath(T, `M${r2(x)} ${r2(shoulder - 1)}V${r2(bottom)}`) + rect(
+          x - 0.65 * mm,
+          bodyBottom - 1,
+          1.3 * mm,
+          shoulder - bodyBottom + 1,
+          T.lead,
+          Object.assign({ rx: 0.3 }, edge(T, T["lead-edge"], T["stroke-detail"]))
+        )
+      );
+    }
+    s += tag(
+      "tab",
+      rect(x0, tabTop, bw, bodyTop + 2 - tabTop, T.metal, Object.assign({ rx: 0.5 * mm }, edge(T, T["metal-edge"]))) + rect(x0 + 0.8, tabTop + 0.8, bw - 1.6, bodyTop - tabTop - 0.8, sheen("metal"), {
+        rx: 0.4 * mm,
+        "fill-opacity": 0.7
+      }) + circle(cx, tabTop + 2.8 * mm, 1.8 * mm, T.hole, edge(T, T["metal-edge"], T["stroke-detail"]))
+    );
+    s += tag(
+      "body",
+      rect(x0, bodyTop, bw, bh, T["plastic-black"], Object.assign({ rx: 0.4 * mm }, edge(T, T["plastic-black-edge"])))
+    );
+    s += rect(x0, bodyTop, bw, bh, T["band-red"], {
+      "data-hook": "heat",
+      "data-live": "heat",
+      rx: 0.4 * mm,
+      "fill-opacity": r2(T["opacity-heat"] * heat)
+    });
+    s += bevel(T, x0, bodyTop, bw, bh, 1.4, 0.4 * mm);
+    const size = Math.min(5.6, (bw - 4) / textWidth(Math.max(4, label.length), 1));
+    s += text(cx, bodyTop + 0.42 * bh, label, size, T["chip-print"], {
+      "dominant-baseline": "middle",
+      "font-weight": 600
+    });
+    s += text(cx, bodyTop + 0.7 * bh, lotCode(label), PIN_LABEL, T["chip-print"], {
+      "dominant-baseline": "middle",
+      "fill-opacity": 0.85
+    });
+    return s;
+  }
+  function transistor(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const w = 4 * p;
+    const h = 8 * p;
+    const kind = props.package === "to-220" ? "to-220" : "to-92";
+    const own = PACKAGES[kind];
+    const label = String(props.label || own.label);
+    const names = props.pins || own.pins;
+    const heat = Math.max(0, Math.min(1, Number(props.live && props.live.heat) || 0));
+    const s = kind === "to-220" ? to220Package(T, 2 * p, h, label, heat) : to92Package(T, 2 * p, 0.9 * p, h, printLines(label), heat);
+    return art(
+      w,
+      h,
+      `${label} in a ${own.name} package${heat > 0.8 ? ", hot" : ""}`,
+      s,
+      names.map((name, i) => {
+        return { name, x: (i + 1) * p, y: h };
+      })
+    );
+  }
+  var PACKAGES;
+  var init_discretes = __esm({
+    "src/discretes.js"() {
+      init_core();
+      init_pieces();
+      PACKAGES = {
+        "to-92": { name: "TO-92", label: "PN2222A", pins: ["E", "B", "C"] },
+        "to-220": { name: "TO-220", label: "IRLZ44N", pins: ["G", "D", "S"] }
+      };
+    }
+  });
+
   // src/families/chips.js
   var chips_exports = {};
   __export(chips_exports, {
@@ -8918,11 +9011,13 @@ var PartsKit = (() => {
     ledDriver595: () => ledDriver595,
     ne555Timer: () => ne555Timer,
     shiftRegister165: () => shiftRegister165,
-    shiftRegister595: () => shiftRegister595
+    shiftRegister595: () => shiftRegister595,
+    transistor: () => transistor
   });
   var init_chips2 = __esm({
     "src/families/chips.js"() {
       init_chips();
+      init_discretes();
     }
   });
 
@@ -9464,6 +9559,7 @@ var PartsKit = (() => {
     tokenMode: () => tokenMode,
     tokens: () => tokens,
     trace: () => trace,
+    transistor: () => transistor,
     ultrasonicRanger: () => ultrasonicRanger,
     unoClassBoard: () => unoClassBoard,
     usbC: () => usbC,
@@ -9874,6 +9970,17 @@ var PartsKit = (() => {
     shiftRegister165: { package: pkg("dip") },
     ledDriver595: { package: pkg("tssop") },
     attiny85: { package: pkg("dip") },
+    transistor: {
+      package: {
+        type: "enum",
+        label: "Package",
+        choices: [choice("to-92", "TO-92"), choice("to-220", "TO-220")],
+        default: "to-92"
+      },
+      // No default: each package prints its own part (PN2222A in TO-92, IRLZ44N in TO-220) unless given one.
+      label: { type: "text", label: "Part number", maxLength: 10 },
+      live: state({ type: "object", label: "Live layer", fields: { heat: unit("Heat") } })
+    },
     // Passives.
     resistor: {
       ohms: {
@@ -10099,6 +10206,22 @@ var PartsKit = (() => {
     ["shift-register-74hc165", "Shift register, 74HC165", "chip", "shiftRegister165", null, ["PISO"]],
     ["nlsf595-driver", "NLSF595 driver", "chip", "ledDriver595", null, ["LED driver"]],
     ["attiny85", "ATtiny85", "chip", "attiny85", null, ["microcontroller"]],
+    [
+      "transistor-to-92",
+      "Transistor, TO-92",
+      "chip",
+      "transistor",
+      { package: "to-92" },
+      ["BJT", "MOSFET", "2N2222A", "PN2222A", "BC547", "2N7000"]
+    ],
+    [
+      "transistor-to-220",
+      "Transistor, TO-220",
+      "chip",
+      "transistor",
+      { package: "to-220" },
+      ["MOSFET", "IRLZ44N", "power"]
+    ],
     ["resistor", "Resistor", "passive", "resistor", null, ["ohm"]],
     ["electrolytic-capacitor", "Electrolytic capacitor", "passive", "capacitor", { kind: "electrolytic" }, ["capacitor"]],
     ["ceramic-capacitor", "Ceramic capacitor", "passive", "capacitor", { kind: "ceramic" }, ["capacitor", "MLCC"]],
