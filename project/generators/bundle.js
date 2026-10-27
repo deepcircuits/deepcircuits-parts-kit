@@ -7011,7 +7011,7 @@ var PartsKit = (() => {
     const mm = p / 2.54;
     const element = props.element || "ldr";
     const probe3 = element === "fork-probe" || element === "rain-plate";
-    const layout = element === "cylinder" ? "tilt" : element === "mic" ? "ky037" : "fc";
+    const layout = element === "cylinder" ? "tilt" : element === "mic" || element === "ntc" ? "ky037" : "fc";
     const fin = props.finish || (layout === "ky037" ? "red" : "blue");
     const f = finish(T, fin);
     const names = props.pins || ["VCC", "GND", "DO", "AO"];
@@ -7026,7 +7026,7 @@ var PartsKit = (() => {
     const micLen = (micMm > 8 ? 6.7 : 4.5) * mm;
     const ext = 6 * mm;
     const w = bw;
-    const by = (probe3 ? 3.5 : layout === "tilt" ? 11.5 : layout === "fc" ? 6.5 : micLen / mm + 1) * mm;
+    const by = (probe3 ? 3.5 : layout === "tilt" ? 11.5 : layout === "fc" ? 6.5 : element === "ntc" ? 7 : micLen / mm + 1) * mm;
     const h = by + bh + ext;
     const cx = w / 2;
     let s = "";
@@ -7275,11 +7275,67 @@ var PartsKit = (() => {
           Object.assign({ rx: 0.8 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
         ) + bevel(T, cx - tw / 2, ty0, tw, th, 1, 0.8) + circle(E(-2.5), ty0 + th / 2, 1.6 * mm, T["lens-blue"], edge(T, T["plastic-black-edge"], T["stroke-fine"])) + circle(E(2.5), ty0 + th / 2, 1.6 * mm, T.cavity, edge(T, T["plastic-black-edge"], T["stroke-fine"])) + circle(E(-2.5), ty0 + th / 2, 1.6 * mm, sheen("lens"), { "fill-opacity": 0.5 })
       );
+    } else if (element === "hall") {
+      const hw = 4.1 * mm;
+      const hl = 3 * mm;
+      const ty0 = by - 5.4 * mm;
+      const bend = by + 0.6 * mm;
+      [-1.27, 0, 1.27].forEach((k) => {
+        s += wire(E(k), ty0 + hl - 0.6, E(k), bend) + wire(E(k), bend, E(2 * k), padY);
+      });
+      s += tag(
+        "element",
+        rect(
+          cx - hw / 2,
+          ty0,
+          hw,
+          hl,
+          T["plastic-black"],
+          Object.assign({ rx: 0.5 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
+        ) + bevel(T, cx - hw / 2, ty0, hw, hl, 0.8, 0.5) + text(cx, ty0 + hl / 2, "49E", 4, T["chip-print"], { "dominant-baseline": "middle" })
+      );
+    } else if (element === "sw420") {
+      const cl = 9 * mm;
+      const cr = 2.1 * mm;
+      const ccy = by - 3.4 * mm;
+      [E(-1.27), E(1.27)].forEach((x) => {
+        s += wire(x, ccy + cr - 0.6, x, padY);
+      });
+      s += tag(
+        "element",
+        rect(cx - cl / 2, ccy - cr, cl, 2 * cr, T.metal, Object.assign({ rx: cr * 0.4 }, edge(T, T["metal-edge"]))) + rect(
+          cx + cl / 2 - 1.6 * mm,
+          ccy - cr,
+          1.6 * mm,
+          2 * cr,
+          T["plastic-black"],
+          Object.assign({ rx: cr * 0.4 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
+        )
+      );
+      s += rect(cx - cl / 2, ccy - cr, cl, 2 * cr, sheen("metal"), { rx: cr * 0.4, "fill-opacity": 0.7 });
+    } else if (element === "ntc") {
+      const bcy = by - 4.6 * mm;
+      [E(-1.27), E(1.27)].forEach((x) => {
+        s += wire(x, bcy + 1.4 * mm, x, padY);
+      });
+      s += tag(
+        "element",
+        el("ellipse", {
+          cx,
+          cy: r2(bcy),
+          rx: 1.5 * mm,
+          ry: 1.9 * mm,
+          fill: T["plastic-black"],
+          stroke: T["plastic-black-edge"],
+          "stroke-width": T["stroke-detail"]
+        })
+      );
+      s += el("ellipse", { cx, cy: r2(bcy), rx: 1.5 * mm, ry: 1.9 * mm, fill: sheen("dome"), "fill-opacity": 0.7 });
     }
     const link = probe3 ? edgeHeader(T, { names: ["+", "-"], side: "top", at: by, from: E(-1.27), ext: 3 * mm }) : null;
     if (link) s += link.svg;
-    else if (element === "ir-pair" || element === "tcrt5000")
-      (element === "ir-pair" ? [-4.17, -1.63, 1.63, 4.17] : [-3.81, -1.27, 1.27, 3.81]).forEach((k) => {
+    else if (element === "ir-pair" || element === "tcrt5000" || element === "hall")
+      (element === "ir-pair" ? [-4.17, -1.63, 1.63, 4.17] : element === "hall" ? [-2.54, 0, 2.54] : [-3.81, -1.27, 1.27, 3.81]).forEach((k) => {
         s += tag("pad", circle(E(k), r2(padY), 2.2, T.pad) + circle(E(k), r2(padY), 0.9, T.hole));
       });
     else {
@@ -7376,7 +7432,7 @@ var PartsKit = (() => {
       L.dout[2]
     );
     s += edgePins.svg + hdr.svg;
-    const what = element === "flame" ? "Flame sensor" : element === "ldr" ? "Light sensor (LDR)" : element === "cylinder" ? "Tilt switch" : element === "ir-pair" ? "IR obstacle sensor" : element === "tcrt5000" ? "Line tracking sensor" : element === "fork-probe" ? "Soil moisture sensor" : element === "rain-plate" ? "Rain sensor" : "Sound sensor";
+    const what = element === "flame" ? "Flame sensor" : element === "ldr" ? "Light sensor (LDR)" : element === "cylinder" ? "Tilt switch" : element === "ir-pair" ? "IR obstacle sensor" : element === "tcrt5000" ? "Line tracking sensor" : element === "fork-probe" ? "Soil moisture sensor" : element === "rain-plate" ? "Rain sensor" : element === "hall" ? "Linear hall sensor" : element === "sw420" ? "Vibration sensor" : element === "ntc" ? "Digital temperature sensor" : "Sound sensor";
     if (link)
       return besideProbe(
         T,
@@ -7581,6 +7637,109 @@ var PartsKit = (() => {
         state: "power",
         finish: fin
       });
+    } else if (element === "hall" || element === "slot") {
+      const slot = element === "slot";
+      const top = by + 2.6 * mm;
+      const depth = (slot ? 4.6 : 3) * mm;
+      padY = top + depth + 1.6 * mm;
+      const legs = slot ? [-3.81, -1.27, 1.27, 3.81] : [-2.54, 0, 2.54];
+      legs.forEach((k) => {
+        s += wire(X(slot ? k : k / 2), top + depth - 0.6, X(k), padY);
+        s += tag("pad", circle(X(k), r2(padY), 2.2, T.pad) + circle(X(k), r2(padY), 0.9, T.hole));
+      });
+      if (slot) {
+        const tw = 3 * mm;
+        let towers = "";
+        [X(-4.6), X(4.6) - tw].forEach((tx) => {
+          towers += rect(
+            tx,
+            r2(top),
+            tw,
+            depth,
+            T["plastic-black"],
+            Object.assign({ rx: 0.6 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
+          ) + bevel(T, tx, top, tw, depth, 0.8, 0.6);
+        });
+        towers += rect(
+          X(-1.7),
+          r2(top + depth - 1.4 * mm),
+          3.4 * mm,
+          1.4 * mm,
+          T["plastic-black"],
+          edge(T, T["plastic-black-edge"], T["stroke-fine"])
+        );
+        s += tag("element", towers);
+        resX = -5.2;
+        resY = 11;
+      } else {
+        s += tag(
+          "element",
+          rect(
+            X(-2.1),
+            r2(top),
+            4.2 * mm,
+            depth,
+            T["plastic-black"],
+            Object.assign({ rx: 1.2 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
+          ) + text(cx, top + depth / 2, "3144", 4, T["chip-print"], { "dominant-baseline": "middle" })
+        );
+        resX = 3.2;
+        resY = 2.8;
+        s += silkFrame(T, f, cx - 5.2 * mm, by + 9.8 * mm, 0.6 * p, 0.6 * p) + indicator({
+          x: cx - 5.2 * mm,
+          y: by + 9.8 * mm,
+          size: 0.6 * p,
+          color: "red",
+          on: !!(props.indicators && props.indicators.out),
+          hook: "out-led",
+          finish: fin
+        });
+      }
+    } else if (element === "spring") {
+      const cl = 9 * mm;
+      const ch = 4.4 * mm;
+      const top = by + 1.4 * mm;
+      let coil = "";
+      for (let k = 0; k < 9; k++) {
+        const x = cx - 3.6 * mm + k * 0.9 * mm;
+        coil += `M${r2(x)} ${r2(top + 0.9 * mm)}l${r2(0.5 * mm)} ${r2(ch - 1.8 * mm)}`;
+      }
+      s += tag(
+        "element",
+        rect(
+          cx - cl / 2,
+          r2(top),
+          cl,
+          ch,
+          T["plastic-black"],
+          Object.assign({ rx: 0.8 }, edge(T, T["plastic-black-edge"], T["stroke-detail"]))
+        ) + rect(cx - 4 * mm, r2(top + 0.7 * mm), 8 * mm, ch - 1.4 * mm, T.cavity, { rx: 0.5 }) + path(coil, "none", { stroke: T.metal, "stroke-width": 0.9, "stroke-linecap": "round" })
+      );
+      resX = -5.2;
+      resY = 9;
+    } else if (element === "touch") {
+      const pr = 4.2 * mm;
+      const pcy = by + 5.4 * mm;
+      s += tag(
+        "element",
+        circle(cx, r2(pcy), pr, f.board, {
+          stroke: f.silk,
+          "stroke-width": T["stroke-fine"],
+          "stroke-opacity": 0.85
+        }) + circle(cx, r2(pcy), pr - 0.8 * mm, T.pad, { "fill-opacity": 0.35 })
+      );
+      s += sot23(T, X(4.4), by + 9.6 * mm, 5);
+      s += silkFrame(T, f, cx - 5.6 * mm, by + 10.6 * mm, 0.6 * p, 0.6 * p) + indicator({
+        x: cx - 5.6 * mm,
+        y: by + 10.6 * mm,
+        size: 0.6 * p,
+        color: "red",
+        on: !!(props.indicators && props.indicators.out),
+        hook: "out-led",
+        finish: fin
+      });
+      resX = -2.4;
+      resY = 10.4;
     }
     pads.forEach((x) => {
       s += tag("pad", circle(x, r2(padY), 2.2, T.pad) + circle(x, r2(padY), 0.9, T.hole));
@@ -7595,7 +7754,7 @@ var PartsKit = (() => {
         f.silk
       );
     s += edgePins.svg + hdr.svg;
-    const what = element === "bead" ? "Temperature sensor (NTC)" : "IR receiver";
+    const what = element === "bead" ? "Temperature sensor (NTC)" : element === "hall" ? "Hall sensor" : element === "slot" ? "Photo interrupter" : element === "spring" ? "Knock sensor" : element === "touch" ? "Touch sensor" : "IR receiver";
     return art(w, h, props.description || `${what} module`, s, edgePins.pins);
   }
   function sensorModuleTemplate(props) {
@@ -8347,6 +8506,105 @@ var PartsKit = (() => {
       finish: finishOf(props)
     });
   }
+  function linearHallSensor(props) {
+    return comparatorBoardTemplate({
+      element: "hall",
+      pins: ["VCC", "GND", "DO", "AO"],
+      indicators: lamps(props),
+      finish: finishOf(props)
+    });
+  }
+  function vibrationSensor(props) {
+    return comparatorBoardTemplate({
+      element: "sw420",
+      pins: ["VCC", "GND", "DO"],
+      indicators: lamps(props),
+      finish: finishOf(props)
+    });
+  }
+  function digitalTemperatureSensor(props) {
+    return comparatorBoardTemplate({
+      element: "ntc",
+      pins: ["AO", "GND", "VCC", "DO"],
+      labels: ["A0", "G", "+", "D0"],
+      indicators: lamps(props),
+      finish: finishOf(props)
+    });
+  }
+  function hallSensor(props) {
+    return smallSensorBoardTemplate({
+      element: "hall",
+      pins: ["SIG", "VCC", "GND"],
+      label: "KY-003",
+      indicators: { out: !!(props && props.indicators && props.indicators.out === true) },
+      finish: finishOf(props)
+    });
+  }
+  function touchSensor(props) {
+    return smallSensorBoardTemplate({
+      element: "touch",
+      pins: ["SIG", "VCC", "GND"],
+      labels: ["SIG", "VCC", "GND"],
+      indicators: { out: !!(props && props.indicators && props.indicators.out === true) },
+      finish: finishOf(props, "red")
+    });
+  }
+  function photoInterrupter(props) {
+    return smallSensorBoardTemplate({
+      element: "slot",
+      pins: ["SIG", "VCC", "GND"],
+      label: "KY-010",
+      finish: finishOf(props)
+    });
+  }
+  function knockSensor(props) {
+    return smallSensorBoardTemplate({
+      element: "spring",
+      pins: ["SIG", "VCC", "GND"],
+      label: "KY-031",
+      finish: finishOf(props)
+    });
+  }
+  function reedSwitch(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const mm = p / 2.54;
+    const w = 8 * p;
+    const h = 2 * p;
+    const y = p;
+    const gl = 14 * mm;
+    const gr = 1.25 * mm;
+    const gx = (w - gl) / 2;
+    const closed = props.closed === true;
+    let s = wire(0, y, gx + 1.5 * mm, y) + wire(gx + gl - 1.5 * mm, y, w, y);
+    const gap = closed ? 0 : 0.35 * mm;
+    const reed = (x0, x1, dy) => rect(
+      Math.min(x0, x1),
+      y + dy - 0.3 * mm,
+      Math.abs(x1 - x0),
+      0.6 * mm,
+      T.metal,
+      edge(T, T["metal-edge"], T["stroke-fine"])
+    );
+    s += tag(
+      "element",
+      reed(gx + 1 * mm, w / 2 + 1.8 * mm, -0.3 * mm - gap / 2) + reed(gx + gl - 1 * mm, w / 2 - 1.8 * mm, 0.3 * mm + gap / 2) + rect(gx, y - gr, gl, 2 * gr, T["lens-white"], {
+        rx: gr,
+        "fill-opacity": 0.35,
+        stroke: T["plastic-white-edge"],
+        "stroke-width": T["stroke-detail"]
+      })
+    );
+    s += rect(gx + 1 * mm, y - gr + 0.35 * mm, gl - 2 * mm, 0.5 * mm, "#ffffff", {
+      rx: 0.25 * mm,
+      "fill-opacity": 0.5
+    });
+    return art(w, h, `Reed switch, ${closed ? "closed" : "open"}`, s, [
+      { name: "1", x: 0, y },
+      { name: "2", x: w, y }
+    ]);
+  }
   function lm35Sensor() {
     return to92Template({ label: "LM35", pins: ["+VS", "VOUT", "GND"] });
   }
@@ -8619,25 +8877,33 @@ var PartsKit = (() => {
     capacitiveSoilSensor: () => capacitiveSoilSensor,
     dht11Module: () => dht11Module,
     dht22Sensor: () => dht22Sensor,
+    digitalTemperatureSensor: () => digitalTemperatureSensor,
     ds18b20Sensor: () => ds18b20Sensor,
     flameSensor: () => flameSensor,
     gasSensor: () => gasSensor,
+    hallSensor: () => hallSensor,
     irReceiver: () => irReceiver,
+    knockSensor: () => knockSensor,
     lightSensor: () => lightSensor,
     lineTracker: () => lineTracker,
+    linearHallSensor: () => linearHallSensor,
     lm35Sensor: () => lm35Sensor,
     max30102Module: () => max30102Module,
     mpu6050Imu: () => mpu6050Imu,
     ntcSensor: () => ntcSensor,
     obstacleSensor: () => obstacleSensor,
+    photoInterrupter: () => photoInterrupter,
     pirModule: () => pirModule,
     pulseSensor: () => pulseSensor,
     rainSensor: () => rainSensor,
+    reedSwitch: () => reedSwitch,
     soilMoistureSensor: () => soilMoistureSensor,
     soundSensor: () => soundSensor,
     tiltSwitch: () => tiltSwitch,
     tmp36Sensor: () => tmp36Sensor,
+    touchSensor: () => touchSensor,
     ultrasonicRanger: () => ultrasonicRanger,
+    vibrationSensor: () => vibrationSensor,
     vl53l0xModule: () => vl53l0xModule,
     voltageSensorModule: () => voltageSensorModule,
     waterLevelSensor: () => waterLevelSensor
@@ -10378,6 +10644,7 @@ var PartsKit = (() => {
     dialDigitAt: () => dialDigitAt,
     dialGeometry: () => dialGeometry,
     dialTravel: () => dialTravel,
+    digitalTemperatureSensor: () => digitalTemperatureSensor,
     dipSwitch: () => dipSwitch,
     drawPart: () => drawPart,
     ds18b20Sensor: () => ds18b20Sensor,
@@ -10404,6 +10671,7 @@ var PartsKit = (() => {
     franzininho: () => franzininho,
     gasModuleTemplate: () => gasModuleTemplate,
     gasSensor: () => gasSensor,
+    hallSensor: () => hallSensor,
     header: () => header,
     hx711Board: () => hx711Board,
     ili9341TouchDisplay: () => ili9341TouchDisplay,
@@ -10413,6 +10681,7 @@ var PartsKit = (() => {
     joystick: () => joystick,
     keypad: () => keypad,
     knobPosition: () => knobPosition,
+    knockSensor: () => knockSensor,
     led: () => led,
     ledBarGraph: () => ledBarGraph,
     ledDriver595: () => ledDriver595,
@@ -10422,6 +10691,7 @@ var PartsKit = (() => {
     lensColor: () => lensColor,
     lightSensor: () => lightSensor,
     lineTracker: () => lineTracker,
+    linearHallSensor: () => linearHallSensor,
     lm35Sensor: () => lm35Sensor,
     loadPart: () => loadPart,
     logicAnalyzer: () => logicAnalyzer,
@@ -10458,6 +10728,7 @@ var PartsKit = (() => {
     optionsFromAttributes: () => optionsFromAttributes,
     partPins: () => partPins,
     patchSvg: () => patchSvg,
+    photoInterrupter: () => photoInterrupter,
     picoBoardTemplate: () => picoBoardTemplate,
     picoClassBoard: () => picoClassBoard,
     pin: () => pin,
@@ -10468,6 +10739,7 @@ var PartsKit = (() => {
     pulseSensor: () => pulseSensor,
     pushbutton: () => pushbutton,
     rainSensor: () => rainSensor,
+    reedSwitch: () => reedSwitch,
     relay: () => relay,
     relayModule: () => relayModule,
     resistor: () => resistor,
@@ -10508,6 +10780,7 @@ var PartsKit = (() => {
     toDataUrl: () => toDataUrl,
     tokenMode: () => tokenMode,
     tokens: () => tokens,
+    touchSensor: () => touchSensor,
     trace: () => trace,
     transistor: () => transistor,
     ultrasonicRanger: () => ultrasonicRanger,
@@ -10515,6 +10788,7 @@ var PartsKit = (() => {
     usbC: () => usbC,
     usbPort: () => usbPort,
     via: () => via,
+    vibrationSensor: () => vibrationSensor,
     vl53l0xModule: () => vl53l0xModule,
     voltageSensorModule: () => voltageSensorModule,
     waterLevelSensor: () => waterLevelSensor,
@@ -10758,6 +11032,14 @@ var PartsKit = (() => {
       indicators: lamps2({ power: "Power LED" }),
       finish: finish2("red")
     },
+    hallSensor: { indicators: lamps2({ out: "Signal LED" }), finish: finish2("black") },
+    linearHallSensor: SENSOR_BOARD("blue"),
+    touchSensor: { indicators: lamps2({ out: "Touch LED" }), finish: finish2("red") },
+    vibrationSensor: SENSOR_BOARD("blue"),
+    reedSwitch: { closed: state(bool("Closed")) },
+    digitalTemperatureSensor: SENSOR_BOARD("red"),
+    photoInterrupter: { finish: finish2("black") },
+    knockSensor: { finish: finish2("black") },
     // Inputs.
     pushbutton: {
       pressed: state(bool("Pressed")),
@@ -11238,6 +11520,21 @@ var PartsKit = (() => {
       ["0-25V", "voltage divider"]
     ],
     ["acs712-current-sensor", "ACS712 current sensor", "sensor", "acs712Module", null, ["ACS712", "hall effect"]],
+    ["hall-sensor", "Hall sensor", "sensor", "hallSensor", null, ["KY-003", "A3144", "magnet"]],
+    ["linear-hall-sensor", "Linear hall sensor", "sensor", "linearHallSensor", null, ["KY-024", "49E", "magnet"]],
+    ["touch-sensor", "Touch sensor", "sensor", "touchSensor", null, ["TTP223", "capacitive touch"]],
+    ["vibration-sensor", "Vibration sensor", "sensor", "vibrationSensor", null, ["SW-420", "shake"]],
+    ["reed-switch", "Reed switch", "sensor", "reedSwitch", null, ["magnet", "KY-021", "KY-025"]],
+    [
+      "digital-temperature-sensor",
+      "Digital temperature sensor",
+      "sensor",
+      "digitalTemperatureSensor",
+      null,
+      ["KY-028", "NTC", "thermistor"]
+    ],
+    ["photo-interrupter", "Photo interrupter", "sensor", "photoInterrupter", null, ["KY-010", "slotted optocoupler"]],
+    ["knock-sensor", "Knock sensor", "sensor", "knockSensor", null, ["KY-031", "shock", "spring"]],
     ["pushbutton", "Pushbutton", "input", "pushbutton", { size: 12 }, ["button", "tactile switch"]],
     ["pushbutton-6-mm", "Pushbutton, 6 mm", "input", "pushbutton", { size: 6 }, ["button", "tactile switch"]],
     ["potentiometer", "Potentiometer", "input", "potentiometer", null, ["knob", "pot"]],

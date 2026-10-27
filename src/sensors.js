@@ -70,6 +70,12 @@ import { moduleTemplate } from './modules.js';
  * - 'fork-probe' and 'rain-plate': the FC board of the soil and rain
  *   sensors, a two-pin header at the end where the element would be,
  *   with its probe beside it (besideProbe).
+ * - 'hall': the linear hall board, the FC layout with the 49E lying flat
+ *   past the end, its three legs bent out to their pads.
+ * - 'sw420': the vibration board, the FC layout with the SW-420's metal
+ *   can lying across the end.
+ * - 'ntc': the KY-028, the KY-037 board with the thermistor bead on its
+ *   long legs past the end.
  * Each board comes with a right-angle header: the spacer on the board at
  * the end away from the element, the pins standing 6 mm past it, the names on the silk
  * above the pads (labels; DOUT and AOUT print as DO and AO, as the boards
@@ -82,7 +88,7 @@ export function comparatorBoardTemplate(props) {
   const mm = p / 2.54;
   const element = props.element || 'ldr';
   const probe = element === 'fork-probe' || element === 'rain-plate';
-  const layout = element === 'cylinder' ? 'tilt' : element === 'mic' ? 'ky037' : 'fc';
+  const layout = element === 'cylinder' ? 'tilt' : element === 'mic' || element === 'ntc' ? 'ky037' : 'fc';
   const fin = props.finish || (layout === 'ky037' ? 'red' : 'blue');
   const f = finish(T, fin);
   const names = props.pins || ['VCC', 'GND', 'DO', 'AO'];
@@ -100,7 +106,8 @@ export function comparatorBoardTemplate(props) {
   const micLen = (micMm > 8 ? 6.7 : 4.5) * mm;
   const ext = 6 * mm;
   const w = bw;
-  const by = (probe ? 3.5 : layout === 'tilt' ? 11.5 : layout === 'fc' ? 6.5 : micLen / mm + 1.0) * mm;
+  const by =
+    (probe ? 3.5 : layout === 'tilt' ? 11.5 : layout === 'fc' ? 6.5 : element === 'ntc' ? 7.0 : micLen / mm + 1.0) * mm;
   const h = by + bh + ext;
   const cx = w / 2;
   let s = '';
@@ -380,12 +387,79 @@ export function comparatorBoardTemplate(props) {
         circle(E(2.5), ty0 + th / 2, 1.6 * mm, T.cavity, edge(T, T['plastic-black-edge'], T['stroke-fine'])) +
         circle(E(-2.5), ty0 + th / 2, 1.6 * mm, sheen('lens'), { 'fill-opacity': 0.5 }),
     );
+  } else if (element === 'hall') {
+    // The 49E linear hall sensor lying flat past the end, its printed face up, three legs bent down and out to their pads.
+    const hw = 4.1 * mm;
+    const hl = 3.0 * mm;
+    const ty0 = by - 5.4 * mm;
+    const bend = by + 0.6 * mm;
+    [-1.27, 0, 1.27].forEach(k => {
+      s += wire(E(k), ty0 + hl - 0.6, E(k), bend) + wire(E(k), bend, E(2 * k), padY);
+    });
+    s += tag(
+      'element',
+      rect(
+        cx - hw / 2,
+        ty0,
+        hw,
+        hl,
+        T['plastic-black'],
+        Object.assign({ rx: 0.5 }, edge(T, T['plastic-black-edge'], T['stroke-detail'])),
+      ) +
+        bevel(T, cx - hw / 2, ty0, hw, hl, 0.8, 0.5) +
+        text(cx, ty0 + hl / 2, '49E', 4, T['chip-print'], { 'dominant-baseline': 'middle' }),
+    );
+  } else if (element === 'sw420') {
+    // The SW-420 vibration switch lying across the end past the board: its metal can with the black sealed end, two legs down to the pads.
+    const cl = 9.0 * mm;
+    const cr = 2.1 * mm;
+    const ccy = by - 3.4 * mm;
+    [E(-1.27), E(1.27)].forEach(x => {
+      s += wire(x, ccy + cr - 0.6, x, padY);
+    });
+    s += tag(
+      'element',
+      rect(cx - cl / 2, ccy - cr, cl, 2 * cr, T.metal, Object.assign({ rx: cr * 0.4 }, edge(T, T['metal-edge']))) +
+        rect(
+          cx + cl / 2 - 1.6 * mm,
+          ccy - cr,
+          1.6 * mm,
+          2 * cr,
+          T['plastic-black'],
+          Object.assign({ rx: cr * 0.4 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
+        ),
+    );
+    s += rect(cx - cl / 2, ccy - cr, cl, 2 * cr, sheen('metal'), { rx: cr * 0.4, 'fill-opacity': 0.7 });
+  } else if (element === 'ntc') {
+    // The KY-028's thermistor: the black bead on its long legs past the end, the legs down to the pads.
+    const bcy = by - 4.6 * mm;
+    [E(-1.27), E(1.27)].forEach(x => {
+      s += wire(x, bcy + 1.4 * mm, x, padY);
+    });
+    s += tag(
+      'element',
+      el('ellipse', {
+        cx,
+        cy: r2(bcy),
+        rx: 1.5 * mm,
+        ry: 1.9 * mm,
+        fill: T['plastic-black'],
+        stroke: T['plastic-black-edge'],
+        'stroke-width': T['stroke-detail'],
+      }),
+    );
+    s += el('ellipse', { cx, cy: r2(bcy), rx: 1.5 * mm, ry: 1.9 * mm, fill: sheen('dome'), 'fill-opacity': 0.7 });
   }
   // The probe boards take their probe's wires on a two-pin header at the end; the four-leg elements have a pad a leg.
   const link = probe ? edgeHeader(T, { names: ['+', '-'], side: 'top', at: by, from: E(-1.27), ext: 3 * mm }) : null;
   if (link) s += link.svg;
-  else if (element === 'ir-pair' || element === 'tcrt5000')
-    (element === 'ir-pair' ? [-4.17, -1.63, 1.63, 4.17] : [-3.81, -1.27, 1.27, 3.81]).forEach(k => {
+  else if (element === 'ir-pair' || element === 'tcrt5000' || element === 'hall')
+    (element === 'ir-pair'
+      ? [-4.17, -1.63, 1.63, 4.17]
+      : element === 'hall'
+        ? [-2.54, 0, 2.54]
+        : [-3.81, -1.27, 1.27, 3.81]
+    ).forEach(k => {
       s += tag('pad', circle(E(k), r2(padY), 2.2, T.pad) + circle(E(k), r2(padY), 0.9, T.hole));
     });
   else {
@@ -519,7 +593,13 @@ export function comparatorBoardTemplate(props) {
                 ? 'Soil moisture sensor'
                 : element === 'rain-plate'
                   ? 'Rain sensor'
-                  : 'Sound sensor';
+                  : element === 'hall'
+                    ? 'Linear hall sensor'
+                    : element === 'sw420'
+                      ? 'Vibration sensor'
+                      : element === 'ntc'
+                        ? 'Digital temperature sensor'
+                        : 'Sound sensor';
   if (link)
     return besideProbe(
       T,
@@ -638,8 +718,14 @@ function besideProbe(T, fin, f, element, part, label) {
  * middle, the bead past the far end; the pins S, +, - from the left), 'ir'
  * (KY-022: the 38 kHz receiver standing at the far end, seen from above as
  * the top of its body with the dome facing out, the red indicator and its
- * resistor; the pins -, +, S from the left). The box is the board's width,
- * and its height runs from the bead to the pins' tips.
+ * resistor; the pins -, +, S from the left), 'hall' (KY-003: the A3144
+ * standing at the far end, seen from above, and the red LED that lights
+ * while it senses a magnet, `indicators.out`), 'slot' (KY-010: the slotted
+ * opto-interrupter's two towers either side of the slot), 'spring'
+ * (KY-031: the spring switch in its open-topped case across the far end)
+ * and 'touch' (the TTP223 module: the round touch pad, the chip and its
+ * red LED, `indicators.out`). The box is the board's width, and its height
+ * runs from the bead to the pins' tips.
  */
 export function smallSensorBoardTemplate(props) {
   const T = tokens();
@@ -760,6 +846,123 @@ export function smallSensorBoardTemplate(props) {
         state: 'power',
         finish: fin,
       });
+  } else if (element === 'hall' || element === 'slot') {
+    // Standing at the far end, seen from above, its legs down to the pads below it: the A3144's TO-92 top (three legs),
+    // or the slotted opto-interrupter (two towers either side of the slot, the emitter's and the detector's, four legs).
+    const slot = element === 'slot';
+    const top = by + 2.6 * mm;
+    const depth = (slot ? 4.6 : 3.0) * mm;
+    padY = top + depth + 1.6 * mm;
+    const legs = slot ? [-3.81, -1.27, 1.27, 3.81] : [-2.54, 0, 2.54];
+    legs.forEach(k => {
+      s += wire(X(slot ? k : k / 2), top + depth - 0.6, X(k), padY);
+      s += tag('pad', circle(X(k), r2(padY), 2.2, T.pad) + circle(X(k), r2(padY), 0.9, T.hole));
+    });
+    if (slot) {
+      const tw = 3.0 * mm;
+      let towers = '';
+      [X(-4.6), X(4.6) - tw].forEach(tx => {
+        towers +=
+          rect(
+            tx,
+            r2(top),
+            tw,
+            depth,
+            T['plastic-black'],
+            Object.assign({ rx: 0.6 }, edge(T, T['plastic-black-edge'], T['stroke-detail'])),
+          ) + bevel(T, tx, top, tw, depth, 0.8, 0.6);
+      });
+      // The base joining the towers under the slot.
+      towers += rect(
+        X(-1.7),
+        r2(top + depth - 1.4 * mm),
+        3.4 * mm,
+        1.4 * mm,
+        T['plastic-black'],
+        edge(T, T['plastic-black-edge'], T['stroke-fine']),
+      );
+      s += tag('element', towers);
+      resX = -5.2;
+      resY = 11.0;
+    } else {
+      s += tag(
+        'element',
+        rect(
+          X(-2.1),
+          r2(top),
+          4.2 * mm,
+          depth,
+          T['plastic-black'],
+          Object.assign({ rx: 1.2 }, edge(T, T['plastic-black-edge'], T['stroke-detail'])),
+        ) + text(cx, top + depth / 2, '3144', 4, T['chip-print'], { 'dominant-baseline': 'middle' }),
+      );
+      resX = 3.2;
+      resY = 2.8;
+      s +=
+        silkFrame(T, f, cx - 5.2 * mm, by + 9.8 * mm, 0.6 * p, 0.6 * p) +
+        indicator({
+          x: cx - 5.2 * mm,
+          y: by + 9.8 * mm,
+          size: 0.6 * p,
+          color: 'red',
+          on: !!(props.indicators && props.indicators.out),
+          hook: 'out-led',
+          finish: fin,
+        });
+    }
+  } else if (element === 'spring') {
+    // The knock sensor's spring switch lying across the far end: its black case, the spring coiled inside seen through
+    // the open top; its two legs are soldered under the case.
+    const cl = 9.0 * mm;
+    const ch = 4.4 * mm;
+    const top = by + 1.4 * mm;
+    let coil = '';
+    for (let k = 0; k < 9; k++) {
+      const x = cx - 3.6 * mm + k * 0.9 * mm;
+      coil += `M${r2(x)} ${r2(top + 0.9 * mm)}l${r2(0.5 * mm)} ${r2(ch - 1.8 * mm)}`;
+    }
+    s += tag(
+      'element',
+      rect(
+        cx - cl / 2,
+        r2(top),
+        cl,
+        ch,
+        T['plastic-black'],
+        Object.assign({ rx: 0.8 }, edge(T, T['plastic-black-edge'], T['stroke-detail'])),
+      ) +
+        rect(cx - 4.0 * mm, r2(top + 0.7 * mm), 8.0 * mm, ch - 1.4 * mm, T.cavity, { rx: 0.5 }) +
+        path(coil, 'none', { stroke: T.metal, 'stroke-width': 0.9, 'stroke-linecap': 'round' }),
+    );
+    resX = -5.2;
+    resY = 9.0;
+  } else if (element === 'touch') {
+    // The touch module: the round touch pad under the solder mask at the far end, the TTP223 in SOT-23-6 and the red LED
+    // that lights while it is touched.
+    const pr = 4.2 * mm;
+    const pcy = by + 5.4 * mm;
+    s += tag(
+      'element',
+      circle(cx, r2(pcy), pr, f.board, {
+        stroke: f.silk,
+        'stroke-width': T['stroke-fine'],
+        'stroke-opacity': 0.85,
+      }) + circle(cx, r2(pcy), pr - 0.8 * mm, T.pad, { 'fill-opacity': 0.35 }),
+    );
+    s += sot23(T, X(4.4), by + 9.6 * mm, 5);
+    s +=
+      silkFrame(T, f, cx - 5.6 * mm, by + 10.6 * mm, 0.6 * p, 0.6 * p) +
+      indicator({
+        x: cx - 5.6 * mm,
+        y: by + 10.6 * mm,
+        size: 0.6 * p,
+        color: 'red',
+        on: !!(props.indicators && props.indicators.out),
+        hook: 'out-led',
+        finish: fin,
+      });
+    resX = -2.4;
+    resY = 10.4;
   }
   pads.forEach(x => {
     s += tag('pad', circle(x, r2(padY), 2.2, T.pad) + circle(x, r2(padY), 0.9, T.hole));
@@ -774,7 +977,18 @@ export function smallSensorBoardTemplate(props) {
       f.silk,
     );
   s += edgePins.svg + hdr.svg;
-  const what = element === 'bead' ? 'Temperature sensor (NTC)' : 'IR receiver';
+  const what =
+    element === 'bead'
+      ? 'Temperature sensor (NTC)'
+      : element === 'hall'
+        ? 'Hall sensor'
+        : element === 'slot'
+          ? 'Photo interrupter'
+          : element === 'spring'
+            ? 'Knock sensor'
+            : element === 'touch'
+              ? 'Touch sensor'
+              : 'IR receiver';
   return art(w, h, props.description || `${what} module`, s, edgePins.pins);
 }
 
@@ -1683,6 +1897,121 @@ export function lineTracker(props) {
     indicators: lamps(props),
     finish: finishOf(props),
   });
+}
+/** The linear hall sensor: the 49E on the four-pin comparator board. */
+export function linearHallSensor(props) {
+  return comparatorBoardTemplate({
+    element: 'hall',
+    pins: ['VCC', 'GND', 'DO', 'AO'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The vibration sensor: the SW-420 on the three-pin comparator board. */
+export function vibrationSensor(props) {
+  return comparatorBoardTemplate({
+    element: 'sw420',
+    pins: ['VCC', 'GND', 'DO'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The KY-028 digital temperature sensor: the thermistor on the KY-037 board, A0, G, +, D0 as it prints them. */
+export function digitalTemperatureSensor(props) {
+  return comparatorBoardTemplate({
+    element: 'ntc',
+    pins: ['AO', 'GND', 'VCC', 'DO'],
+    labels: ['A0', 'G', '+', 'D0'],
+    indicators: lamps(props),
+    finish: finishOf(props),
+  });
+}
+/** The KY-003 hall sensor: the A3144 on the three-pin board, S, +, - from the left, its LED lit while it senses a magnet. */
+export function hallSensor(props) {
+  return smallSensorBoardTemplate({
+    element: 'hall',
+    pins: ['SIG', 'VCC', 'GND'],
+    label: 'KY-003',
+    indicators: { out: !!(props && props.indicators && props.indicators.out === true) },
+    finish: finishOf(props),
+  });
+}
+/** The TTP223 touch module: the touch pad and its LED on a three-pin board, SIG, VCC, GND. */
+export function touchSensor(props) {
+  return smallSensorBoardTemplate({
+    element: 'touch',
+    pins: ['SIG', 'VCC', 'GND'],
+    labels: ['SIG', 'VCC', 'GND'],
+    indicators: { out: !!(props && props.indicators && props.indicators.out === true) },
+    finish: finishOf(props, 'red'),
+  });
+}
+/** The KY-010 photo interrupter: the slotted opto-interrupter on the three-pin board, S, +, - from the left. */
+export function photoInterrupter(props) {
+  return smallSensorBoardTemplate({
+    element: 'slot',
+    pins: ['SIG', 'VCC', 'GND'],
+    label: 'KY-010',
+    finish: finishOf(props),
+  });
+}
+/** The KY-031 knock sensor: the spring switch on the three-pin board, S, +, - from the left. */
+export function knockSensor(props) {
+  return smallSensorBoardTemplate({
+    element: 'spring',
+    pins: ['SIG', 'VCC', 'GND'],
+    label: 'KY-031',
+    finish: finishOf(props),
+  });
+}
+/**
+ * A reed switch lying flat, legs `span` pitches apart (8): the 14 mm glass
+ * envelope with its two flattened reeds overlapping in the middle, apart
+ * while open and touching while `closed`, the leads out of each end.
+ */
+export function reedSwitch(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const w = 8 * p;
+  const h = 2 * p;
+  const y = p;
+  const gl = 14 * mm;
+  const gr = 1.25 * mm;
+  const gx = (w - gl) / 2;
+  const closed = props.closed === true;
+  let s = wire(0, y, gx + 1.5 * mm, y) + wire(gx + gl - 1.5 * mm, y, w, y);
+  // The reeds: each from its end to past the middle, their tips overlapping, apart unless closed.
+  const gap = closed ? 0 : 0.35 * mm;
+  const reed = (x0, x1, dy) =>
+    rect(
+      Math.min(x0, x1),
+      y + dy - 0.3 * mm,
+      Math.abs(x1 - x0),
+      0.6 * mm,
+      T.metal,
+      edge(T, T['metal-edge'], T['stroke-fine']),
+    );
+  s += tag(
+    'element',
+    reed(gx + 1.0 * mm, w / 2 + 1.8 * mm, -0.3 * mm - gap / 2) +
+      reed(gx + gl - 1.0 * mm, w / 2 - 1.8 * mm, 0.3 * mm + gap / 2) +
+      rect(gx, y - gr, gl, 2 * gr, T['lens-white'], {
+        rx: gr,
+        'fill-opacity': 0.35,
+        stroke: T['plastic-white-edge'],
+        'stroke-width': T['stroke-detail'],
+      }),
+  );
+  s += rect(gx + 1.0 * mm, y - gr + 0.35 * mm, gl - 2.0 * mm, 0.5 * mm, '#ffffff', {
+    rx: 0.25 * mm,
+    'fill-opacity': 0.5,
+  });
+  return art(w, h, `Reed switch, ${closed ? 'closed' : 'open'}`, s, [
+    { name: '1', x: 0, y },
+    { name: '2', x: w, y },
+  ]);
 }
 /** The LM35 analog temperature sensor in its TO-92 package, flat face forward: +VS, VOUT, GND. */
 export function lm35Sensor() {

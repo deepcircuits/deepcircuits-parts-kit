@@ -432,6 +432,14 @@ export const CARDS = [
     },
   },
   {
+    name: "ReedSwitch",
+    intro: "`reedSwitch`: a glass reed switch lying flat, its leads eight pitches apart",
+    draw(K, root) {
+      K.mount(root, K.reedSwitch(), { pins: true, scale: 3, caption: "open" });
+      K.mount(root, K.reedSwitch({ closed: true }), { scale: 3, caption: "closed, a magnet near" });
+    },
+  },
+  {
     name: "RegulatorModule",
     intro: "`ams1117Module`: the small blue AMS1117-3.3 board, 25 × 11.5 mm",
     draw(K, root) {
@@ -514,9 +522,16 @@ export const CARDS = [
       K.mount(root, K.lineTracker(), { caption: "line tracker, the TCRT5000 across the end" });
       K.mount(root, K.soilMoistureSensor({ indicators: { power: true } }), { caption: "soil moisture, the fork beside the board" });
       K.mount(root, K.rainSensor(), { caption: "rain, the plate beside the board" });
+      K.mount(root, K.linearHallSensor({ indicators: { power: true } }), { pins: true, caption: "linear hall, the 49E past the end" });
+      K.mount(root, K.vibrationSensor(), { caption: "vibration, the SW-420 across the end" });
+      K.mount(root, K.digitalTemperatureSensor({ indicators: { power: true, out: true } }), { pins: true, caption: "digital temperature, the KY-028" });
       K.mount(root, K.sensorModuleTemplate({ label: "NTC", element: "bead", pins: ["GND", "VCC", "OUT"] }), { caption: "NTC temperature, 16 × 19 mm" });
       K.mount(root, K.sensorModuleTemplate({ element: "cylinder", pins: ["GND", "VCC", "OUT"], indicators: { power: true } }), { caption: "tilt switch, the 14 mm board, the brass SW-520D past the end" });
       K.mount(root, K.sensorModuleTemplate({ label: "IR RX", element: "ir", pins: ["GND", "VCC", "DAT"], indicators: { power: true } }), { caption: "IR receiver, 15 × 20 mm, its indicator lit" });
+      K.mount(root, K.hallSensor({ indicators: { out: true } }), { pins: true, caption: "hall, the KY-003, a magnet near" });
+      K.mount(root, K.photoInterrupter(), { caption: "photo interrupter, the KY-010" });
+      K.mount(root, K.knockSensor(), { caption: "knock, the KY-031" });
+      K.mount(root, K.touchSensor(), { pins: true, caption: "touch, the TTP223 module" });
     },
   },
   {

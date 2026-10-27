@@ -1,0 +1,13 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>ReedSwitch — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.reedSwitch(), { pins: true, scale: 3, caption: "open" });
+K.mount(root, K.reedSwitch({ closed: true }), { scale: 3, caption: "closed, a magnet near" });
+</script>
+</body>
+</html>

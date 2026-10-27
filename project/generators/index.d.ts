@@ -112,7 +112,7 @@ export interface IrRemoteProps {
 }
 export interface RotaryDialerProps { angle?: number; pins?: readonly string[] }
 /** The small sensor boards, each laid out from its photograph by `element`: the comparator boards (ldr and flame 16.5 × 36 mm, mic 16.5 × 36 mm in red, cylinder 14 × 36 mm, each with the LM393 and the trimmer) and the small boards (bead 16 × 19 mm, ir 15 × 20 mm). The board size follows the element; `widthPitches` and `heightPitches` apply only to `element: 'none'`. */
-export interface SensorModuleProps { label?: string; pins?: readonly string[]; /** The print beside the pins, in pin order, where the board prints other names than pins (DO for DOUT); pins by default. */ labels?: readonly string[]; /** The comparator boards also take 'ir-pair' (FC-51), 'tcrt5000' (line tracker), and 'fork-probe' and 'rain-plate' (the soil and rain probes drawn beside the board). */ element?: 'ldr' | 'flame' | 'mic' | 'bead' | 'cylinder' | 'ir' | 'ir-pair' | 'tcrt5000' | 'fork-probe' | 'rain-plate' | 'none'; comparator?: boolean; /** The sound boards' electret capsule in mm: 9.7 by default, 6 for the small board. */ micMm?: number; /** Only for `element: 'none'`; the photographed elements set their own size. */ widthPitches?: number; /** Only for `element: 'none'`. */ heightPitches?: number; finish?: Finish; indicators?: { power?: boolean; out?: boolean }; description?: string }
+export interface SensorModuleProps { label?: string; pins?: readonly string[]; /** The print beside the pins, in pin order, where the board prints other names than pins (DO for DOUT); pins by default. */ labels?: readonly string[]; /** The comparator boards also take 'ir-pair' (FC-51), 'tcrt5000' (line tracker), 'fork-probe' and 'rain-plate' (the soil and rain probes drawn beside the board), 'hall' (the 49E), 'sw420' (the vibration switch) and 'ntc' (the KY-028); the small boards also take 'hall' (KY-003), 'slot' (KY-010), 'spring' (KY-031) and 'touch' (TTP223). */ element?: 'ldr' | 'flame' | 'mic' | 'bead' | 'cylinder' | 'ir' | 'ir-pair' | 'tcrt5000' | 'fork-probe' | 'rain-plate' | 'hall' | 'sw420' | 'ntc' | 'slot' | 'spring' | 'touch' | 'none'; comparator?: boolean; /** The sound boards' electret capsule in mm: 9.7 by default, 6 for the small board. */ micMm?: number; /** Only for `element: 'none'`; the photographed elements set their own size. */ widthPitches?: number; /** Only for `element: 'none'`. */ heightPitches?: number; finish?: Finish; indicators?: { power?: boolean; out?: boolean }; description?: string }
 export interface PulseSensorProps { on?: boolean; pins?: readonly string[] }
 export interface NeopixelProps { r?: number; g?: number; b?: number; color?: string }
 /** A pixel's colour: a CSS colour, or r, g and b from 0 to 1; null or undefined leaves it dark. */
@@ -207,6 +207,10 @@ export interface CatalogModuleState { finish?: Finish }
 export interface GasSensorState extends CatalogSensorState { label?: 'MQ-2' | 'MQ-3' | 'MQ-7' | 'MQ-135' }
 /** A small sensor board with only its power LED. */
 export interface PowerLedSensorState { indicators?: { power?: boolean }; finish?: Finish }
+/** A small sensor board with only its signal LED, lit while it detects (the KY-003, the TTP223). */
+export interface SignalLedSensorState { indicators?: { out?: boolean }; finish?: Finish }
+/** The reed switch's contact: open unless `closed`. */
+export interface ReedSwitchState { closed?: boolean }
 /** The ACS712 module: its grade (5A, 20A or 30A, printed on the chip) and its power LED. */
 export interface Acs712ModuleState { range?: '5A' | '20A' | '30A'; indicators?: { power?: boolean }; finish?: Finish }
 /** A catalog chip's options: its package (the part's own by default). */
@@ -496,6 +500,22 @@ export interface PartsKit {
   voltageSensorModule(state?: CatalogModuleState): Artwork;
   /** The ACS712 current sensor module: the terminal (IP+, IP-) and the header (VCC, OUT, GND). */
   acs712Module(state?: Acs712ModuleState): Artwork;
+  /** The KY-003 hall sensor (SIG, VCC, GND); its LED lights while it senses a magnet. */
+  hallSensor(state?: SignalLedSensorState): Artwork;
+  /** The linear hall sensor: the 49E on its comparator board (VCC, GND, DO, AO). */
+  linearHallSensor(state?: CatalogSensorState): Artwork;
+  /** The TTP223 touch module (SIG, VCC, GND); its LED lights while it is touched. */
+  touchSensor(state?: SignalLedSensorState): Artwork;
+  /** The SW-420 vibration sensor on its comparator board (VCC, GND, DO). */
+  vibrationSensor(state?: CatalogSensorState): Artwork;
+  /** A glass reed switch lying flat (1, 2), its reeds touching while `closed`. */
+  reedSwitch(state?: ReedSwitchState): Artwork;
+  /** The KY-028 digital temperature sensor: the thermistor on its comparator board (AO, GND, VCC, DO, printed A0, G, +, D0). */
+  digitalTemperatureSensor(state?: CatalogSensorState): Artwork;
+  /** The KY-010 photo interrupter (SIG, VCC, GND). */
+  photoInterrupter(state?: CatalogModuleState): Artwork;
+  /** The KY-031 knock sensor (SIG, VCC, GND). */
+  knockSensor(state?: CatalogModuleState): Artwork;
   mpu6050Imu(state?: CatalogModuleState): Artwork;
   /** `chip`: BMP280 prints the pressure-only chip on the same board. */
   bme280Module(state?: CatalogModuleState & { chip?: 'BME280' | 'BMP280' }): Artwork;

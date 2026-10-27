@@ -254,6 +254,14 @@ export const OPTIONS = {
     indicators: lamps({ power: 'Power LED' }),
     finish: finish('red'),
   },
+  hallSensor: { indicators: lamps({ out: 'Signal LED' }), finish: finish('black') },
+  linearHallSensor: SENSOR_BOARD('blue'),
+  touchSensor: { indicators: lamps({ out: 'Touch LED' }), finish: finish('red') },
+  vibrationSensor: SENSOR_BOARD('blue'),
+  reedSwitch: { closed: state(bool('Closed')) },
+  digitalTemperatureSensor: SENSOR_BOARD('red'),
+  photoInterrupter: { finish: finish('black') },
+  knockSensor: { finish: finish('black') },
   // Inputs.
   pushbutton: {
     pressed: state(bool('Pressed')),
