@@ -23081,6 +23081,31 @@
       ]
     },
     {
+      "id": "function-generator",
+      "name": "Function generator",
+      "family": "symbol",
+      "aliases": [
+        "signal generator",
+        "AC source",
+        "sine wave",
+        "oscillator"
+      ],
+      "width": 48,
+      "height": 38.4,
+      "pins": [
+        { "name": "OUT", "x": 48, "y": 19.2 },
+        { "name": "GND", "x": 19.2, "y": 38.4 }
+      ],
+      "hooks": [],
+      "images": [
+        {
+          "file": "function-generator.svg",
+          "label": "At rest",
+          "options": {}
+        }
+      ]
+    },
+    {
       "id": "supply",
       "name": "Supply",
       "family": "symbol",

@@ -11270,6 +11270,30 @@ var PartsKit = (() => {
       { name: "GND", x: 2 * p, y: h }
     ]);
   }
+  function functionGenerator(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const w = 5 * p;
+    const h = 4 * p;
+    const x0 = 0.4 * p;
+    const x1 = 3.8 * p;
+    const y0 = 0.4 * p;
+    const y1 = h - 1.2 * p;
+    const st = SYM(T);
+    const wave = WAVES[props.wave] ? props.wave : "sine";
+    let s = "";
+    const sw = T["stroke-symbol"];
+    s += rect(x0, y0, x1 - x0, y1 - y0, "none", Object.assign({ rx: 2 }, st));
+    s += path(`M${r2(x0 + 4)} ${r2(2 * p - 2)}${WAVES[wave]}`, "none", st);
+    s += line(x1, 2 * p, w, 2 * p, "currentColor", sw);
+    s += line(2 * p, y1, 2 * p, h, "currentColor", sw);
+    s += symText((x0 + x1) / 2, y1 - 1.2, props.label || "FG");
+    return art(w, h, `Function generator, ${wave} wave`, s, [
+      { name: "OUT", x: w, y: 2 * p },
+      { name: "GND", x: 2 * p, y: h }
+    ]);
+  }
   function supplySymbol(props) {
     props = props || {};
     const T = tokens();
@@ -11288,7 +11312,7 @@ var PartsKit = (() => {
     const st = SYM(T);
     return art(32, 32, "Text note", path("M7 9V6h18v3M16 6v20M12 26h8", "none", st), []);
   }
-  var INVERTED, GATE_NAMES, SYM, symText;
+  var INVERTED, GATE_NAMES, SYM, symText, WAVES;
   var init_symbols = __esm({
     "src/symbols.js"() {
       init_core();
@@ -11315,6 +11339,11 @@ var PartsKit = (() => {
       symText = function(x, y, s, size, more) {
         return text(x, y, s, size || PIN_LABEL, "currentColor", more);
       };
+      WAVES = {
+        sine: "c2.2 -5.3 4.3 -5.3 6.5 0s4.3 5.3 6.5 0s4.3 -5.3 6.5 0s4.3 5.3 6.5 0",
+        triangle: "l3.25 -4l6.5 8l6.5 -8l6.5 8l3.25 -4",
+        square: "v-4h6.5v8h6.5v-8h6.5v8h6.5v-4"
+      };
     }
   });
 
@@ -11323,6 +11352,7 @@ var PartsKit = (() => {
   __export(symbols_exports, {
     clockGenerator: () => clockGenerator,
     flipFlopSymbol: () => flipFlopSymbol,
+    functionGenerator: () => functionGenerator,
     logicSymbol: () => logicSymbol,
     muxSymbol: () => muxSymbol,
     noteSymbol: () => noteSymbol,
@@ -11403,6 +11433,7 @@ var PartsKit = (() => {
     formatMilliamps: () => formatMilliamps,
     formatOhms: () => formatOhms,
     franzininho: () => franzininho,
+    functionGenerator: () => functionGenerator,
     gasModuleTemplate: () => gasModuleTemplate,
     gasSensor: () => gasSensor,
     gearedStepper: () => gearedStepper,
@@ -11664,7 +11695,10 @@ var PartsKit = (() => {
     esp32S3DevKit: POWER_BOARD,
     stm32L031K6Board: POWER_BOARD,
     stm32C031C6Board: POWER_BOARD,
-    bluePillBoard: { ...BOARD, boot0: { type: "enum", label: "BOOT0 jumper", choices: [choice(0, "0"), choice(1, "1")], default: 0 } },
+    bluePillBoard: {
+      ...BOARD,
+      boot0: { type: "enum", label: "BOOT0 jumper", choices: [choice(0, "0"), choice(1, "1")], default: 0 }
+    },
     franzininho: { indicators: lamps2({ power: "Power LED", user: "User LED" }, ["power"]) },
     // Displays.
     characterLcd: {
@@ -12107,6 +12141,15 @@ var PartsKit = (() => {
     muxSymbol: {},
     flipFlopSymbol: {},
     clockGenerator: { label: { type: "text", label: "Label", default: "CLK", maxLength: 8 } },
+    functionGenerator: {
+      wave: {
+        type: "enum",
+        label: "Wave",
+        choices: [choice("sine", "Sine"), choice("triangle", "Triangle"), choice("square", "Square")],
+        default: "sine"
+      },
+      label: { type: "text", label: "Label", default: "FG", maxLength: 8 }
+    },
     supplySymbol: { voltage: { type: "number", label: "Voltage", min: 0, max: 48, step: 0.1, unit: "V" } }
   };
 
@@ -12447,6 +12490,14 @@ var PartsKit = (() => {
       ["latch"]
     ],
     ["clock-source", "Clock source", "symbol", "clockGenerator", null, ["oscillator"]],
+    [
+      "function-generator",
+      "Function generator",
+      "symbol",
+      "functionGenerator",
+      null,
+      ["signal generator", "AC source", "sine wave", "oscillator"]
+    ],
     ["supply", "Supply", "symbol", "supplySymbol", null, ["VCC", "power"]]
   ];
   function optionApplies(spec, values) {

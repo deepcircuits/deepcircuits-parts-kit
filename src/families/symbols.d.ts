@@ -2,6 +2,7 @@
 import type { PartsKit } from '../../project/generators/index.d.ts';
 export declare const clockGenerator: PartsKit['clockGenerator'];
 export declare const flipFlopSymbol: PartsKit['flipFlopSymbol'];
+export declare const functionGenerator: PartsKit['functionGenerator'];
 export declare const logicSymbol: PartsKit['logicSymbol'];
 export declare const muxSymbol: PartsKit['muxSymbol'];
 export declare const noteSymbol: PartsKit['noteSymbol'];

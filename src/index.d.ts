@@ -42,6 +42,7 @@ export declare const flameSensor: PartsKit['flameSensor'];
 export declare const flipArtwork: PartsKit['flipArtwork'];
 export declare const flipFlopSymbol: PartsKit['flipFlopSymbol'];
 export declare const franzininho: PartsKit['franzininho'];
+export declare const functionGenerator: PartsKit['functionGenerator'];
 export declare const gasSensor: PartsKit['gasSensor'];
 export declare const gearedStepper: PartsKit['gearedStepper'];
 export declare const hallSensor: PartsKit['hallSensor'];

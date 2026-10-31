@@ -82,6 +82,7 @@ const SPEC = [
   ['EspDevKit V4', K.espDevKitTemplate({label:'ESP32 DEVKITC V4',chipLabel:'ESP32-WROOM-32D',layout:'devkitc',left:['3V3','EN','VP','VN','34','35','32','33','25','26','27','14','12','GND.1','13','D2','D3','CMD','5V'],right:['GND.2','23','22','TX','RX','21','GND.3','19','18','5','17','16','4','0','2','15','D1','D0','CLK'],indicators:{power:true}}), {board: 1, mark: 1, via: 3, antenna: 1, module: 1, chip: 1, regulator: 1, indicator: 1, smd: 5, button: 2, usb: 1, pin: 38}, [/ESP32-WROOM-32D/, />CMD</, />CLK</, /data-hook="boot-button"/]],
   ['BluePill', K.bluePillBoard({indicators:{power:true,user:true}}), {board: 1, mark: 1, pin: 40, pad: 4, chip: 1, crystal: 2, jumper: 2, button: 1, indicator: 2, usb: 1, smd: 4, via: 2, trace: 6}, [/STM32/, /data-hook="user-led"/, /data-hook="power-led"/, /data-hook="reset-button"/, />VBAT</, />PC13</, />C13</]],
   ['Symbols clock', K.clockGenerator(), {}, [/data-level-pin="0"/, />CLK</]],
+  ['Symbols function generator', K.functionGenerator(), {}, [/>FG</]],
   ['Symbols supply', K.supplySymbol({voltage:5}), {}, [/>5V</]],
   ['To92', K.to92Template(), {leg: 3, body: 1}, [/>DS</, />18B20</]],
   ['Transistor TO-92', K.transistor({ live: { heat: 0.5 } }), {leg: 3, body: 1}, [/>PN</, />2222A</, /data-hook="heat"/]],

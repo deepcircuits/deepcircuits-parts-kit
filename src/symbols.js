@@ -1,4 +1,4 @@
-/** Symbols drawn in currentColor: logic gates, the multiplexer, flip-flops, the clock generator, supply and note symbols. */
+/** Symbols drawn in currentColor: logic gates, the multiplexer, flip-flops, the clock and function generators, supply and note symbols. */
 import { PIN_LABEL, art, circle, line, path, r2, rect, text, tokens } from './core.js';
 
 const INVERTED = { nand: 1, nor: 1, xnor: 1, not: 1 };
@@ -190,6 +190,39 @@ export function clockGenerator(props) {
   s += symText((x0 + x1) / 2, y1 - 1.2, props.label || 'CLK');
   return art(w, h, 'Clock generator', s, [
     { name: 'CLK', x: w, y: 2 * p },
+    { name: 'GND', x: 2 * p, y: h },
+  ]);
+}
+
+/** The waves a function generator draws, each two periods across 26 px about its centre line, 4 px high either side. */
+const WAVES = {
+  sine: 'c2.2 -5.3 4.3 -5.3 6.5 0s4.3 5.3 6.5 0s4.3 -5.3 6.5 0s4.3 5.3 6.5 0',
+  triangle: 'l3.25 -4l6.5 8l6.5 -8l6.5 8l3.25 -4',
+  square: 'v-4h6.5v8h6.5v-8h6.5v8h6.5v-4',
+};
+
+/** The function generator: a box with its wave (`wave`: sine, triangle or square), OUT on the right and GND below, both on the grid. */
+export function functionGenerator(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const w = 5 * p;
+  const h = 4 * p;
+  const x0 = 0.4 * p;
+  const x1 = 3.8 * p;
+  const y0 = 0.4 * p;
+  const y1 = h - 1.2 * p;
+  const st = SYM(T);
+  const wave = WAVES[props.wave] ? props.wave : 'sine';
+  let s = '';
+  const sw = T['stroke-symbol'];
+  s += rect(x0, y0, x1 - x0, y1 - y0, 'none', Object.assign({ rx: 2 }, st));
+  s += path(`M${r2(x0 + 4)} ${r2(2 * p - 2)}${WAVES[wave]}`, 'none', st);
+  s += line(x1, 2 * p, w, 2 * p, 'currentColor', sw);
+  s += line(2 * p, y1, 2 * p, h, 'currentColor', sw);
+  s += symText((x0 + x1) / 2, y1 - 1.2, props.label || 'FG');
+  return art(w, h, `Function generator, ${wave} wave`, s, [
+    { name: 'OUT', x: w, y: 2 * p },
     { name: 'GND', x: 2 * p, y: h },
   ]);
 }
