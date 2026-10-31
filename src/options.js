@@ -146,7 +146,10 @@ export const OPTIONS = {
   esp32S3DevKit: POWER_BOARD,
   stm32L031K6Board: POWER_BOARD,
   stm32C031C6Board: POWER_BOARD,
-  bluePillBoard: { ...BOARD, boot0: { type: 'enum', label: 'BOOT0 jumper', choices: [choice(0, '0'), choice(1, '1')], default: 0 } },
+  bluePillBoard: {
+    ...BOARD,
+    boot0: { type: 'enum', label: 'BOOT0 jumper', choices: [choice(0, '0'), choice(1, '1')], default: 0 },
+  },
   franzininho: { indicators: lamps({ power: 'Power LED', user: 'User LED' }, ['power']) },
   // Displays.
   characterLcd: {
@@ -589,5 +592,14 @@ export const OPTIONS = {
   muxSymbol: {},
   flipFlopSymbol: {},
   clockGenerator: { label: { type: 'text', label: 'Label', default: 'CLK', maxLength: 8 } },
+  functionGenerator: {
+    wave: {
+      type: 'enum',
+      label: 'Wave',
+      choices: [choice('sine', 'Sine'), choice('triangle', 'Triangle'), choice('square', 'Square')],
+      default: 'sine',
+    },
+    label: { type: 'text', label: 'Label', default: 'FG', maxLength: 8 },
+  },
   supplySymbol: { voltage: { type: 'number', label: 'Voltage', min: 0, max: 48, step: 0.1, unit: 'V' } },
 };

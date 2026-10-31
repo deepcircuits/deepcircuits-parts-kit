@@ -655,6 +655,11 @@ export interface PartOptionsById {
   "clock-source": {
     /** Label. Default "CLK". */ label?: string;
   };
+  /** Function generator: functionGenerator. */
+  "function-generator": {
+    /** Wave. Default "sine". */ wave?: "sine" | "triangle" | "square";
+    /** Label. Default "FG". */ label?: string;
+  };
   /** Supply: supplySymbol. */
   "supply": {
     /** Voltage. 0 to 48 V. */ voltage?: number;

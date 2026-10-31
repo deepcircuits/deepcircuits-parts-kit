@@ -350,6 +350,14 @@ const PARTS = [
     ['latch'],
   ],
   ['clock-source', 'Clock source', 'symbol', 'clockGenerator', null, ['oscillator']],
+  [
+    'function-generator',
+    'Function generator',
+    'symbol',
+    'functionGenerator',
+    null,
+    ['signal generator', 'AC source', 'sine wave', 'oscillator'],
+  ],
   ['supply', 'Supply', 'symbol', 'supplySymbol', null, ['VCC', 'power']],
 ];
 

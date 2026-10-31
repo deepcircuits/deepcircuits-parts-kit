@@ -65,6 +65,7 @@ export function suite(K) {
   'ff d': K.flipFlopSymbol({set:true,reset:true,srLast:true}),
   'ff dsr': K.flipFlopSymbol({set:true,reset:true}),
   'clock': K.clockGenerator(),
+  'function sine': K.functionGenerator(), 'function triangle': K.functionGenerator({wave:'triangle'}), 'function square': K.functionGenerator({wave:'square'}),
   'vcc': K.supplySymbol({voltage:5}),
   'note': K.noteSymbol(),
   'to92': K.to92Template(),

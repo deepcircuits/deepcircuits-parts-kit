@@ -145,6 +145,8 @@ export interface SolenoidProps { position?: number; volts?: number; pins?: reado
 export interface MuxSymbolProps { pins?: readonly string[] }
 export interface FlipFlopSymbolProps { set?: boolean; reset?: boolean; /** S and R after Q and NOTQ in the pin list, as the catalog's plain D type now orders them. */ srLast?: boolean }
 export interface ClockGeneratorProps { label?: string }
+/** The function generator: `wave` picks the wave drawn in its box (sine by default), `label` its caption (FG). */
+export interface FunctionGeneratorProps { wave?: 'sine' | 'triangle' | 'square'; label?: string }
 export interface SupplySymbolProps { voltage?: number }
 /** A TO-92 part in elevation (DS18B20 by default): the print splits before its digits. */
 export interface To92Props { label?: string; pins?: readonly [string, string, string] }
@@ -554,6 +556,7 @@ export interface PartsKit {
   muxSymbol(props?: MuxSymbolProps): Artwork;
   flipFlopSymbol(props?: FlipFlopSymbolProps): Artwork;
   clockGenerator(props?: ClockGeneratorProps): Artwork;
+  functionGenerator(props?: FunctionGeneratorProps): Artwork;
   supplySymbol(props?: SupplySymbolProps): Artwork;
   noteSymbol(): Artwork;
   to92Template(props?: To92Props): Artwork;

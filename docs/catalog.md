@@ -2,7 +2,7 @@
 
 [Parts Kit](../README.md) › The catalog
 
-141 parts in ten families. The [gallery](https://deepcircuits.io/parts) shows every part and every generator's card.
+142 parts in ten families. The [gallery](https://deepcircuits.io/parts) shows every part and every generator's card.
 
 | Family | Parts |
 | --- | --- |
@@ -15,7 +15,7 @@
 | Chips (7) | NE555, 74HC595, 74HC165, NLSF595, ATtiny85, each in DIP, SOIC or TSSOP; transistors in TO-92 and TO-220 |
 | Passives (3) | Resistor, electrolytic and ceramic capacitors |
 | Breadboards (3) | Mini, half and full, in nine colours |
-| Symbols (13) | Eight logic gates, multiplexer, two D flip-flops, clock source, supply |
+| Symbols (14) | Eight logic gates, multiplexer, two D flip-flops, clock source, function generator, supply |
 
 ## Listing parts
 

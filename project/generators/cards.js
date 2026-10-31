@@ -632,6 +632,9 @@ export const CARDS = [
       K.mount(root, K.flipFlopSymbol({ reset: true }), { scale: 2, caption: "D, reset" });
       K.mount(root, K.flipFlopSymbol({ set: true, reset: true }), { scale: 2, caption: "D, set and reset" });
       K.mount(root, K.clockGenerator(), { pins: true, scale: 2, caption: "clock" });
+      K.mount(root, K.functionGenerator(), { pins: true, scale: 2, caption: "function, sine" });
+      K.mount(root, K.functionGenerator({ wave: "triangle" }), { scale: 2, caption: "triangle" });
+      K.mount(root, K.functionGenerator({ wave: "square" }), { scale: 2, caption: "square" });
       K.mount(root, K.supplySymbol({ voltage: 5 }), { pins: true, scale: 2, caption: "supply" });
       K.mount(root, K.noteSymbol(), { scale: 2, caption: "note" });
     },
