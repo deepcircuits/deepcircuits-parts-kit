@@ -3761,7 +3761,8 @@ var PartsKit = (() => {
     });
     s += via(T, 7 * p, 6.3 * p) + via(T, 17.6 * p, 3.6 * p);
     s += usbPort(T, { kind: "micro", x: 0, y: 4.5 * p - 1.4 * p, w: 2 * p, h: 2.8 * p, mouth: "left" });
-    [2.6, 3.6].forEach((jy) => {
+    [2.6, 3.6].forEach((jy, row) => {
+      const high = row === 0 && props.boot0 === 1;
       s += tag(
         "jumper",
         rect(
@@ -3772,13 +3773,14 @@ var PartsKit = (() => {
           T["plastic-black"],
           Object.assign({ rx: 0.3 }, edge(T, T["plastic-black-edge"], T["stroke-fine"]))
         ) + rect(
-          2.44 * p,
+          (high ? 3.44 : 2.44) * p,
           (jy - 0.06) * p,
           1.72 * p,
           0.72 * p,
           "#e8c547",
           Object.assign({ rx: 0.4 }, edge(T, "#a9871f", T["stroke-fine"]))
-        )
+        ),
+        { "data-hook": row === 0 ? "boot0-jumper" : "boot1-jumper" }
       );
     });
     s += text(5.85 * p, 3.4 * p + PIN_LABEL * 0.4, "BOOT", PIN_LABEL, f.silk);
@@ -11662,7 +11664,7 @@ var PartsKit = (() => {
     esp32S3DevKit: POWER_BOARD,
     stm32L031K6Board: POWER_BOARD,
     stm32C031C6Board: POWER_BOARD,
-    bluePillBoard: BOARD,
+    bluePillBoard: { ...BOARD, boot0: { type: "enum", label: "BOOT0 jumper", choices: [choice(0, "0"), choice(1, "1")], default: 0 } },
     franzininho: { indicators: lamps2({ power: "Power LED", user: "User LED" }, ["power"]) },
     // Displays.
     characterLcd: {
