@@ -66,6 +66,7 @@ export interface PartOptionsById {
   /** STM32 Blue Pill: bluePillBoard. */
   "stm32-blue-pill": {
     /** Lamps. */ indicators?: { /** Power LED. Default false. */ power?: boolean; /** User LED. Default false. */ user?: Lit };
+    /** BOOT0 jumper. Default 0. */ boot0?: 0 | 1;
   };
   /** Franzininho DIY: franzininho. */
   "franzininho-diy": {

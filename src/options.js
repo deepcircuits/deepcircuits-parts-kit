@@ -146,7 +146,7 @@ export const OPTIONS = {
   esp32S3DevKit: POWER_BOARD,
   stm32L031K6Board: POWER_BOARD,
   stm32C031C6Board: POWER_BOARD,
-  bluePillBoard: BOARD,
+  bluePillBoard: { ...BOARD, boot0: { type: 'enum', label: 'BOOT0 jumper', choices: [choice(0, '0'), choice(1, '1')], default: 0 } },
   franzininho: { indicators: lamps({ power: 'Power LED', user: 'User LED' }, ['power']) },
   // Displays.
   characterLcd: {

@@ -2411,13 +2411,14 @@ export function nucleo32BoardTemplate(props) {
 /**
  * The STM32F103C8 "Blue Pill": a blue board 53 x 22.9 mm with two 20-pin
  * rows along the long edges 0.6 inch apart, drawn from photographs of the
- * board with its micro USB at the left: the BOOT0 and BOOT1 jumpers (both
- * at 0) and the reset button beside the USB, the LQFP-48 set at 45 degrees
- * in the middle, the 8 MHz can and the 32 kHz crystal to its right, then
- * the power and PC13 LEDs and the four SWD pads at the right end. `top` and
- * `bottom` name the rows left to right (the upper row from the grounds at
- * the USB end to VBAT, the lower from B12 to 3V3); `order` is the catalog's
- * handle order for the pins; names print without their `.N` suffix.
+ * board with its micro USB at the left: the BOOT0 and BOOT1 jumpers (BOOT1
+ * at 0, BOOT0 at `boot0`, 0 by default) and the reset button beside the
+ * USB, the LQFP-48 set at 45 degrees in the middle, the 8 MHz can and the
+ * 32 kHz crystal to its right, then the power and PC13 LEDs and the four
+ * SWD pads at the right end. `top` and `bottom` name the rows left to right
+ * (the upper row from the grounds at the USB end to VBAT, the lower from B12
+ * to 3V3); `order` is the catalog's handle order for the pins; names print
+ * without their `.N` suffix.
  */
 export function bluePillBoard(props) {
   props = props || {};
@@ -2539,8 +2540,9 @@ export function bluePillBoard(props) {
   s += via(T, 7.0 * p, 6.3 * p) + via(T, 17.6 * p, 3.6 * p);
   // The micro USB at the left end.
   s += usbPort(T, { kind: 'micro', x: 0, y: 4.5 * p - 1.4 * p, w: 2.0 * p, h: 2.8 * p, mouth: 'left' });
-  // The BOOT0 and BOOT1 jumpers beside it: two three-pin rows, each cap on the two pins nearer the USB.
-  [2.6, 3.6].forEach(jy => {
+  // The BOOT0 and BOOT1 jumpers beside it: two three-pin rows, the cap on the two pins nearer the USB at 0, the far two at 1.
+  [2.6, 3.6].forEach((jy, row) => {
+    const high = row === 0 && props.boot0 === 1;
     s += tag(
       'jumper',
       rect(
@@ -2552,13 +2554,14 @@ export function bluePillBoard(props) {
         Object.assign({ rx: 0.3 }, edge(T, T['plastic-black-edge'], T['stroke-fine'])),
       ) +
         rect(
-          2.44 * p,
+          (high ? 3.44 : 2.44) * p,
           (jy - 0.06) * p,
           1.72 * p,
           0.72 * p,
           '#e8c547',
           Object.assign({ rx: 0.4 }, edge(T, '#a9871f', T['stroke-fine'])),
         ),
+      { 'data-hook': row === 0 ? 'boot0-jumper' : 'boot1-jumper' },
     );
   });
   s += text(5.85 * p, 3.4 * p + PIN_LABEL * 0.4, 'BOOT', PIN_LABEL, f.silk);
