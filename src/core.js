@@ -178,7 +178,7 @@ let DEFS = {};
 // Each sheen's id and gradient, built once for each kind and glow colour (a strip draws one glow for every pixel).
 const SHEENS = new Map();
 export function sheen(kind, color) {
-  const key = kind === 'glow' ? `glow ${color}` : kind;
+  const key = kind === 'glow' || kind === 'halo' || kind === 'bloom' ? `${kind} ${color}` : kind;
   let found = SHEENS.get(key);
   if (!found) {
     // A long run of changing glow colours starts the cache again instead of growing it.
@@ -231,18 +231,34 @@ const GRADIENTS = {
 function gradient(kind, color) {
   let id;
   let shape;
-  if (kind === 'glow') {
-    id = `pk-glow-${String(color)
+  if (kind === 'glow' || kind === 'halo' || kind === 'bloom') {
+    id = `pk-${kind}-${String(color)
       .replace(/[^0-9a-z]/gi, '')
       .toLowerCase()}`;
+    // A halo stays strong out to the lens it surrounds, then falls away; a bloom is the softer light spilling past it; a
+    // glow fades from its centre.
     shape = [
       'radialGradient',
       { cx: '50%', cy: '50%', r: '50%' },
-      [
-        ['0', color, 0.9],
-        ['0.55', color, 0.55],
-        ['1', color, 0],
-      ],
+      kind === 'halo'
+        ? [
+            ['0', color, 1],
+            ['0.6', color, 0.9],
+            ['0.8', color, 0.42],
+            ['1', color, 0],
+          ]
+        : kind === 'bloom'
+          ? [
+              ['0', color, 0.7],
+              ['0.5', color, 0.45],
+              ['0.8', color, 0.12],
+              ['1', color, 0],
+            ]
+          : [
+              ['0', color, 0.9],
+              ['0.55', color, 0.55],
+              ['1', color, 0],
+            ],
     ];
   } else {
     const name = kind === 'hot' || kind === 'dome' || kind === 'lens' ? kind : 'metal';
@@ -713,8 +729,9 @@ export function capTop(T, x, y, r) {
 
 /**
  * An LED lens: a dome seen from above. Unlit it is the lens colour at
- * opacity-lens-off over plastic-grey; lit it is opaque with a glow halo
- * scaled by brightness (0..1). ids: lens, glow (for state animation).
+ * opacity-lens-off over plastic-grey; lit at a brightness (0..1) it fills
+ * with colour, shaded when dim, white-hot in the middle and haloed as it
+ * brightens (shine). ids: lens, glow (for state animation).
  */
 export function lens(props) {
   const T = tokens();
@@ -724,12 +741,14 @@ export function lens(props) {
   const color = lensColor(T, props.color);
   const on = !!props.on;
   const b = on ? (props.brightness === undefined ? 1 : Math.max(0, Math.min(1, props.brightness))) : 0;
+  const L = shine(b);
   let s = '';
   s += tag(
     'glow',
-    circle(cx, cy, r * 1.55, color, {
+    circle(cx, cy, r2(r * (1.2 + 0.9 * L.spread)), sheen('halo', color), {
       'data-hook': props.hook ? `${props.hook}-glow` : 'glow',
-      'fill-opacity': r2(T['opacity-glow'] * b),
+      'fill-opacity': r2(L.halo),
+      'pointer-events': 'none',
     }),
   );
   s += tag(
@@ -737,8 +756,12 @@ export function lens(props) {
     circle(cx, cy, r, T['plastic-grey'], edge(T, T['plastic-grey-edge'], T['stroke-detail'])) +
       circle(cx, cy, r, color, {
         'data-hook': props.hook || 'lens',
-        'fill-opacity': on ? r2(T['opacity-lens-off'] + (1 - T['opacity-lens-off']) * b) : T['opacity-lens-off'],
+        'fill-opacity': on ? r2(T['opacity-lens-off'] + (1 - T['opacity-lens-off']) * L.lens) : T['opacity-lens-off'],
       }) +
+      (L.level
+        ? circle(cx, cy, r, T['plastic-black'], { 'fill-opacity': r2(L.shade) }) +
+          circle(cx, cy, r2(r * (0.35 + 0.6 * L.hot)), sheen('hot'), { 'fill-opacity': r2(0.4 + 0.6 * L.hot) })
+        : '') +
       circle(cx, cy, r, sheen('lens'), { 'fill-opacity': on ? 0.9 : 0.7 }),
   );
   return s;
@@ -749,6 +772,43 @@ export function lit(on) {
   return typeof on === 'number' ? (on > 0 ? Math.min(1, on) : 0) : on ? 1 : 0;
 }
 
+/**
+ * How a light source is drawn at a level from 0 to 1 (as bright as it looks:
+ * the host maps current or duty to it). The steps are exaggerated, so levels
+ * a sketch tells apart (a fade, a PWM duty) read apart on the bench too: the
+ * lit colour runs from deep and shaded, barely lit, through the plain lens
+ * colour to a white-hot dome at full, while the halo grows from a thin rim
+ * to the widest the drawing holds. Each value is 0 to 1, and 0 when off.
+ * - lens: how far the lens colour has come from its unlit tint
+ * - shade: how much darker than the lens colour a dim light is drawn
+ * - core: the coloured light around the die
+ * - hot: the white-hot centre, from a point on the die to most of the lens
+ * - bloom: the white that floods the whole lens, from about a third up
+ * - halo: the halo's strength; spread: its size, from just past the lens to the largest
+ * - wash: how far the light drowns the lead frame and the die
+ */
+export function shine(level) {
+  const b = level > 0 ? Math.min(1, level) : 0;
+  if (!b) return { level: 0, lens: 0, shade: 0, core: 0, hot: 0, bloom: 0, halo: 0, spread: 0, wash: 0 };
+  // t runs mostly in the level's logarithm, so each halving of the level is about the same step (as the eye takes light).
+  // The dim end's cues (the shade lifting, the core and halo strengthening) move fastest at the bottom of t, the bright
+  // end's (the halo's size, the white bloom) at the top, so neighbouring levels read apart all the way up.
+  const t = Math.max(0.04, 0.75 * (1 + Math.log(b) / Math.log(50)) + 0.25 * b);
+  const rise = Math.sqrt(t);
+  const above = from => Math.max(0, Math.min(1, (t - from) / (1 - from)));
+  return {
+    level: b,
+    lens: rise,
+    shade: 0.75 * (1 - t) * (1 - t),
+    core: 0.35 + 0.65 * rise,
+    hot: rise,
+    bloom: above(0.6),
+    halo: 0.3 + 0.7 * rise,
+    spread: t,
+    wash: rise,
+  };
+}
+
 /** A small SMD indicator on a board: a rounded square, off or lit in a lens colour (on: true, or a level from 0 to 1 for the glow). hook names it for state. */
 export function indicator(props) {
   const T = tokens();
@@ -756,15 +816,21 @@ export function indicator(props) {
   const w = props.size || 1.6 * T.pitch;
   const color = lensColor(T, props.color);
   const level = lit(props.on);
+  const L = shine(level);
   let s = '';
   if (level)
     s += tag(
       'glow',
-      rect(props.x - w * 0.35, props.y - w * 0.35, w * 1.7, w * 1.7, color, {
-        rx: w * 0.5,
-        'fill-opacity': r2(T['opacity-glow'] * level),
+      circle(props.x + w / 2, props.y + w / 2, r2(w * (0.75 + 0.75 * L.spread)), sheen('halo', color), {
+        'fill-opacity': r2(L.halo),
+        'pointer-events': 'none',
       }),
     );
+  // Lit, the chip is shaded when dim and burns white from the middle as it brightens (shine).
+  const glowing = level
+    ? rect(props.x, props.y, w, w, T['plastic-black'], { rx: 1.2, 'fill-opacity': r2(L.shade) }) +
+      rect(props.x, props.y, w, w, sheen('hot'), { rx: 1.2, 'fill-opacity': r2(0.3 + 0.7 * L.hot) })
+    : '';
   s += tag(
     'indicator',
     rect(
@@ -784,7 +850,7 @@ export function indicator(props) {
         },
         edge(T, f.edge, T['stroke-detail']),
       ),
-    ),
+    ) + glowing,
   );
   if (props.label) s += text(props.x + w / 2, props.y + w + 4.2, props.label, PIN_LABEL, f.silk);
   return s;

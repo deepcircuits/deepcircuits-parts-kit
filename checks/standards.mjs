@@ -9,7 +9,7 @@
 //   2. Legs at least 0.03 in wide and long: the drawn leg (lead plus its outline) and the chip lead are >= 2.88px.
 //   3. Print never below 3pt: at 0.1 in = 9.6px, 3pt is 4px; the standard size, 5pt, is 6.67px.
 //   4. Text stays text (no outlined glyphs) and every stroked element names its stroke-width.
-//   5. Flat colour, with gradient sheens only (the kit's pk-dome, pk-lens, pk-metal, pk-glow and pk-hot defs): no filters, patterns, images or raster data.
+//   5. Flat colour, with gradient sheens only (the kit's pk-dome, pk-lens, pk-metal, pk-hot, pk-glow, pk-halo and pk-bloom defs): no filters, patterns, images or raster data.
 import { readdirSync, readFileSync } from 'node:fs';
 import { drawPreviews, loadBundle, suite } from './drawings.mjs';
 
@@ -42,7 +42,7 @@ for (const a of arts) {
   }
   // 5. flat colour only
   if (/<(filter|image|pattern|mask)\b|data:image/.test(svg)) fail.push(`${a.name}: filter, pattern, mask or image`);
-  (svg.match(/url\(#([^)]+)\)/g) || []).forEach((u) => { if (!/^url\(#pk-(dome|lens|metal|hot|glow-[0-9a-f]{6})\)$/.test(u)) fail.push(`${a.name}: reference ${u} is not one of the kit's sheens`); });
+  (svg.match(/url\(#([^)]+)\)/g) || []).forEach((u) => { if (!/^url\(#pk-(dome|lens|metal|hot|(glow|halo|bloom)-[0-9a-f]{6})\)$/.test(u)) fail.push(`${a.name}: reference ${u} is not one of the kit's sheens`); });
 }
 // 6. KiCad Library Conventions, read as a second standard: F5.1 puts silkscreen reference text at 1.00 mm and
 //    silkscreen lines at 0.10-0.15 mm (0.12 nominal); S4.1 puts symbol pins on a 100 mil grid. At 0.1 in = 9.6px,

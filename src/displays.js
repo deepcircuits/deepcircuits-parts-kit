@@ -15,6 +15,8 @@ import {
   pin,
   r2,
   rect,
+  sheen,
+  shine,
   tag,
   text,
   tokens,
@@ -332,7 +334,8 @@ export function sevenSegment(props) {
     'stroke-width': 0.5,
     'stroke-opacity': 0.1,
   });
-  // A lit segment lays its colour over the unlit one, never fainter than the dim floor, so a dimly driven segment still shows.
+  // A lit segment lays its colour over the unlit one, shaded when dim and burning white down its middle as it brightens
+  // (shine), so a dimly driven segment still shows and each level reads apart.
   const clamp = function (v) {
     v = Number(v);
     return v > 0 ? Math.min(1, v) : 0;
@@ -341,7 +344,16 @@ export function sevenSegment(props) {
     return props.levels ? clamp(props.levels[d * 8 + sgm]) : on ? 1 : 0;
   };
   const glow = function (lv) {
-    return lv > 0 ? r2(dim + (1 - dim) * lv) : 0;
+    return lv > 0 ? r2(dim + (1 - dim) * shine(lv).lens) : 0;
+  };
+  // The shade and the white-hot middle over a lit segment's shape.
+  const lightOver = function (shape, lv) {
+    if (!(lv > 0)) return '';
+    const L = shine(lv);
+    return (
+      shape(T['plastic-black'], { 'fill-opacity': r2(0.8 * L.shade) }) +
+      shape(sheen('hot'), { 'fill-opacity': r2(0.25 + 0.6 * L.hot) })
+    );
   };
   const bar = function (x, y, len, horizontal, lv, d, sgm) {
     const t = 0.42 * p;
@@ -356,13 +368,15 @@ export function sevenSegment(props) {
         'fill-opacity': glow(lv),
         'data-segment': `${d}-${sgm}`,
         'data-level': r2(lv),
-      })
+      }) +
+      lightOver((fill, more) => rect(bx, by, bw, bh, fill, Object.assign({ rx: t / 2 }, more)), lv)
     );
   };
   const dot = function (cx, cy, lv, hook) {
     return (
       circle(cx, cy, 0.24 * p, off) +
-      circle(cx, cy, 0.24 * p, color, Object.assign({ 'fill-opacity': glow(lv), 'data-level': r2(lv) }, hook))
+      circle(cx, cy, 0.24 * p, color, Object.assign({ 'fill-opacity': glow(lv), 'data-level': r2(lv) }, hook)) +
+      lightOver((fill, more) => circle(cx, cy, 0.24 * p, fill, more), lv)
     );
   };
   const colonLevel = typeof props.colon === 'number' ? clamp(props.colon) : props.colon ? 1 : 0;
