@@ -161,6 +161,8 @@ export interface RelayModuleProps { /** The photographed board is red. */ finish
 /** The 2-, 4- or 8-channel relay module (4 by default): pins GND, IN1 … INn, VCC, JD-VCC, then each channel's NO, COM and NC. `jumper` (fitted by default) draws the cap joining VCC to JD-VCC; `indicators.power` lights the power LED and `status` the channel LEDs, from channel 1. */
 export interface MultiRelayModuleProps { channels?: 2 | 4 | 8; jumper?: boolean; finish?: Finish; indicators?: { power?: boolean }; status?: readonly boolean[] }
 export interface LogicAnalyzerProps { channels?: readonly string[]; lit?: readonly (boolean | 0 | 1)[]; samples?: number; state?: 'idle' | 'armed' | 'recording' | 'paused' | 'full' | 'error'; activity?: number; /** Accepted and ignored: the label prints the analyzer's own name and channel table. */ label?: string }
+/** The pocket multimeter: jacks mA, COM and V along its foot. `mode` turns its switch to voltage (the default) or current; `reading` is what its LCD shows (dashes when left out) and `unit` the unit beside it (the mode's own, V or mA, when left out). */
+export interface MultimeterProps { mode?: 'voltage' | 'current'; reading?: string; unit?: '' | 'mV' | 'V' | 'mA' }
 export interface RfidModuleProps { finish?: Finish; pins?: readonly string[]; label?: string; indicators?: { power?: boolean } }
 /** The AMS1117-3.3 regulator module: VIN, GND and VOUT down the left edge; the power LED lit by `indicators.power`. */
 export interface Ams1117ModuleProps { finish?: Finish; indicators?: { power?: boolean } }
@@ -577,6 +579,8 @@ export interface PartsKit {
   /** The 2-, 4- or 8-channel relay module with optocoupled inputs and a JD-VCC jumper. */
   multiRelayModule(props?: MultiRelayModuleProps): Artwork;
   logicAnalyzer(props?: LogicAnalyzerProps): Artwork;
+  /** The pocket multimeter, its LCD showing the reading it is given. */
+  multimeter(props?: MultimeterProps): Artwork;
   rfidModule(props?: RfidModuleProps): Artwork;
   picoBoardTemplate(props?: PicoBoardProps): Artwork;
   nucleo32BoardTemplate(props?: Nucleo32BoardProps): Artwork;

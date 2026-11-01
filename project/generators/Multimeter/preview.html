@@ -1,0 +1,16 @@
+<!-- @dsCard group="Templates" height=260 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Multimeter — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.multimeter(), { pins: true, scale: 1.5, caption: "no reading" });
+K.mount(root, K.multimeter({ reading: "4.987" }), { scale: 1.5, caption: "volts" });
+K.mount(root, K.multimeter({ mode: "current", reading: "12.34" }), { scale: 1.5, caption: "milliamps" });
+K.mount(root, K.multimeter({ mode: "current", reading: "OL" }), { scale: 1.5, caption: "over range" });
+</script>
+</body>
+</html>
