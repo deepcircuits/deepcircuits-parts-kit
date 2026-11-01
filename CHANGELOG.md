@@ -44,6 +44,7 @@ The first public release.
 - `gearedStepper`, the 28BYJ-48 geared unipolar stepper (`geared-stepper`: ORANGE, YELLOW, PINK, BLUE, RED, the leads in the plug's order BLUE, PINK, YELLOW, ORANGE, RED), its output shaft turned by `angle`; and `uln2003Board`, the ULN2003 stepper driver board (`stepper-driver-board`: IN1 … IN4, VCC, GND, A … D, COM) with its motor connector, channel LEDs lit by `status`, input header, supply pins and ON/OFF jumper.
 - `functionGenerator`, the function generator symbol (`function-generator`: OUT, GND): a box with the wave it makes, `wave` sine (the default), triangle or square, captioned FG.
 - `multimeter`, a pocket digital multimeter (`multimeter`: mA, COM, V), drawn at about half size: the amber holster, the LCD showing `reading` and its `unit`, the rotary switch turned by `mode` (voltage or current) and the three jacks, mA marked 400mA MAX and V 600V MAX.
+- Lights that dim (the 5 mm LED, the RGB LED, the addressable pixels and strips, the bar graph, the seven-segment digits, the boards' ON and user LEDs and the modules' indicators) are drawn at every level on a scale that follows the eye: a barely lit lens stays dark with only its die glowing, the glow and its halo grow with each step, and from about two thirds up the middle turns white and a bloom of the colour spreads past the part. The halos and blooms are gradients, never filters, and never take the pointer.
 
 ### API
 
@@ -64,6 +65,7 @@ The first public release.
 - `tftModule({ pins })` takes `null` for a header place with no pin, drawn as a bare pad.
 - `nanoConnectTemplate({ indicators: { rgb } })` lights the Connect's RGB LED (the `rgb-led` hook).
 - `check(artwork)` and `pinsOnPitch(pins)` from `@deepcircuits/parts-kit/check`, the kit's own overlap and pitch checks.
+- `shine(level)`, the light the dimming parts are drawn with: for a level from 0 to 1 it gives the opacities and sizes of the lens, its dark shade, the coloured core, the white-hot middle, the bloom and the halo, so a part of your own dims as the kit's do.
 - `bundle.js`, the same kit as one classic script that defines `window.PartsKit` and, in a page, `<parts-kit-part>`.
 - `<parts-kit-part>` from `@deepcircuits/parts-kit/element`: a catalog part as an HTML element (`<parts-kit-part type="led-5-mm" color="green" on>`). Its attributes are the part's options, it redraws in place when one changes, `scale` sizes it, `options` takes lists and objects from code, and an error shows where the part would be. `definePartElement` and `optionsFromAttributes` beside it.
 - The element's input parts work by pointer and keyboard: a pushbutton presses while it is held, the potentiometers turn and slide as they are dragged, the slide switch and the DIP switch's levers flip when clicked, the encoder turns a detent at a time and presses, the joystick moves and springs back, the keypad's and the remote's keys press and the dialer dials. What a person changes is written to the element's attributes, and the element fires `input`, `change`, `press`, `release`, `turn` and `dial`. It takes focus, tells assistive technology its role and state, and `static` turns the controls off.

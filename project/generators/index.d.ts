@@ -31,6 +31,8 @@ export interface BoardProps { width: number; height: number; finish?: Finish; ti
 export interface ChipProps { pins: readonly string[]; label: string; package?: 'dip' | 'soic' | 'tssop'; /** The print beside each pin, where it differs from the pin's name (one per pin). */ labels?: readonly string[] }
 /** `hook` names the lens for state (data-hook, `lens` by default; its glow is `<hook>-glow`). */
 export interface LensProps { cx: number; cy: number; r?: number; color?: LensColor; on?: boolean; brightness?: number; hook?: string }
+/** The light a dimming part is drawn with at one level: opacities and size factors from 0 to 1 (the core starts at 0.35, the halo at 0.3). */
+export interface Shine { level: number; lens: number; shade: number; core: number; hot: number; bloom: number; halo: number; spread: number; wash: number }
 /** A board indicator's state: true lit, false off, or a level from 0 to 1 that dims its glow (an LED driven by PWM). */
 export type Lit = boolean | number;
 /** `hook` names the indicator for state (data-hook). */
@@ -430,6 +432,8 @@ export interface PartsKit {
   board(props: BoardProps): string;
   lens(props: LensProps): string;
   indicator(props: IndicatorProps): string;
+  /** The light of a level from 0 to 1, on a scale that follows the eye: every layer is 0 when the level is. */
+  shine(level: number): Shine;
   // The live layer.
   /** Signal dashes along a leg, data-live="flow", opacity 0 until on; 'reverse' runs them back. `hook` names them for state. */
   flow(x1: number, y1: number, x2: number, y2: number, on?: boolean | 'reverse', hook?: string): string;

@@ -6,6 +6,7 @@ export {
   board,
   lens,
   indicator,
+  shine,
   silkMark,
   flow,
   probe,

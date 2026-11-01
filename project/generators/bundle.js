@@ -175,7 +175,7 @@ var PartsKit = (() => {
     });
   }
   function sheen(kind, color) {
-    const key = kind === "glow" ? `glow ${color}` : kind;
+    const key = kind === "glow" || kind === "halo" || kind === "bloom" ? `${kind} ${color}` : kind;
     let found = SHEENS.get(key);
     if (!found) {
       if (SHEENS.size >= 512) SHEENS.clear();
@@ -188,12 +188,22 @@ var PartsKit = (() => {
   function gradient(kind, color) {
     let id;
     let shape;
-    if (kind === "glow") {
-      id = `pk-glow-${String(color).replace(/[^0-9a-z]/gi, "").toLowerCase()}`;
+    if (kind === "glow" || kind === "halo" || kind === "bloom") {
+      id = `pk-${kind}-${String(color).replace(/[^0-9a-z]/gi, "").toLowerCase()}`;
       shape = [
         "radialGradient",
         { cx: "50%", cy: "50%", r: "50%" },
-        [
+        kind === "halo" ? [
+          ["0", color, 1],
+          ["0.6", color, 0.9],
+          ["0.8", color, 0.42],
+          ["1", color, 0]
+        ] : kind === "bloom" ? [
+          ["0", color, 0.7],
+          ["0.5", color, 0.45],
+          ["0.8", color, 0.12],
+          ["1", color, 0]
+        ] : [
           ["0", color, 0.9],
           ["0.55", color, 0.55],
           ["1", color, 0]
@@ -572,25 +582,45 @@ var PartsKit = (() => {
     const color = lensColor(T, props.color);
     const on2 = !!props.on;
     const b = on2 ? props.brightness === void 0 ? 1 : Math.max(0, Math.min(1, props.brightness)) : 0;
+    const L = shine(b);
     let s = "";
     s += tag(
       "glow",
-      circle(cx, cy, r * 1.55, color, {
+      circle(cx, cy, r2(r * (1.2 + 0.9 * L.spread)), sheen("halo", color), {
         "data-hook": props.hook ? `${props.hook}-glow` : "glow",
-        "fill-opacity": r2(T["opacity-glow"] * b)
+        "fill-opacity": r2(L.halo),
+        "pointer-events": "none"
       })
     );
     s += tag(
       "lens",
       circle(cx, cy, r, T["plastic-grey"], edge(T, T["plastic-grey-edge"], T["stroke-detail"])) + circle(cx, cy, r, color, {
         "data-hook": props.hook || "lens",
-        "fill-opacity": on2 ? r2(T["opacity-lens-off"] + (1 - T["opacity-lens-off"]) * b) : T["opacity-lens-off"]
-      }) + circle(cx, cy, r, sheen("lens"), { "fill-opacity": on2 ? 0.9 : 0.7 })
+        "fill-opacity": on2 ? r2(T["opacity-lens-off"] + (1 - T["opacity-lens-off"]) * L.lens) : T["opacity-lens-off"]
+      }) + (L.level ? circle(cx, cy, r, T["plastic-black"], { "fill-opacity": r2(L.shade) }) + circle(cx, cy, r2(r * (0.35 + 0.6 * L.hot)), sheen("hot"), { "fill-opacity": r2(0.4 + 0.6 * L.hot) }) : "") + circle(cx, cy, r, sheen("lens"), { "fill-opacity": on2 ? 0.9 : 0.7 })
     );
     return s;
   }
   function lit(on2) {
     return typeof on2 === "number" ? on2 > 0 ? Math.min(1, on2) : 0 : on2 ? 1 : 0;
+  }
+  function shine(level) {
+    const b = level > 0 ? Math.min(1, level) : 0;
+    if (!b) return { level: 0, lens: 0, shade: 0, core: 0, hot: 0, bloom: 0, halo: 0, spread: 0, wash: 0 };
+    const t = Math.max(0.04, 0.75 * (1 + Math.log(b) / Math.log(50)) + 0.25 * b);
+    const rise = Math.sqrt(t);
+    const above = (from) => Math.max(0, Math.min(1, (t - from) / (1 - from)));
+    return {
+      level: b,
+      lens: rise,
+      shade: 0.75 * (1 - t) * (1 - t),
+      core: 0.35 + 0.65 * rise,
+      hot: rise,
+      bloom: above(0.6),
+      halo: 0.3 + 0.7 * rise,
+      spread: t,
+      wash: rise
+    };
   }
   function indicator(props) {
     const T = tokens();
@@ -598,15 +628,17 @@ var PartsKit = (() => {
     const w = props.size || 1.6 * T.pitch;
     const color = lensColor(T, props.color);
     const level = lit(props.on);
+    const L = shine(level);
     let s = "";
     if (level)
       s += tag(
         "glow",
-        rect(props.x - w * 0.35, props.y - w * 0.35, w * 1.7, w * 1.7, color, {
-          rx: w * 0.5,
-          "fill-opacity": r2(T["opacity-glow"] * level)
+        circle(props.x + w / 2, props.y + w / 2, r2(w * (0.75 + 0.75 * L.spread)), sheen("halo", color), {
+          "fill-opacity": r2(L.halo),
+          "pointer-events": "none"
         })
       );
+    const glowing = level ? rect(props.x, props.y, w, w, T["plastic-black"], { rx: 1.2, "fill-opacity": r2(L.shade) }) + rect(props.x, props.y, w, w, sheen("hot"), { rx: 1.2, "fill-opacity": r2(0.3 + 0.7 * L.hot) }) : "";
     s += tag(
       "indicator",
       rect(
@@ -626,7 +658,7 @@ var PartsKit = (() => {
           },
           edge(T, f.edge, T["stroke-detail"])
         )
-      )
+      ) + glowing
     );
     if (props.label) s += text(props.x + w / 2, props.y + w + 4.2, props.label, PIN_LABEL, f.silk);
     return s;
@@ -1163,6 +1195,7 @@ var PartsKit = (() => {
     const color = lensColor(T, props.color || "red");
     const on2 = !!props.on;
     const b = on2 ? props.brightness === void 0 ? 1 : Math.max(0, Math.min(1, props.brightness)) : 0;
+    const L = shine(b);
     let s = "";
     const mm = p / 2.54;
     const x0 = (w - 5 * mm) / 2;
@@ -1179,27 +1212,41 @@ var PartsKit = (() => {
     const dome = `M${r2(x0)} ${r2(base)}V${r2(top + r)}A${r2(r)} ${r2(r)} 0 0 1 ${r2(x1)} ${r2(top + r)}V${r2(base)}Z`;
     const white = color === T["lens-white"];
     const glowColor = white ? "#ffd66b" : color;
+    if (L.level)
+      s += tag(
+        "glow",
+        el("ellipse", {
+          cx,
+          cy: top + r + 1.5,
+          rx: r2(r * (1.4 + 1.6 * L.spread)),
+          ry: r2(r * (1.4 + 1.6 * L.spread)),
+          fill: sheen("bloom", glowColor),
+          "fill-opacity": r2(0.75 * L.spread),
+          "pointer-events": "none"
+        })
+      );
     s += tag(
       "glow",
       el("ellipse", {
         "data-hook": "glow",
         cx,
         cy: top + r + 1.5,
-        rx: Math.min(r * 1.8, cx - 0.2),
-        ry: Math.min(r * 1.75, top + r + 1.3),
-        fill: sheen("glow", glowColor),
-        "fill-opacity": r2(Math.min(1, 2.2 * T["opacity-glow"]) * b)
+        rx: r2(r * (1.1 + 1.5 * L.spread)),
+        ry: r2(r * (1.05 + 1.5 * L.spread)),
+        fill: sheen("halo", glowColor),
+        "fill-opacity": r2(L.halo),
+        "pointer-events": "none"
       })
     );
     s += wire(xa, legTop, xa, h) + wire(xc, legTop, xc, h);
     s += tag(
       "body",
-      path(dome, T["plastic-white"]) + path(dome, white && on2 ? "#fff0b8" : color, {
+      path(dome, T["plastic-white"]) + path(dome, white && on2 ? "#fff6d8" : color, {
         "data-hook": "lens",
-        "fill-opacity": on2 ? r2(0.6 + 0.4 * b) : 0.6
-      })
+        "fill-opacity": on2 ? r2(0.6 + 0.4 * L.lens) : 0.6
+      }) + (L.shade ? path(dome, T["plastic-black"], { "fill-opacity": r2(white ? 0.6 * L.shade : L.shade) }) : "")
     );
-    const frame = { fill: T["plastic-black-edge"], "fill-opacity": on2 ? 0.2 : 0.58 };
+    const frame = { fill: T["plastic-black-edge"], "fill-opacity": r2(0.58 - 0.42 * L.wash) };
     const cupTop = top + r - 1.2;
     const mm2 = mm;
     const cupW = 1.6 * mm2;
@@ -1219,7 +1266,7 @@ var PartsKit = (() => {
     s += path(`M${r2(slabIn + toC * 0.3)} ${r2(shoulderY)}L${r2(barIn + toC * 0.3)} ${r2(cupBot + 0.2)}`, "none", {
       stroke: "#ffffff",
       "stroke-width": 0.4,
-      "stroke-opacity": on2 ? 0.25 : 0.35
+      "stroke-opacity": r2(0.35 - 0.12 * L.wash)
     });
     s += path(
       `M${r2(barC - cupW / 2)} ${r2(cupTop)}H${r2(barC + cupW / 2)}L${r2(barC + cupW * 0.3)} ${r2(cupBot)}H${r2(barC - cupW * 0.3)}Z`,
@@ -1229,9 +1276,9 @@ var PartsKit = (() => {
     s += path(
       `M${r2(barC - cupW * 0.36)} ${r2(cupTop + 0.35)}H${r2(barC + cupW * 0.36)}L${r2(barC + cupW * 0.18)} ${r2(cupBot - 0.6)}H${r2(barC - cupW * 0.18)}Z`,
       on2 ? "#ffffff" : T["plastic-grey"],
-      { "fill-opacity": on2 ? 0.55 : 0.5 }
+      { "fill-opacity": on2 ? r2(0.3 + 0.3 * L.wash) : 0.5 }
     );
-    s += rect(barC - 0.5, cupBot - 1.4, 1, 0.75, T["plastic-black"], { "fill-opacity": on2 ? 0.5 : 0.8 });
+    s += rect(barC - 0.5, cupBot - 1.4, 1, 0.75, T["plastic-black"], { "fill-opacity": r2(0.8 - 0.35 * L.wash) });
     s += rect(xa - postW / 2, cupTop - 0.4, postW, base - cupTop + 0.4, T["plastic-black-edge"], frame);
     s += rect(
       toC > 0 ? xa - postW / 2 : xa + postW / 2 - postW * 2.2,
@@ -1244,23 +1291,44 @@ var PartsKit = (() => {
     s += path(
       `M${r2(xa + toC * postW * 1.5)} ${r2(cupTop + 0.2)}Q${r2((xa + barC) / 2)} ${r2(cupTop - 3.4)} ${r2(barC)} ${r2(cupBot - 1.1)}`,
       "none",
-      { stroke: T["plastic-black-edge"], "stroke-width": 0.45, "stroke-opacity": on2 ? 0.35 : 0.6 }
+      { stroke: T["plastic-black-edge"], "stroke-width": 0.45, "stroke-opacity": r2(0.6 - 0.28 * L.wash) }
     );
     s += rect(xa - 0.95, base - 2.4, 1.9, 2.6, T["plastic-black-edge"], frame);
-    if (on2)
+    if (L.level) {
       s += el("ellipse", {
-        cx: barC,
+        cx,
         cy: cupTop + 0.9,
-        rx: r * 1,
-        ry: r * 1.05,
-        fill: sheen("hot"),
-        "fill-opacity": r2(0.5 + 0.5 * b)
+        rx: r2(r * (0.55 + 0.4 * L.spread)),
+        ry: r2(r * (0.6 + 0.45 * L.spread)),
+        fill: sheen("glow", glowColor),
+        "fill-opacity": r2(L.core)
       });
+      const die = { cx: barC, cy: cupTop + 0.5, rx: r2(0.42 * r), ry: r2(0.5 * r) };
+      s += el("ellipse", Object.assign({ fill: sheen("glow", glowColor) }, die));
+      const hx = cx - 0.25 * (cx - barC);
+      s += el("ellipse", {
+        cx: r2(hx),
+        cy: cupTop + 0.9,
+        rx: r2((hx - x0) * (0.25 + 0.75 * L.hot)),
+        ry: r2(r * (0.3 + 0.85 * L.hot)),
+        fill: sheen("hot"),
+        "fill-opacity": r2(0.55 + 0.45 * L.hot)
+      });
+      if (L.bloom)
+        s += el("ellipse", {
+          cx,
+          cy: r2(top + r + 3),
+          rx: r2(r * 1.05),
+          ry: r2(r * 1.5),
+          fill: sheen("hot"),
+          "fill-opacity": r2(L.bloom)
+        });
+    }
     s += path(dome, sheen("dome"), { "fill-opacity": on2 ? 0.7 : 0.8 });
     s += path(dome, "none", { stroke: T["plastic-grey-edge"], "stroke-width": T["stroke-fine"], "stroke-opacity": 0.8 });
     const fx0 = toC > 0 ? x0 - 0.4 * mm : x0;
     const fx1 = toC > 0 ? x1 : x1 + 0.4 * mm;
-    s += flange(T, fx0, fx1, base, flangeH, color, on2 ? 1 : 0.6, toC < 0);
+    s += flange(T, fx0, fx1, base, flangeH, color, on2 ? r2(0.6 + 0.4 * L.lens) : 0.6, toC < 0);
     const live = props.live || {};
     s += flow(xa, h, xa, legTop + 1, live.flow, "flow-a") + flow(xc, legTop + 1, xc, h, live.flow, "flow-c");
     if (live.probe) s += probe(live.probe === "K" || live.probe === "C" ? xc : xa, h);
@@ -1399,12 +1467,14 @@ var PartsKit = (() => {
       return isNaN(v) ? 0 : Math.max(0, Math.min(1, v));
     });
     const level = Math.max(ch[0], ch[1], ch[2]);
-    const on2 = level > 0.02;
+    const on2 = level > 0;
+    const L = shine(level);
     const hx = function(v) {
       const n = Math.round(v * 255).toString(16);
       return (n.length < 2 ? "0" : "") + n;
     };
     const mix = on2 ? `#${hx(ch[0] / level)}${hx(ch[1] / level)}${hx(ch[2] / level)}` : T["plastic-white"];
+    const glowColor = on2 && Math.min(ch[0], ch[1], ch[2]) > 0.8 * level ? "#a9c8ff" : mix;
     const mm = p / 2.54;
     const x0 = (w - 5 * mm) / 2;
     const x1 = x0 + 5 * mm;
@@ -1417,16 +1487,30 @@ var PartsKit = (() => {
     const names = ["Red", "Common", "Green", "Blue"];
     const legTop = base + flangeH - 0.4;
     const dome = `M${r2(x0)} ${r2(base)}V${r2(top + r)}A${r2(r)} ${r2(r)} 0 0 1 ${r2(x1)} ${r2(top + r)}V${r2(base)}Z`;
+    if (on2)
+      s += tag(
+        "glow",
+        el("ellipse", {
+          cx,
+          cy: top + r + 1.5,
+          rx: r2(r * (1.4 + 1.6 * L.spread)),
+          ry: r2(r * (1.4 + 1.6 * L.spread)),
+          fill: sheen("bloom", glowColor),
+          "fill-opacity": r2(0.75 * L.spread),
+          "pointer-events": "none"
+        })
+      );
     s += tag(
       "glow",
       el("ellipse", {
         "data-hook": "glow",
         cx,
         cy: top + r + 1.5,
-        rx: r * 1.8,
-        ry: r * 1.75,
-        fill: sheen("glow", on2 ? mix : T["lens-white"]),
-        "fill-opacity": r2(Math.min(1, 2.2 * T["opacity-glow"]) * level)
+        rx: r2(r * (1.1 + 1.5 * L.spread)),
+        ry: r2(r * (1.05 + 1.5 * L.spread)),
+        fill: sheen("halo", on2 ? glowColor : T["lens-white"]),
+        "fill-opacity": r2(L.halo),
+        "pointer-events": "none"
       })
     );
     xs.forEach((x, i) => {
@@ -1437,11 +1521,11 @@ var PartsKit = (() => {
       "body",
       path(dome, T["plastic-white"], { "fill-opacity": 1 }) + path(dome, mix, {
         "data-hook": "lens",
-        "fill-opacity": on2 ? r2(0.45 + 0.5 * level) : 0.08,
+        "fill-opacity": on2 ? r2(0.25 + 0.75 * L.lens) : 0.08,
         "data-r": ch[0],
         "data-g": ch[1],
         "data-b": ch[2]
-      })
+      }) + (L.shade ? path(dome, T["plastic-black"], { "fill-opacity": r2(0.7 * L.shade) }) : "")
     );
     const cupTop = top + r + 2.2;
     [
@@ -1451,18 +1535,36 @@ var PartsKit = (() => {
       [2.6, 0.4]
     ].forEach((q) => {
       s += rect(cx + q[0] * 1.3 - 0.55, cupTop + q[1] * mm, 1.1, base - cupTop - q[1] * mm, T["plastic-black-edge"], {
-        "fill-opacity": on2 ? 0.22 : 0.35
+        "fill-opacity": r2(0.35 - 0.15 * L.wash)
       });
     });
-    if (on2)
+    if (on2) {
       s += el("ellipse", {
         cx,
         cy: top + r + 1.5,
-        rx: r * 0.95,
-        ry: r * 1,
-        fill: sheen("hot"),
-        "fill-opacity": r2(0.4 + 0.5 * level)
+        rx: r2(r * (0.6 + 0.35 * L.spread)),
+        ry: r2(r * (0.7 + 0.35 * L.spread)),
+        fill: sheen("glow", glowColor),
+        "fill-opacity": r2(L.core)
       });
+      s += el("ellipse", {
+        cx,
+        cy: top + r + 1.5,
+        rx: r2(r * (0.2 + 0.75 * L.hot)),
+        ry: r2(r * (0.25 + 0.75 * L.hot)),
+        fill: sheen("hot"),
+        "fill-opacity": r2(0.55 + 0.45 * L.hot)
+      });
+      if (L.bloom)
+        s += el("ellipse", {
+          cx,
+          cy: r2(top + r + 3),
+          rx: r2(r * 1.05),
+          ry: r2(r * 1.5),
+          fill: sheen("hot"),
+          "fill-opacity": r2(L.bloom)
+        });
+    }
     s += path(dome, sheen("dome"), { "fill-opacity": on2 ? 0.7 : 0.8 });
     s += path(dome, "none", { stroke: T["plastic-grey-edge"], "stroke-width": T["stroke-fine"], "stroke-opacity": 0.8 });
     const fx0 = x0 - 0.4 * mm;
@@ -2652,14 +2754,16 @@ var PartsKit = (() => {
     ].forEach((D) => {
       const col2 = lensColor(T, D[1]);
       const level = lit(D[2]);
+      const light = shine(level);
       const cx = X(D[0]);
       const cy = Y(26.09);
       const lr = L(1.5);
       if (level)
         s += tag(
           "glow",
-          circle(cx, cy, 1.8 * lr, sheen("glow", col2), {
-            "fill-opacity": r2(Math.min(1, 2.2 * T["opacity-glow"]) * level)
+          circle(cx, cy, r2(lr * (1.3 + 1.2 * light.spread)), sheen("halo", col2), {
+            "fill-opacity": r2(light.halo),
+            "pointer-events": "none"
           })
         );
       s += tag(
@@ -2679,7 +2783,9 @@ var PartsKit = (() => {
             },
             edge(T, T["plastic-black-edge"], T["stroke-fine"])
           )
-        )
+        ) + (level ? circle(cx, cy, lr, T["plastic-black"], { "fill-opacity": r2(light.shade) }) + circle(cx, cy, r2(lr * (0.45 + 0.55 * light.hot)), sheen("hot"), {
+          "fill-opacity": r2(0.4 + 0.6 * light.hot)
+        }) : "")
       ) + circle(cx, cy, lr, sheen("dome"), { "fill-opacity": 0.7 });
       s += text(cx, Y(23.3), D[5], PIN_LABEL, f.silk);
     });
@@ -4596,7 +4702,12 @@ var PartsKit = (() => {
       return props.levels ? clamp2(props.levels[d * 8 + sgm]) : on2 ? 1 : 0;
     };
     const glow = function(lv) {
-      return lv > 0 ? r2(dim + (1 - dim) * lv) : 0;
+      return lv > 0 ? r2(dim + (1 - dim) * shine(lv).lens) : 0;
+    };
+    const lightOver = function(shape, lv) {
+      if (!(lv > 0)) return "";
+      const L = shine(lv);
+      return shape(T["plastic-black"], { "fill-opacity": r2(0.8 * L.shade) }) + shape(sheen("hot"), { "fill-opacity": r2(0.25 + 0.6 * L.hot) });
     };
     const bar = function(x, y, len, horizontal, lv, d, sgm) {
       const t = 0.42 * p;
@@ -4609,10 +4720,10 @@ var PartsKit = (() => {
         "fill-opacity": glow(lv),
         "data-segment": `${d}-${sgm}`,
         "data-level": r2(lv)
-      });
+      }) + lightOver((fill, more) => rect(bx, by, bw, bh, fill, Object.assign({ rx: t / 2 }, more)), lv);
     };
     const dot = function(cx, cy, lv, hook) {
-      return circle(cx, cy, 0.24 * p, off) + circle(cx, cy, 0.24 * p, color, Object.assign({ "fill-opacity": glow(lv), "data-level": r2(lv) }, hook));
+      return circle(cx, cy, 0.24 * p, off) + circle(cx, cy, 0.24 * p, color, Object.assign({ "fill-opacity": glow(lv), "data-level": r2(lv) }, hook)) + lightOver((fill, more) => circle(cx, cy, 0.24 * p, fill, more), lv);
     };
     const colonLevel = typeof props.colon === "number" ? clamp2(props.colon) : props.colon ? 1 : 0;
     for (let d = 0; d < digits; d++) {
@@ -5381,11 +5492,18 @@ var PartsKit = (() => {
     const k = (size || 5) / 5;
     const h = 2.5 * mm * k;
     const pc = pixelColor(T, c);
+    const L = shine(pc.level);
     let s = "";
     const die = function(dx, fill) {
       return rect(x + dx * k, y - 0.35 * mm * k, 0.6 * mm * k, 0.7 * mm * k, T[fill], { "fill-opacity": 0.55 });
     };
-    s += tag("glow", circle(x, y, 3.2 * mm * k, pc.fill, { "fill-opacity": r2(T["opacity-glow"] * pc.level) }));
+    s += tag(
+      "glow",
+      circle(x, y, r2(mm * k * (2.2 + 2.2 * L.spread)), pc.fill, {
+        "fill-opacity": r2(0.5 * L.halo),
+        "pointer-events": "none"
+      })
+    );
     s += tag(
       "body",
       rect(
@@ -5398,10 +5516,15 @@ var PartsKit = (() => {
       ) + circle(x, y, 1.6 * mm * k, T["plastic-white-edge"], { "fill-opacity": 0.5 }) + die(-1.05 * mm, "lens-red") + die(-0.3 * mm, "lens-green") + die(0.45 * mm, "lens-blue") + circle(x, y, 1.75 * mm * k, pc.fill, {
         "data-hook": hook,
         "data-level": r2(pc.level),
-        "fill-opacity": pc.level > 0 ? r2(0.55 + 0.45 * pc.level) : 0
-      }) + circle(x, y, 1.6 * mm * k, sheen("lens"), { "fill-opacity": 0.6 })
+        "fill-opacity": pc.level > 0 ? r2(0.4 + 0.6 * L.lens) : 0
+      }) + lightOf(x, y, 1.75 * mm * k, L) + circle(x, y, 1.6 * mm * k, sheen("lens"), { "fill-opacity": 0.6 })
     );
     return s;
+  }
+  function lightOf(x, y, r, L) {
+    if (!L.level) return "";
+    const T = tokens();
+    return circle(x, y, r, T["plastic-black"], { "fill-opacity": r2(0.8 * L.shade) }) + circle(x, y, r2(r * (0.4 + 0.6 * L.hot)), sheen("hot"), { "fill-opacity": r2(L.hot * L.hot) });
   }
   function pixel5050(T, x, y, hook, c) {
     return pixelPackage(T, x, y, hook, c, 5);
@@ -5522,16 +5645,23 @@ var PartsKit = (() => {
       const cy = 2 * p;
       const c = colors[i] || null;
       const pc = pixelColor(T, c);
+      const L = shine(pc.level);
       let g = "";
       if (round) {
-        g += tag("glow", circle(cx, cy, 3.4 * mm * k, pc.fill, { "fill-opacity": r2(T["opacity-glow"] * pc.level) }));
+        g += tag(
+          "glow",
+          circle(cx, cy, r2(mm * k * (2.4 + 2.2 * L.spread)), pc.fill, {
+            "fill-opacity": r2(0.5 * L.halo),
+            "pointer-events": "none"
+          })
+        );
         g += tag(
           "body",
           circle(cx, cy, 2.6 * mm * k, T["plastic-white"], edge(T, T["plastic-white-edge"], T["stroke-fine"])) + circle(cx, cy, 1.75 * mm * k, pc.fill, {
             "data-hook": `px-${i}`,
             "data-level": r2(pc.level),
-            "fill-opacity": pc.level > 0 ? r2(0.55 + 0.45 * pc.level) : 0
-          })
+            "fill-opacity": pc.level > 0 ? r2(0.4 + 0.6 * L.lens) : 0
+          }) + lightOf(cx, cy, 1.75 * mm * k, L)
         );
       } else g += pixelPackage(T, cx, cy, `px-${i}`, c, kind.size);
       s += el("g", { "data-pixel": i, "data-lit": pc.level > 0 ? "true" : "false" }, g);
@@ -5681,14 +5811,30 @@ var PartsKit = (() => {
     s += rect(bx0 + 1.2 * mm, by0 + 0.38 * p, bw - 2.4 * mm, bh - 0.76 * p, T["segment-face"], { rx: 0.8 });
     for (let k = 0; k < n; k++) {
       const lv = Math.max(0, Math.min(1, Number(values[k]) || 0));
+      const L = shine(lv);
       const bx = w / 2 + (k - (n - 1) / 2) * bp;
+      const spill = 0.4 * mm * L.spread;
+      if (lv)
+        s += tag(
+          "glow",
+          rect(bx - bwid / 2 - spill, cy - bht / 2 - spill, bwid + 2 * spill, bht + 2 * spill, colorOf(k), {
+            rx: r2(1 + spill),
+            "fill-opacity": r2(0.45 * L.halo),
+            "pointer-events": "none"
+          })
+        );
       s += rect(bx - bwid / 2, cy - bht / 2, bwid, bht, T["indicator-off-light"], { rx: 1, "fill-opacity": 0.75 });
       s += rect(bx - bwid / 2, cy - bht / 2, bwid, bht, colorOf(k), {
         "data-hook": `bar-${k + 1}`,
         "data-level": r2(lv),
         rx: 1,
-        "fill-opacity": lv > 0 ? r2(T["opacity-segment-dim"] + (1 - T["opacity-segment-dim"]) * lv) : 0
+        "fill-opacity": lv > 0 ? r2(0.4 + 0.6 * L.lens) : 0
       });
+      if (lv)
+        s += rect(bx - bwid / 2, cy - bht / 2, bwid, bht, T["plastic-black"], {
+          rx: 1,
+          "fill-opacity": r2(0.8 * L.shade)
+        }) + rect(bx - bwid / 2, cy - bht / 2, bwid, bht, sheen("hot"), { rx: 1, "fill-opacity": r2(0.3 + 0.7 * L.hot) });
     }
     s += rect(bx0 + 0.9 * mm, by0 + 0.08 * p, 0.3 * p, 0.3 * p, T["plastic-white-edge"], {
       rx: 0.4,
@@ -11616,6 +11762,7 @@ var PartsKit = (() => {
     sh1107Module: () => sh1107Module,
     shiftRegister165: () => shiftRegister165,
     shiftRegister595: () => shiftRegister595,
+    shine: () => shine,
     silkMark: () => silkMark,
     slidePotentiometer: () => slidePotentiometer,
     slideSwitch: () => slideSwitch,

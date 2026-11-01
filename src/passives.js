@@ -14,6 +14,7 @@ import {
   r2,
   rect,
   sheen,
+  shine,
   tag,
   text,
   tokens,
@@ -188,6 +189,7 @@ export function led(props) {
   const color = lensColor(T, props.color || 'red');
   const on = !!props.on;
   const b = on ? (props.brightness === undefined ? 1 : Math.max(0, Math.min(1, props.brightness))) : 0;
+  const L = shine(b);
   let s = '';
   const mm = p / 2.54;
   const x0 = (w - 5 * mm) / 2;
@@ -205,31 +207,49 @@ export function led(props) {
   const dome = `M${r2(x0)} ${r2(base)}V${r2(top + r)}A${r2(r)} ${r2(r)} 0 0 1 ${r2(x1)} ${r2(top + r)}V${r2(base)}Z`;
   const white = color === T['lens-white'];
   const glowColor = white ? '#ffd66b' : color;
+  // The halo grows with every level, from a thin rim round the dome, barely lit, to well past the drawing at full brightness
+  // (a host that shows overflow shows it all), over a softer bloom of the colour that spreads further still; neither takes
+  // the pointer.
+  if (L.level)
+    s += tag(
+      'glow',
+      el('ellipse', {
+        cx,
+        cy: top + r + 1.5,
+        rx: r2(r * (1.4 + 1.6 * L.spread)),
+        ry: r2(r * (1.4 + 1.6 * L.spread)),
+        fill: sheen('bloom', glowColor),
+        'fill-opacity': r2(0.75 * L.spread),
+        'pointer-events': 'none',
+      }),
+    );
   s += tag(
     'glow',
     el('ellipse', {
       'data-hook': 'glow',
       cx,
       cy: top + r + 1.5,
-      rx: Math.min(r * 1.8, cx - 0.2),
-      ry: Math.min(r * 1.75, top + r + 1.3),
-      fill: sheen('glow', glowColor),
-      'fill-opacity': r2(Math.min(1, 2.2 * T['opacity-glow']) * b),
+      rx: r2(r * (1.1 + 1.5 * L.spread)),
+      ry: r2(r * (1.05 + 1.5 * L.spread)),
+      fill: sheen('halo', glowColor),
+      'fill-opacity': r2(L.halo),
+      'pointer-events': 'none',
     }),
   );
   s += wire(xa, legTop, xa, h) + wire(xc, legTop, xc, h);
   s += tag(
     'body',
     path(dome, T['plastic-white']) +
-      path(dome, white && on ? '#fff0b8' : color, {
+      path(dome, white && on ? '#fff6d8' : color, {
         'data-hook': 'lens',
-        'fill-opacity': on ? r2(0.6 + 0.4 * b) : 0.6,
-      }),
+        'fill-opacity': on ? r2(0.6 + 0.4 * L.lens) : 0.6,
+      }) +
+      (L.shade ? path(dome, T['plastic-black'], { 'fill-opacity': r2(white ? 0.6 * L.shade : L.shade) }) : ''),
   );
   // The lead frame inside the epoxy, as the real one is built: the anvil (cathode) is the heavy piece, a stem widening into the
   // reflector cup that holds the die; the post (anode) is the thin piece with a small flag at its top, and the bond wire arcs
   // from that flag down into the cup. Both leads keep their leg width where they enter the flange.
-  const frame = { fill: T['plastic-black-edge'], 'fill-opacity': on ? 0.2 : 0.58 };
+  const frame = { fill: T['plastic-black-edge'], 'fill-opacity': r2(0.58 - 0.42 * L.wash) };
   const cupTop = top + r - 1.2;
   const mm2 = mm;
   const cupW = 1.6 * mm2;
@@ -250,7 +270,7 @@ export function led(props) {
   s += path(`M${r2(slabIn + toC * 0.3)} ${r2(shoulderY)}L${r2(barIn + toC * 0.3)} ${r2(cupBot + 0.2)}`, 'none', {
     stroke: '#ffffff',
     'stroke-width': 0.4,
-    'stroke-opacity': on ? 0.25 : 0.35,
+    'stroke-opacity': r2(0.35 - 0.12 * L.wash),
   });
   s += path(
     `M${r2(barC - cupW / 2)} ${r2(cupTop)}H${r2(barC + cupW / 2)}L${r2(barC + cupW * 0.3)} ${r2(cupBot)}H${r2(barC - cupW * 0.3)}Z`,
@@ -261,9 +281,9 @@ export function led(props) {
   s += path(
     `M${r2(barC - cupW * 0.36)} ${r2(cupTop + 0.35)}H${r2(barC + cupW * 0.36)}L${r2(barC + cupW * 0.18)} ${r2(cupBot - 0.6)}H${r2(barC - cupW * 0.18)}Z`,
     on ? '#ffffff' : T['plastic-grey'],
-    { 'fill-opacity': on ? 0.55 : 0.5 },
+    { 'fill-opacity': on ? r2(0.3 + 0.3 * L.wash) : 0.5 },
   );
-  s += rect(barC - 0.5, cupBot - 1.4, 1.0, 0.75, T['plastic-black'], { 'fill-opacity': on ? 0.5 : 0.8 });
+  s += rect(barC - 0.5, cupBot - 1.4, 1.0, 0.75, T['plastic-black'], { 'fill-opacity': r2(0.8 - 0.35 * L.wash) });
   s += rect(xa - postW / 2, cupTop - 0.4, postW, base - cupTop + 0.4, T['plastic-black-edge'], frame);
   s += rect(
     toC > 0 ? xa - postW / 2 : xa + postW / 2 - postW * 2.2,
@@ -276,26 +296,50 @@ export function led(props) {
   s += path(
     `M${r2(xa + toC * postW * 1.5)} ${r2(cupTop + 0.2)}Q${r2((xa + barC) / 2)} ${r2(cupTop - 3.4)} ${r2(barC)} ${r2(cupBot - 1.1)}`,
     'none',
-    { stroke: T['plastic-black-edge'], 'stroke-width': 0.45, 'stroke-opacity': on ? 0.35 : 0.6 },
+    { stroke: T['plastic-black-edge'], 'stroke-width': 0.45, 'stroke-opacity': r2(0.6 - 0.28 * L.wash) },
   );
   // Both leads thicken to the leg width where they are held in the flange.
   s += rect(xa - 0.95, base - 2.4, 1.9, 2.6, T['plastic-black-edge'], frame);
-  // Lit, the light pours out of the cup: a white-hot core over the die that washes the frame out around it.
-  if (on)
+  // Lit, the light pours out of the cup. Even barely lit the die shows as a bright point in the cup; the epoxy fills with
+  // the colour, deeper and wider as the current rises; from about a third up a white-hot core grows from the die until,
+  // at full, the middle of the dome burns white and washes the frame out. Everything stays inside the dome.
+  if (L.level) {
     s += el('ellipse', {
-      cx: barC,
+      cx,
       cy: cupTop + 0.9,
-      rx: r * 1.0,
-      ry: r * 1.05,
-      fill: sheen('hot'),
-      'fill-opacity': r2(0.5 + 0.5 * b),
+      rx: r2(r * (0.55 + 0.4 * L.spread)),
+      ry: r2(r * (0.6 + 0.45 * L.spread)),
+      fill: sheen('glow', glowColor),
+      'fill-opacity': r2(L.core),
     });
+    const die = { cx: barC, cy: cupTop + 0.5, rx: r2(0.42 * r), ry: r2(0.5 * r) };
+    s += el('ellipse', Object.assign({ fill: sheen('glow', glowColor) }, die));
+    // The white-hot core grows from a point on the die to most of the dome.
+    const hx = cx - 0.25 * (cx - barC);
+    s += el('ellipse', {
+      cx: r2(hx),
+      cy: cupTop + 0.9,
+      rx: r2((hx - x0) * (0.25 + 0.75 * L.hot)),
+      ry: r2(r * (0.3 + 0.85 * L.hot)),
+      fill: sheen('hot'),
+      'fill-opacity': r2(0.55 + 0.45 * L.hot),
+    });
+    if (L.bloom)
+      s += el('ellipse', {
+        cx,
+        cy: r2(top + r + 3),
+        rx: r2(r * 1.05),
+        ry: r2(r * 1.5),
+        fill: sheen('hot'),
+        'fill-opacity': r2(L.bloom),
+      });
+  }
   s += path(dome, sheen('dome'), { 'fill-opacity': on ? 0.7 : 0.8 });
   s += path(dome, 'none', { stroke: T['plastic-grey-edge'], 'stroke-width': T['stroke-fine'], 'stroke-opacity': 0.8 });
   // The flange sits under the dome, a little wider on the anode side; the flat on the cathode side brings it flush with the dome there.
   const fx0 = toC > 0 ? x0 - 0.4 * mm : x0;
   const fx1 = toC > 0 ? x1 : x1 + 0.4 * mm;
-  s += flange(T, fx0, fx1, base, flangeH, color, on ? 1 : 0.6, toC < 0);
+  s += flange(T, fx0, fx1, base, flangeH, color, on ? r2(0.6 + 0.4 * L.lens) : 0.6, toC < 0);
   const live = props.live || {};
   s += flow(xa, h, xa, legTop + 1, live.flow, 'flow-a') + flow(xc, legTop + 1, xc, h, live.flow, 'flow-c');
   if (live.probe) s += probe(live.probe === 'K' || live.probe === 'C' ? xc : xa, h);
@@ -436,8 +480,9 @@ export function buzzer(props) {
  * A 5 mm diffused RGB LED in front elevation: a milky dome lit by the mix
  * of its three channels (r, g, b from 0 to 1), four legs a pitch apart in
  * the real order, red, common, green, blue; the common leg is the longest,
- * as on the real part, and ends a pitch below the others. The editor sets
- * the lens fill to the mix and the glow to the strongest channel.
+ * as on the real part, and ends a pitch below the others. The lens takes
+ * the mix and lights by the strongest channel (shine); a mix near white
+ * glows a cool white, so it still shows on a white bench.
  */
 export function rgbLed(props) {
   props = props || {};
@@ -454,12 +499,14 @@ export function rgbLed(props) {
     return isNaN(v) ? 0 : Math.max(0, Math.min(1, v));
   });
   const level = Math.max(ch[0], ch[1], ch[2]);
-  const on = level > 0.02;
+  const on = level > 0;
+  const L = shine(level);
   const hx = function (v) {
     const n = Math.round(v * 255).toString(16);
     return (n.length < 2 ? '0' : '') + n;
   };
   const mix = on ? `#${hx(ch[0] / level)}${hx(ch[1] / level)}${hx(ch[2] / level)}` : T['plastic-white'];
+  const glowColor = on && Math.min(ch[0], ch[1], ch[2]) > 0.8 * level ? '#a9c8ff' : mix;
   const mm = p / 2.54;
   const x0 = (w - 5 * mm) / 2;
   const x1 = x0 + 5 * mm;
@@ -472,16 +519,30 @@ export function rgbLed(props) {
   const names = ['Red', 'Common', 'Green', 'Blue'];
   const legTop = base + flangeH - 0.4;
   const dome = `M${r2(x0)} ${r2(base)}V${r2(top + r)}A${r2(r)} ${r2(r)} 0 0 1 ${r2(x1)} ${r2(top + r)}V${r2(base)}Z`;
+  if (on)
+    s += tag(
+      'glow',
+      el('ellipse', {
+        cx,
+        cy: top + r + 1.5,
+        rx: r2(r * (1.4 + 1.6 * L.spread)),
+        ry: r2(r * (1.4 + 1.6 * L.spread)),
+        fill: sheen('bloom', glowColor),
+        'fill-opacity': r2(0.75 * L.spread),
+        'pointer-events': 'none',
+      }),
+    );
   s += tag(
     'glow',
     el('ellipse', {
       'data-hook': 'glow',
       cx,
       cy: top + r + 1.5,
-      rx: r * 1.8,
-      ry: r * 1.75,
-      fill: sheen('glow', on ? mix : T['lens-white']),
-      'fill-opacity': r2(Math.min(1, 2.2 * T['opacity-glow']) * level),
+      rx: r2(r * (1.1 + 1.5 * L.spread)),
+      ry: r2(r * (1.05 + 1.5 * L.spread)),
+      fill: sheen('halo', on ? glowColor : T['lens-white']),
+      'fill-opacity': r2(L.halo),
+      'pointer-events': 'none',
     }),
   );
   // The four legs leave the base 1.27 mm apart, as the real part's do, and splay out to the grid below it.
@@ -495,11 +556,12 @@ export function rgbLed(props) {
     path(dome, T['plastic-white'], { 'fill-opacity': 1 }) +
       path(dome, mix, {
         'data-hook': 'lens',
-        'fill-opacity': on ? r2(0.45 + 0.5 * level) : 0.08,
+        'fill-opacity': on ? r2(0.25 + 0.75 * L.lens) : 0.08,
         'data-r': ch[0],
         'data-g': ch[1],
         'data-b': ch[2],
-      }),
+      }) +
+      (L.shade ? path(dome, T['plastic-black'], { 'fill-opacity': r2(0.7 * L.shade) }) : ''),
   );
   const cupTop = top + r + 2.2;
   [
@@ -509,18 +571,37 @@ export function rgbLed(props) {
     [2.6, 0.4],
   ].forEach(q => {
     s += rect(cx + q[0] * 1.3 - 0.55, cupTop + q[1] * mm, 1.1, base - cupTop - q[1] * mm, T['plastic-black-edge'], {
-      'fill-opacity': on ? 0.22 : 0.35,
+      'fill-opacity': r2(0.35 - 0.15 * L.wash),
     });
   });
-  if (on)
+  // The diffuser spreads the dies' light through the dome: the colour, and a white-hot middle that grows with the level.
+  if (on) {
     s += el('ellipse', {
       cx,
       cy: top + r + 1.5,
-      rx: r * 0.95,
-      ry: r * 1.0,
-      fill: sheen('hot'),
-      'fill-opacity': r2(0.4 + 0.5 * level),
+      rx: r2(r * (0.6 + 0.35 * L.spread)),
+      ry: r2(r * (0.7 + 0.35 * L.spread)),
+      fill: sheen('glow', glowColor),
+      'fill-opacity': r2(L.core),
     });
+    s += el('ellipse', {
+      cx,
+      cy: top + r + 1.5,
+      rx: r2(r * (0.2 + 0.75 * L.hot)),
+      ry: r2(r * (0.25 + 0.75 * L.hot)),
+      fill: sheen('hot'),
+      'fill-opacity': r2(0.55 + 0.45 * L.hot),
+    });
+    if (L.bloom)
+      s += el('ellipse', {
+        cx,
+        cy: r2(top + r + 3),
+        rx: r2(r * 1.05),
+        ry: r2(r * 1.5),
+        fill: sheen('hot'),
+        'fill-opacity': r2(L.bloom),
+      });
+  }
   s += path(dome, sheen('dome'), { 'fill-opacity': on ? 0.7 : 0.8 });
   s += path(dome, 'none', { stroke: T['plastic-grey-edge'], 'stroke-width': T['stroke-fine'], 'stroke-opacity': 0.8 });
   const fx0 = x0 - 0.4 * mm;

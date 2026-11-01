@@ -17,6 +17,7 @@ import {
   r2,
   rect,
   sheen,
+  shine,
   tag,
   text,
   tokens,
@@ -48,11 +49,18 @@ function pixelPackage(T, x, y, hook, c, size) {
   const k = (size || 5) / 5;
   const h = 2.5 * mm * k;
   const pc = pixelColor(T, c);
+  const L = shine(pc.level);
   let s = '';
   const die = function (dx, fill) {
     return rect(x + dx * k, y - 0.35 * mm * k, 0.6 * mm * k, 0.7 * mm * k, T[fill], { 'fill-opacity': 0.55 });
   };
-  s += tag('glow', circle(x, y, 3.2 * mm * k, pc.fill, { 'fill-opacity': r2(T['opacity-glow'] * pc.level) }));
+  s += tag(
+    'glow',
+    circle(x, y, r2(mm * k * (2.2 + 2.2 * L.spread)), pc.fill, {
+      'fill-opacity': r2(0.5 * L.halo),
+      'pointer-events': 'none',
+    }),
+  );
   s += tag(
     'body',
     rect(
@@ -70,11 +78,21 @@ function pixelPackage(T, x, y, hook, c, size) {
       circle(x, y, 1.75 * mm * k, pc.fill, {
         'data-hook': hook,
         'data-level': r2(pc.level),
-        'fill-opacity': pc.level > 0 ? r2(0.55 + 0.45 * pc.level) : 0,
+        'fill-opacity': pc.level > 0 ? r2(0.4 + 0.6 * L.lens) : 0,
       }) +
+      lightOf(x, y, 1.75 * mm * k, L) +
       circle(x, y, 1.6 * mm * k, sheen('lens'), { 'fill-opacity': 0.6 }),
   );
   return s;
+}
+/** A lit pixel's shade (dim) and white-hot middle (bright) over its colour disc of radius r (shine). */
+function lightOf(x, y, r, L) {
+  if (!L.level) return '';
+  const T = tokens();
+  return (
+    circle(x, y, r, T['plastic-black'], { 'fill-opacity': r2(0.8 * L.shade) }) +
+    circle(x, y, r2(r * (0.4 + 0.6 * L.hot)), sheen('hot'), { 'fill-opacity': r2(L.hot * L.hot) })
+  );
 }
 /** One 5050 addressable pixel at x, y (its centre). */
 function pixel5050(T, x, y, hook, c) {
@@ -218,17 +236,25 @@ export function ledStrip(props) {
     const cy = 2 * p;
     const c = colors[i] || null;
     const pc = pixelColor(T, c);
+    const L = shine(pc.level);
     let g = '';
     if (round) {
-      g += tag('glow', circle(cx, cy, 3.4 * mm * k, pc.fill, { 'fill-opacity': r2(T['opacity-glow'] * pc.level) }));
+      g += tag(
+        'glow',
+        circle(cx, cy, r2(mm * k * (2.4 + 2.2 * L.spread)), pc.fill, {
+          'fill-opacity': r2(0.5 * L.halo),
+          'pointer-events': 'none',
+        }),
+      );
       g += tag(
         'body',
         circle(cx, cy, 2.6 * mm * k, T['plastic-white'], edge(T, T['plastic-white-edge'], T['stroke-fine'])) +
           circle(cx, cy, 1.75 * mm * k, pc.fill, {
             'data-hook': `px-${i}`,
             'data-level': r2(pc.level),
-            'fill-opacity': pc.level > 0 ? r2(0.55 + 0.45 * pc.level) : 0,
-          }),
+            'fill-opacity': pc.level > 0 ? r2(0.4 + 0.6 * L.lens) : 0,
+          }) +
+          lightOf(cx, cy, 1.75 * mm * k, L),
       );
     } else g += pixelPackage(T, cx, cy, `px-${i}`, c, kind.size);
     s += el('g', { 'data-pixel': i, 'data-lit': pc.level > 0 ? 'true' : 'false' }, g);
@@ -412,14 +438,33 @@ export function ledBarGraph(props) {
   s += rect(bx0 + 1.2 * mm, by0 + 0.38 * p, bw - 2.4 * mm, bh - 0.76 * p, T['segment-face'], { rx: 0.8 });
   for (let k = 0; k < n; k++) {
     const lv = Math.max(0, Math.min(1, Number(values[k]) || 0));
+    const L = shine(lv);
     const bx = w / 2 + (k - (n - 1) / 2) * bp;
+    // A lit bar spills light into the face round it, shaded when dim, burning white down its middle as it brightens (shine).
+    const spill = 0.4 * mm * L.spread;
+    if (lv)
+      s += tag(
+        'glow',
+        rect(bx - bwid / 2 - spill, cy - bht / 2 - spill, bwid + 2 * spill, bht + 2 * spill, colorOf(k), {
+          rx: r2(1.0 + spill),
+          'fill-opacity': r2(0.45 * L.halo),
+          'pointer-events': 'none',
+        }),
+      );
     s += rect(bx - bwid / 2, cy - bht / 2, bwid, bht, T['indicator-off-light'], { rx: 1.0, 'fill-opacity': 0.75 });
     s += rect(bx - bwid / 2, cy - bht / 2, bwid, bht, colorOf(k), {
       'data-hook': `bar-${k + 1}`,
       'data-level': r2(lv),
       rx: 1.0,
-      'fill-opacity': lv > 0 ? r2(T['opacity-segment-dim'] + (1 - T['opacity-segment-dim']) * lv) : 0,
+      'fill-opacity': lv > 0 ? r2(0.4 + 0.6 * L.lens) : 0,
     });
+    if (lv)
+      s +=
+        rect(bx - bwid / 2, cy - bht / 2, bwid, bht, T['plastic-black'], {
+          rx: 1.0,
+          'fill-opacity': r2(0.8 * L.shade),
+        }) +
+        rect(bx - bwid / 2, cy - bht / 2, bwid, bht, sheen('hot'), { rx: 1.0, 'fill-opacity': r2(0.3 + 0.7 * L.hot) });
   }
   // The pin-1 mark: a notch in the white rim at the anode end.
   s += rect(bx0 + 0.9 * mm, by0 + 0.08 * p, 0.3 * p, 0.3 * p, T['plastic-white-edge'], {

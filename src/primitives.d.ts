@@ -19,6 +19,7 @@ export declare const meterLines: PartsKit['meterLines'];
 export declare const pin: PartsKit['pin'];
 export declare const probe: PartsKit['probe'];
 export declare const resistorBands: PartsKit['resistorBands'];
+export declare const shine: PartsKit['shine'];
 export declare const silkMark: PartsKit['silkMark'];
 export declare const svg: PartsKit['svg'];
 export declare const trace: PartsKit['trace'];

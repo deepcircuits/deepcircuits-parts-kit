@@ -21,6 +21,7 @@ import {
   r2,
   rect,
   sheen,
+  shine,
   silkMark,
   tag,
   text,
@@ -1248,14 +1249,16 @@ export function franzininho(props) {
   ].forEach(D => {
     const col = lensColor(T, D[1]);
     const level = lit(D[2]);
+    const light = shine(level);
     const cx = X(D[0]);
     const cy = Y(26.09);
     const lr = L(1.5);
     if (level)
       s += tag(
         'glow',
-        circle(cx, cy, 1.8 * lr, sheen('glow', col), {
-          'fill-opacity': r2(Math.min(1, 2.2 * T['opacity-glow']) * level),
+        circle(cx, cy, r2(lr * (1.3 + 1.2 * light.spread)), sheen('halo', col), {
+          'fill-opacity': r2(light.halo),
+          'pointer-events': 'none',
         }),
       );
     s +=
@@ -1276,7 +1279,13 @@ export function franzininho(props) {
             },
             edge(T, T['plastic-black-edge'], T['stroke-fine']),
           ),
-        ),
+        ) +
+          (level
+            ? circle(cx, cy, lr, T['plastic-black'], { 'fill-opacity': r2(light.shade) }) +
+              circle(cx, cy, r2(lr * (0.45 + 0.55 * light.hot)), sheen('hot'), {
+                'fill-opacity': r2(0.4 + 0.6 * light.hot),
+              })
+            : ''),
       ) + circle(cx, cy, lr, sheen('dome'), { 'fill-opacity': 0.7 });
     s += text(cx, Y(23.3), D[5], PIN_LABEL, f.silk);
   });
