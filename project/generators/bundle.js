@@ -6274,6 +6274,93 @@ var PartsKit = (() => {
     );
     return art(w, h, `Eight-channel logic analyzer, ${(WORD[state2] || "STOP").toLowerCase()}`, s, pins);
   }
+  function multimeter(props) {
+    props = props || {};
+    const T = tokens();
+    const p = T.pitch;
+    const w = 14 * p;
+    const h = 25 * p;
+    const mode2 = props.mode === "current" ? "current" : "voltage";
+    const unit2 = props.unit || (mode2 === "current" ? "mA" : "V");
+    const given = props.reading === void 0 || props.reading === null ? "" : String(props.reading).slice(0, 6);
+    const reading = given || "----";
+    let s = "";
+    s += tag(
+      "body",
+      rect(0, 0, w, h, T["plastic-amber"], Object.assign({ rx: 1.2 * p }, edge(T, T["plastic-amber-edge"])))
+    );
+    s += bevel(T, 0, 0, w, h, 2.2, 1.2 * p);
+    s += rect(
+      0.8 * p,
+      0.8 * p,
+      w - 1.6 * p,
+      h - 1.6 * p,
+      T["plastic-black"],
+      Object.assign({ rx: 0.6 * p }, edge(T, T["plastic-black-edge"]))
+    );
+    const gx = 2.2 * p;
+    const gy = 2.2 * p;
+    const gw = w - 4.4 * p;
+    const gh = 4.6 * p;
+    s += tag(
+      "display",
+      rect(gx - 0.4 * p, gy - 0.4 * p, gw + 0.8 * p, gh + 0.8 * p, T.bezel, { rx: 0.4 * p }) + rect(gx, gy, gw, gh, T["lcd-green"], { rx: 0.2 * p })
+    );
+    const ink = T["lcd-ink"];
+    const base = gy + gh - 0.6 * p;
+    const right = gx + gw - 0.3 * p;
+    const lcd = text(gx + 0.3 * p, gy + p, "DC", 5, ink, { "text-anchor": "start", "font-weight": 700 }) + text(right, gy + p, "AUTO", 5, ink, { "text-anchor": "end", "font-weight": 700 }) + text(right - textWidth(unit2.length, 10) - 2.4, base, reading, 18, ink, {
+      "text-anchor": "end",
+      "font-weight": 600
+    }) + text(right, base, unit2, 10, ink, { "text-anchor": "end", "font-weight": 700 });
+    s += el("g", { "data-reading": given, "data-unit": unit2, "data-mode": mode2 }, lcd);
+    const cx = w / 2;
+    const cy = 12.6 * p;
+    const angle = mode2 === "current" ? 45 : -45;
+    const grip = circle(cx, cy, 2.5 * p, T["plastic-black"], edge(T, T["plastic-grey-edge"])) + rect(cx - 0.45 * p, cy - 2.3 * p, 0.9 * p, 4.6 * p, T["plastic-grey"], { rx: 0.4 * p }) + circle(cx, cy - 1.75 * p, 0.25 * p, T["plastic-white"]);
+    s += tag(
+      "dial",
+      circle(cx, cy, 3.2 * p, T["plastic-grey"], edge(T, T["plastic-grey-edge"])) + el("g", { "data-hook": "knob", transform: `rotate(${angle} ${r2(cx)} ${r2(cy)})` }, grip)
+    );
+    const white = T["plastic-white"];
+    const dc = (x, y) => line(x, y - 4.6, x + 5, y - 4.6, white, 0.6) + line(x, y - 2.6, x + 5, y - 2.6, white, 0.6, { "stroke-dasharray": "1.2 0.7" });
+    for (const [a, name] of [
+      [-45, "V"],
+      [45, "mA"]
+    ]) {
+      const rad = a * Math.PI / 180;
+      const tick = (r1, r2_) => line(
+        cx + r1 * Math.sin(rad),
+        cy - r1 * Math.cos(rad),
+        cx + r2_ * Math.sin(rad),
+        cy - r2_ * Math.cos(rad),
+        white,
+        0.8
+      );
+      const lx = cx + 4.6 * p * Math.sin(rad);
+      const ly = cy - 4.6 * p * Math.cos(rad);
+      s += tick(3.4 * p, 3.9 * p);
+      s += text(lx - 3, ly, name, 7, white, { "font-weight": 700 }) + dc(lx - 3 + textWidth(name.length, 7) / 2 + 1, ly);
+    }
+    const pins = [];
+    const jy = 21 * p;
+    for (const [x, name, ring, rating] of [
+      [3 * p, "mA", T["plastic-red"], "400mA MAX"],
+      [7 * p, "COM", T["plastic-black"], ""],
+      [11 * p, "V", T["plastic-red"], "600V MAX"]
+    ]) {
+      s += tag(
+        "socket",
+        circle(x, jy, 1.3 * p, ring, edge(T, T["plastic-grey-edge"])) + circle(x, jy, 0.8 * p, T.cavity) + circle(x, jy, 0.45 * p, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + circle(x, jy, 0.22 * p, T.cavity),
+        { "data-jack": name }
+      );
+      s += text(x, jy - 1.9 * p, name, 6, white, { "font-weight": 700 });
+      if (rating) s += text(x, jy + 2.4 * p, rating, 4.5, white);
+      pins.push({ name, x, y: jy });
+    }
+    const label = `Multimeter on ${mode2 === "current" ? "milliamps" : "volts"}, ${given ? `reading ${given} ${unit2}` : "no reading"}`;
+    return art(w, h, label, s, pins);
+  }
   function microsdModule(props) {
     props = props || {};
     const T = tokens();
@@ -10785,6 +10872,7 @@ var PartsKit = (() => {
     mb102Module: () => mb102Module,
     microsdModule: () => microsdModule,
     multiRelayModule: () => multiRelayModule,
+    multimeter: () => multimeter,
     muxBreakout: () => muxBreakout,
     neopixelMeter: () => neopixelMeter,
     relayModule: () => relayModule,
@@ -11475,6 +11563,7 @@ var PartsKit = (() => {
     mount: () => mount,
     mpu6050Imu: () => mpu6050Imu,
     multiRelayModule: () => multiRelayModule,
+    multimeter: () => multimeter,
     muxBreakout: () => muxBreakout,
     muxSymbol: () => muxSymbol,
     nanoClassBoard: () => nanoClassBoard,
@@ -11977,6 +12066,21 @@ var PartsKit = (() => {
       lit: state({ type: "list", label: "Channels high", items: { type: "boolean" }, length: 8 }),
       activity: state(unit("Activity"))
     },
+    multimeter: {
+      mode: {
+        type: "enum",
+        label: "Measures",
+        choices: [choice("voltage", "Voltage"), choice("current", "Current")],
+        default: "voltage"
+      },
+      reading: state({ type: "text", label: "Reading", default: "", maxLength: 6, example: "4.987" }),
+      unit: state({
+        type: "enum",
+        label: "Unit",
+        choices: [choice("", "The mode's"), choice("mV", "mV"), choice("V", "V"), choice("mA", "mA")],
+        default: ""
+      })
+    },
     neopixelMeter: {
       status: state({
         type: "enum",
@@ -12433,6 +12537,7 @@ var PartsKit = (() => {
     ],
     ["rfid-reader", "RFID reader", "module", "rfidModule", null, ["MFRC522", "RC522", "NFC"]],
     ["logic-analyzer", "Logic analyzer", "module", "logicAnalyzer", null, ["8 channels"]],
+    ["multimeter", "Multimeter", "module", "multimeter", null, ["DMM", "voltmeter", "ammeter", "meter"]],
     ["pixel-meter", "Pixel meter", "module", "neopixelMeter", null, ["NeoPixel", "current meter"]],
     [
       "analog-multiplexer-16-channel",

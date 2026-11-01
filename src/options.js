@@ -428,6 +428,21 @@ export const OPTIONS = {
     lit: state({ type: 'list', label: 'Channels high', items: { type: 'boolean' }, length: 8 }),
     activity: state(unit('Activity')),
   },
+  multimeter: {
+    mode: {
+      type: 'enum',
+      label: 'Measures',
+      choices: [choice('voltage', 'Voltage'), choice('current', 'Current')],
+      default: 'voltage',
+    },
+    reading: state({ type: 'text', label: 'Reading', default: '', maxLength: 6, example: '4.987' }),
+    unit: state({
+      type: 'enum',
+      label: 'Unit',
+      choices: [choice('', "The mode's"), choice('mV', 'mV'), choice('V', 'V'), choice('mA', 'mA')],
+      default: '',
+    }),
+  },
   neopixelMeter: {
     status: state({
       type: 'enum',

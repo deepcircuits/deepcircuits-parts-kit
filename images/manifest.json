@@ -22082,6 +22082,41 @@
       ]
     },
     {
+      "id": "multimeter",
+      "name": "Multimeter",
+      "family": "module",
+      "aliases": [
+        "DMM",
+        "voltmeter",
+        "ammeter",
+        "meter"
+      ],
+      "width": 134.4,
+      "height": 240,
+      "pins": [
+        { "name": "mA", "x": 28.8, "y": 201.6 },
+        { "name": "COM", "x": 67.2, "y": 201.6 },
+        { "name": "V", "x": 105.6, "y": 201.6 }
+      ],
+      "hooks": [
+        "knob"
+      ],
+      "images": [
+        {
+          "file": "multimeter.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "multimeter--example.svg",
+          "label": "Example",
+          "options": {
+            "reading": "4.987"
+          }
+        }
+      ]
+    },
+    {
       "id": "pixel-meter",
       "name": "Pixel meter",
       "family": "module",

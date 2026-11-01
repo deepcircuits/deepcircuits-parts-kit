@@ -8,7 +8,7 @@ The first public release.
 
 ### Parts
 
-- 142 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
+- 143 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
 - The templates behind them (`devBoardTemplate`, `moduleTemplate`, `sensorModuleTemplate`, `chipTemplate` and others, in `@deepcircuits/parts-kit/templates`) for parts of your own.
 - The Blue Pill, the ESP32-DevKitC V4 and the character LCDs checked against photographs and data sheets: the Blue Pill's rows and parts as the real board has them, the DevKitC V4 at its real length with the module over the rows, the LCD's mount holes and header where the module has them.
 - Every catalog part checked against photographs and data sheets for its pin order, which pins face each other, where its parts sit, its size, its holes and its pin-1 offset. Corrected:
@@ -43,6 +43,7 @@ The first public release.
 - `l298nModule`, the L298N dual H-bridge motor driver module (`l298n-motor-driver`: ENA, IN1 … IN4, ENB, 12V, GND, 5V, OUT1 … OUT4): the heatsink and the L298N, the flyback diodes, the 78M05, the motor and power terminals and the logic header; `enableJumpers` draws the ENA and ENB caps and `regulatorJumper` the 5V-EN cap.
 - `gearedStepper`, the 28BYJ-48 geared unipolar stepper (`geared-stepper`: ORANGE, YELLOW, PINK, BLUE, RED, the leads in the plug's order BLUE, PINK, YELLOW, ORANGE, RED), its output shaft turned by `angle`; and `uln2003Board`, the ULN2003 stepper driver board (`stepper-driver-board`: IN1 … IN4, VCC, GND, A … D, COM) with its motor connector, channel LEDs lit by `status`, input header, supply pins and ON/OFF jumper.
 - `functionGenerator`, the function generator symbol (`function-generator`: OUT, GND): a box with the wave it makes, `wave` sine (the default), triangle or square, captioned FG.
+- `multimeter`, a pocket digital multimeter (`multimeter`: mA, COM, V), drawn at about half size: the amber holster, the LCD showing `reading` and its `unit`, the rotary switch turned by `mode` (voltage or current) and the three jacks, mA marked 400mA MAX and V 600V MAX.
 
 ### API
 

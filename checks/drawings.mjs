@@ -82,6 +82,7 @@ export function suite(K) {
   'relay module on': K.relayModule({indicators:{power:true,status:true}}),
   'relay 2ch': K.multiRelayModule({channels:2}), 'relay 4ch lit': K.multiRelayModule({indicators:{power:true},status:[true,false,true,false]}), 'relay 8ch no jumper': K.multiRelayModule({channels:8,jumper:false}),
   'analyzer': K.logicAnalyzer({samples:12345,state:'recording',lit:[1,0,1,1,0,0,0,1]}),
+  'meter volts': K.multimeter({reading:'4.987'}), 'meter current': K.multimeter({mode:'current',reading:'-12.34'}), 'meter rest': K.multimeter(),
   'rfid': K.rfidModule(),
   'oled sh1107': K.oledSquare({caption:'128x128'}),
   'oled 4pin': K.oledBreakout({pins:['GND','VCC','SCL','SDA']}),

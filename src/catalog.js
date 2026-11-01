@@ -293,6 +293,7 @@ const PARTS = [
   ],
   ['rfid-reader', 'RFID reader', 'module', 'rfidModule', null, ['MFRC522', 'RC522', 'NFC']],
   ['logic-analyzer', 'Logic analyzer', 'module', 'logicAnalyzer', null, ['8 channels']],
+  ['multimeter', 'Multimeter', 'module', 'multimeter', null, ['DMM', 'voltmeter', 'ammeter', 'meter']],
   ['pixel-meter', 'Pixel meter', 'module', 'neopixelMeter', null, ['NeoPixel', 'current meter']],
   [
     'analog-multiplexer-16-channel',

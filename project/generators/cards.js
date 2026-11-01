@@ -346,6 +346,16 @@ export const CARDS = [
     },
   },
   {
+    name: "Multimeter",
+    intro: "The pocket digital multimeter, drawn at about half its size so it sits beside a circuit",
+    draw(K, root) {
+      K.mount(root, K.multimeter(), { pins: true, scale: 1.5, caption: "no reading" });
+      K.mount(root, K.multimeter({ reading: "4.987" }), { scale: 1.5, caption: "volts" });
+      K.mount(root, K.multimeter({ mode: "current", reading: "12.34" }), { scale: 1.5, caption: "milliamps" });
+      K.mount(root, K.multimeter({ mode: "current", reading: "OL" }), { scale: 1.5, caption: "over range" });
+    },
+  },
+  {
     name: "MuxBreakout",
     intro: "`muxBreakout`: the CD74HC4067 16-channel analog multiplexer breakout, 48 × 18 mm on a `pcb-purple` board",
     draw(K, root) {

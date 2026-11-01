@@ -536,6 +536,12 @@ export interface PartOptionsById {
     /** Channels high. */ lit?: readonly (boolean)[];
     /** Activity. 0 to 1. Default 0. */ activity?: number;
   };
+  /** Multimeter: multimeter. */
+  "multimeter": {
+    /** Measures. Default "voltage". */ mode?: "voltage" | "current";
+    /** Reading. Default "". */ reading?: string;
+    /** Unit. Default "". */ unit?: "" | "mV" | "V" | "mA";
+  };
   /** Pixel meter: neopixelMeter. */
   "pixel-meter": {
     /** Status. Default "idle". */ status?: "idle" | "ok" | "near" | "over";
