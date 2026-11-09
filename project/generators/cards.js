@@ -274,6 +274,17 @@ export const CARDS = [
     },
   },
   {
+    name: "LightBulb",
+    intro: "A miniature incandescent bulb standing on the bench, seen from the front, the kind a flashlight takes",
+    draw(K, root) {
+      K.mount(root, K.lightBulb(), { pins: true, caption: "off" });
+      K.mount(root, K.lightBulb({ on: true, brightness: 0.03 }), { caption: "3%, barely lit" });
+      K.mount(root, K.lightBulb({ on: true, brightness: 0.3 }), { caption: "30%" });
+      K.mount(root, K.lightBulb({ on: true }), { caption: "full" });
+      K.mount(root, K.lightBulb({ on: true, live: { flow: true, probe: "2" } }), { caption: "live: flow, probe on 2" });
+    },
+  },
+  {
     name: "Live",
     intro: "The live layer: how a part shows what the circuit is doing to it, in the one colour reserved for it",
     draw(K, root) {

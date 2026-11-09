@@ -87,6 +87,7 @@ One pitch is 2.54 mm, so a millimetre is 3.78 px (`pitch / 2.54`). Each template
 | Part | Real size | Drawn |
 | --- | --- | --- |
 | 5 mm LED | 5 mm dome, 8.6 mm to the flange, 5.8 mm flange with its flat on the cathode side, legs 2.54 mm apart | Led: dome 5 mm, the flange 0.4 mm past the dome on the anode side and flush with it on the flat, legs one pitch |
+| Miniature light bulb | 10 mm globe on a threaded base about 7 mm across and 3.6 mm long, the kind a flashlight takes | LightBulb: the globe at size with room for its halo inside the box, the base a little wider than the neck, the leads brought out one pitch either side of the middle so they sit two pitches apart |
 | Quarter-watt resistor | 6.3 × 2.4 mm body, legs bent to 0.4 inch on a breadboard | Resistor: 6.3 mm body with 1.3 mm end caps, legs four pitches |
 | 12 mm tactile button | 12 × 12 mm body, 7 mm cap, legs on a 5 × 12.5 mm grid | Pushbutton: 12 mm body, 7 mm cap, legs snapped to 2 × 5 pitches |
 | Electrolytic capacitor | 5 × 11 mm can, legs 2 mm apart | Capacitor: 5 × 11 mm can, legs snapped to one pitch |
@@ -159,7 +160,7 @@ A part is production ready when six checks pass, not when it looks right at one 
 Build a new part from the nearest template rather than from a blank box:
 
 - **Chip** for any bare IC (DIP, SOIC, TSSOP); **Transistor** for a three-leg part standing in TO-92 or TO-220; **Module** for a breakout with one header row and a part on it (`chip`, `sensor`, `can`, `dual-can`, `dome`), and the photographed breakouts beside it (`dht22Sensor`, `dht11Module`, `ultrasonicRanger`, `bmp180Board`, `pirModule`, `gasModuleTemplate`, `hx711Board`, `microsdModule`, `rtcModule`); **DevBoard** for a microcontroller board with two header rows; **CharacterLcd** and **SevenSegment** for displays; **LogicSymbol** for gates.
-- **Resistor**, **Led**, **Capacitor**, **Buzzer** for two-leg parts; **Pushbutton**, **Potentiometer**, **SlideSwitch** for inputs. A new input with a moving part gets an `id` on the part that moves.
+- **Resistor**, **Led**, **LightBulb**, **Capacitor**, **Buzzer** for two-leg parts; **Pushbutton**, **Potentiometer**, **SlideSwitch** for inputs. A new input with a moving part gets an `id` on the part that moves.
 - Compose from the primitives (**Pin**, **Header**, **Board**, **Lens**, an indicator, the **Live** layer) when no template fits, and add the result to the kit as a new template with a README that says what the consumer provides.
 
 ## The Artwork contract

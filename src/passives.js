@@ -1,4 +1,4 @@
-/** Two- and three-leg parts in front elevation: wire legs, the resistor and its colour code, LEDs (single and RGB), capacitors and the buzzer. */
+/** Two- and three-leg parts in front elevation: wire legs, the resistor and its colour code, LEDs (single and RGB), the miniature light bulb, capacitors and the buzzer. */
 import {
   PIN_LABEL,
   art,
@@ -346,6 +346,228 @@ export function led(props) {
   return art(w, h, `${props.color || 'red'} LED${on ? ', lit' : ''}`, s, [
     { name: 'A', x: xa, y: h },
     { name: 'K', x: xc, y: h },
+  ]);
+}
+
+/** Two #rrggbb colours mixed, t from 0 (all a) to 1 (all b). */
+function mixHex(a, b, t) {
+  const k = Math.max(0, Math.min(1, t));
+  const at = (s, i) => parseInt(s.slice(1 + 2 * i, 3 + 2 * i), 16);
+  let out = '#';
+  for (let i = 0; i < 3; i++)
+    out += Math.round(at(a, i) + (at(b, i) - at(a, i)) * k)
+      .toString(16)
+      .padStart(2, '0');
+  return out;
+}
+// The filament's colour as it heats: dull red barely lit, orange, then a white-yellow at full. The light it gives the glass.
+const FILAMENT_DIM = '#8a2410';
+const FILAMENT_WARM = '#ff7a1c';
+const FILAMENT_HOT = '#fff3cc';
+const FILAMENT_COLD = '#3b4146';
+const BULB_LIGHT = '#ffb84d';
+
+/**
+ * A miniature incandescent bulb standing on the bench, seen from the front,
+ * the kind a flashlight takes: a 10 mm clear glass globe narrowing to its
+ * neck, a metal screw base with its thread, the black insulator under it and
+ * two tinned leads two pitches apart, 1 on the left and 2 on the right. Inside
+ * the glass the stem rises from the neck with its two support wires, the coiled
+ * filament strung between their tops and held up in the middle. Lit at a
+ * brightness from 0 to 1 (as bright as it looks: shine), the filament runs from
+ * a dull red through orange to a white-yellow, the glass fills with warm light
+ * and a halo widens round the globe; at full the glass burns white from the
+ * filament out. The halo at its widest stays inside the box. ids: glass,
+ * filament, glow (for state animation).
+ */
+export function lightBulb(props) {
+  props = props || {};
+  const T = tokens();
+  const p = T.pitch;
+  const mm = p / 2.54;
+  const w = 6 * p;
+  const h = 8 * p;
+  const cx = w / 2;
+  const on = !!props.on;
+  const b = on ? (props.brightness === undefined ? 1 : Math.max(0, Math.min(1, props.brightness))) : 0;
+  const L = shine(b);
+  let s = '';
+  // The globe, and the widest the halo grows (HALO × r), which sets how far down the globe sits.
+  const r = 5 * mm;
+  const HALO = 1.45;
+  const cy = r * HALO + 0.5;
+  // The globe narrows at its shoulders into the neck the base is cemented to.
+  const shoulder = 0.72 * r;
+  const shoulderY = cy + Math.sqrt(r * r - shoulder * shoulder);
+  const neck = 3.1 * mm;
+  const collarTop = cy + r;
+  const globe =
+    `M${r2(cx - neck)} ${r2(collarTop)}Q${r2(cx - neck)} ${r2(shoulderY + 2.5)} ${r2(cx - shoulder)} ${r2(shoulderY)}` +
+    `A${r2(r)} ${r2(r)} 0 1 1 ${r2(cx + shoulder)} ${r2(shoulderY)}Q${r2(cx + neck)} ${r2(shoulderY + 2.5)} ${r2(cx + neck)} ${r2(collarTop)}Z`;
+  // The screw base: a metal collar a little wider than the neck, four turns of thread, then the black insulator.
+  const cw = neck + 0.7;
+  const ch = 3.6 * mm;
+  const collarBot = collarTop + ch;
+  const turn = ch / 4;
+  const xl = cx - cw;
+  const xr = cx + cw;
+  let collar = `M${r2(xl)} ${r2(collarTop)}H${r2(xr)}`;
+  for (let k = 0; k < 4; k++)
+    collar += `Q${r2(xr + 1.1)} ${r2(collarTop + turn * (k + 0.5))} ${r2(xr)} ${r2(collarTop + turn * (k + 1))}`;
+  collar += `H${r2(xl)}`;
+  for (let k = 3; k >= 0; k--)
+    collar += `Q${r2(xl - 1.1)} ${r2(collarTop + turn * (k + 0.5))} ${r2(xl)} ${r2(collarTop + turn * k)}`;
+  collar += 'Z';
+  const iw = 3 * mm;
+  const insTop = collarBot - 0.3;
+  const insBot = insTop + 1 * mm;
+  // The leads leave the insulator one pitch either side of the middle, so the pins are two pitches apart.
+  const x1 = cx - p;
+  const x2 = cx + p;
+  // The filament: a coil strung between the support wires' tops, sagging a little to its middle support.
+  const fy = cy - 2.5;
+  const fx0 = cx - 1.9 * mm;
+  const fx1 = cx + 1.9 * mm;
+  const stemTop = cy + 7;
+  const halfWaves = 22;
+  const amp = 1.25;
+  const sag = x => 1.4 * (1 - Math.pow((x - cx) / (fx1 - cx), 2));
+  let coil = `M${r2(fx0)} ${r2(fy)}`;
+  for (let i = 1; i <= halfWaves; i++) {
+    const xa = fx0 + ((i - 1) * (fx1 - fx0)) / halfWaves;
+    const xb = fx0 + (i * (fx1 - fx0)) / halfWaves;
+    const xm = (xa + xb) / 2;
+    coil += `Q${r2(xm)} ${r2(fy + sag(xm) + (i % 2 ? -2 : 2) * amp)} ${r2(xb)} ${r2(fy + sag(xb))}`;
+  }
+  const heat = L.spread;
+  const filamentColor = !L.level
+    ? FILAMENT_COLD
+    : heat < 0.65
+      ? mixHex(FILAMENT_DIM, FILAMENT_WARM, heat / 0.65)
+      : mixHex(FILAMENT_WARM, FILAMENT_HOT, (heat - 0.65) / 0.35);
+  // Behind the bulb: a bloom of warm light past the halo when lit, and the halo, both centred on the globe and at their
+  // widest HALO × r, inside the box; neither takes the pointer.
+  if (L.level)
+    s += tag(
+      'glow',
+      circle(cx, cy, r2(r * (1.1 + (HALO - 1.1) * L.spread)), sheen('bloom', BULB_LIGHT), {
+        'fill-opacity': r2(0.8 * L.spread),
+        'pointer-events': 'none',
+      }),
+    );
+  s += tag(
+    'glow',
+    circle(cx, cy, r2(r * (1.02 + 0.4 * L.spread)), sheen('halo', BULB_LIGHT), {
+      'data-hook': 'glow',
+      'fill-opacity': r2(L.halo),
+      'pointer-events': 'none',
+    }),
+  );
+  s += tag('leg', wire(x1, insBot - 1, x1, h));
+  s += tag('leg', wire(x2, insBot - 1, x2, h));
+  let body = '';
+  // The clear glass: a pale tint over what is behind it, warming as the bulb lights.
+  body += path(globe, '#eef4f7', { 'data-hook': 'glass', 'fill-opacity': 0.4 });
+  if (L.level) body += path(globe, '#ffd98a', { 'fill-opacity': r2(L.lens * (0.1 + 0.75 * L.spread)) });
+  // The stem: the glass mount rising from the neck that carries the wires.
+  body += path(
+    `M${r2(cx - 6.5)} ${r2(collarTop + 0.2)}L${r2(cx - 2.6)} ${r2(stemTop)}H${r2(cx + 2.6)}L${r2(cx + 6.5)} ${r2(collarTop + 0.2)}Z`,
+    '#ffffff',
+    { 'fill-opacity': 0.3, stroke: T['plastic-grey-edge'], 'stroke-width': T['stroke-fine'], 'stroke-opacity': 0.35 },
+  );
+  // The two support wires (the lead-in wires, out through the base to the leads) and the middle support.
+  const support = {
+    stroke: T['lead-edge'],
+    'stroke-width': 0.8,
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
+  };
+  body += path(
+    `M${r2(cx - 2)} ${r2(collarTop + 0.5)}L${r2(cx - 2)} ${r2(stemTop + 1)}L${r2(fx0)} ${r2(fy)}`,
+    'none',
+    support,
+  );
+  body += path(
+    `M${r2(cx + 2)} ${r2(collarTop + 0.5)}L${r2(cx + 2)} ${r2(stemTop + 1)}L${r2(fx1)} ${r2(fy)}`,
+    'none',
+    support,
+  );
+  body += line(cx, stemTop, cx, fy + sag(cx) + 0.8, T['lead-edge'], 0.5);
+  body += circle(cx, stemTop - 0.6, 1.1, '#ffffff', { 'fill-opacity': 0.4 });
+  // Lit, the light pours from the filament: a warm glow round it, deeper and wider as the power rises, a white-hot core
+  // that grows along the coil and, from about two thirds up, white flooding the globe. Everything stays in the glass.
+  if (L.level) {
+    body += circle(cx, fy, r2(r * (0.3 + 0.5 * L.spread)), sheen('glow', BULB_LIGHT), { 'fill-opacity': r2(L.core) });
+    body += el('ellipse', {
+      cx,
+      cy: r2(fy + 0.4),
+      rx: r2((fx1 - cx) * (0.3 + 0.8 * L.hot)),
+      ry: r2(2 + 4 * L.hot),
+      fill: sheen('hot'),
+      'fill-opacity': r2(0.4 + 0.6 * L.hot),
+    });
+    if (L.bloom) body += circle(cx, cy, r2(r * 0.96), sheen('hot'), { 'fill-opacity': r2(0.7 * L.bloom) });
+    body += path(coil, 'none', {
+      stroke: BULB_LIGHT,
+      'stroke-width': r2(1 + 2.2 * L.spread),
+      'stroke-opacity': r2(0.25 + 0.35 * L.lens),
+      'stroke-linecap': 'round',
+    });
+  }
+  body += path(coil, 'none', {
+    'data-hook': 'filament',
+    'data-level': r2(L.level),
+    stroke: filamentColor,
+    'stroke-width': r2(0.6 + 0.4 * L.hot),
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
+  });
+  // The glass's sheen and its edge, and the bench light caught on the globe's upper left.
+  body += path(globe, sheen('dome'), { 'fill-opacity': r2(0.8 - 0.4 * L.lens) });
+  body += path(
+    `M${r2(cx - 0.62 * r)} ${r2(cy - 0.18 * r)}A${r2(0.7 * r)} ${r2(0.7 * r)} 0 0 1 ${r2(cx - 0.08 * r)} ${r2(cy - 0.74 * r)}` +
+      `A${r2(0.86 * r)} ${r2(0.86 * r)} 0 0 0 ${r2(cx - 0.62 * r)} ${r2(cy - 0.18 * r)}Z`,
+    '#ffffff',
+    { 'fill-opacity': 0.55 },
+  );
+  body += path(globe, 'none', {
+    stroke: T['plastic-grey-edge'],
+    'stroke-width': T['stroke-detail'],
+    'stroke-opacity': 0.6,
+  });
+  // The screw base over the neck: the collar with its thread and the bench light along it, the insulator, and the two
+  // contacts the leads are soldered to.
+  body += path(collar, T.metal, edge(T, T['metal-edge'], T['stroke-detail']));
+  for (let k = 1; k < 4; k++) {
+    const y = collarTop + turn * k;
+    body += line(xl + 0.5, y + 0.9, xr - 0.5, y - 0.9, T['metal-edge'], 0.6);
+    body += line(xl + 0.5, y + 1.7, xr - 0.5, y - 0.1, '#ffffff', 0.6, { 'stroke-opacity': 0.45 });
+  }
+  body += path(collar, sheen('metal'), { 'fill-opacity': 0.7 });
+  body += rect(
+    cx - iw,
+    insTop,
+    2 * iw,
+    insBot - insTop,
+    T['plastic-black'],
+    Object.assign({ rx: 1.4 }, edge(T, T['plastic-black-edge'], T['stroke-detail'])),
+  );
+  for (const x of [x1, x2])
+    body += rect(
+      x - 1.6,
+      insBot - 1.6,
+      3.2,
+      1.9,
+      T.metal,
+      Object.assign({ rx: 0.6 }, edge(T, T['metal-edge'], T['stroke-fine'])),
+    );
+  s += tag('body', body);
+  const live = props.live || {};
+  s += flow(x1, h, x1, insBot, live.flow, 'flow-1') + flow(x2, insBot, x2, h, live.flow, 'flow-2');
+  if (live.probe) s += probe(live.probe === '2' ? x2 : x1, h);
+  return art(w, h, `Light bulb${on ? ', lit' : ''}`, s, [
+    { name: '1', x: x1, y: h },
+    { name: '2', x: x2, y: h },
   ]);
 }
 

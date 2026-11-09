@@ -6,6 +6,7 @@ export declare const gearedStepper: PartsKit['gearedStepper'];
 export declare const led: PartsKit['led'];
 export declare const ledBarGraph: PartsKit['ledBarGraph'];
 export declare const ledStrip: PartsKit['ledStrip'];
+export declare const lightBulb: PartsKit['lightBulb'];
 export declare const neopixel: PartsKit['neopixel'];
 export declare const relay: PartsKit['relay'];
 export declare const rgbLed: PartsKit['rgbLed'];

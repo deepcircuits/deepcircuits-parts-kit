@@ -59,6 +59,7 @@ export declare const ledBarGraph: PartsKit['ledBarGraph'];
 export declare const ledDriver595: PartsKit['ledDriver595'];
 export declare const ledRing: PartsKit['ledRing'];
 export declare const ledStrip: PartsKit['ledStrip'];
+export declare const lightBulb: PartsKit['lightBulb'];
 export declare const lightSensor: PartsKit['lightSensor'];
 export declare const lineTracker: PartsKit['lineTracker'];
 export declare const linearHallSensor: PartsKit['linearHallSensor'];

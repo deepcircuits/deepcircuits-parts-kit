@@ -25,6 +25,7 @@ export function suite(K) {
   'chip dip16': K.chipTemplate({pins:['Q1','Q2','Q3','Q4','Q5','Q6','Q7','GND','Q7S','MR','SHCP','STCP','OE','DS','Q0','VCC'],label:'74HC595'}),
   'resistor': K.resistor({ohms:220}), 'resistor live': K.resistor({ohms:220,live:{flow:true,heat:0.7,probe:'2'}}),
   'led off': K.led(), 'led on': K.led({on:true,live:{flow:true,probe:'A'}}),
+  'bulb off': K.lightBulb(), 'bulb dim': K.lightBulb({on:true,brightness:0.03}), 'bulb on': K.lightBulb({on:true,live:{flow:true,probe:'2'}}),
   'button': K.pushbutton(), 'button pressed': K.pushbutton({pressed:true,cap:'red'}),
   'pot 0': K.potentiometer({position:0}), 'pot 1': K.potentiometer({position:1}),
   'switch': K.slideSwitch(), 'switch 2': K.slideSwitch({contact:3}),
@@ -149,6 +150,7 @@ export function fuzzCases(K) {
   for (const v of [0, 0.25, 0.5, 0.75, 1]) cases.push(['pot ' + v, () => K.potentiometer({ position: v })]);
   for (const live of [{}, { flow: true }, { flow: true, heat: 1, probe: '1' }, { probe: '2' }]) cases.push(['resistor', () => K.resistor({ ohms: 4700, live })]);
   for (const o of [{}, { on: true }, { on: true, brightness: 0.2, live: { flow: true, probe: 'K' } }, { color: 'white', live: { probe: 'A' } }]) cases.push(['led', () => K.led(o)]);
+  for (const o of [{}, { on: true }, { on: true, brightness: 0.01 }, { on: true, brightness: 0.5, live: { flow: 'reverse', probe: '1' } }, { live: { probe: '2' } }]) cases.push(['bulb', () => K.lightBulb(o)]);
   for (const live of [{}, { flow: true }, { flow: true, probe: '1' }, { probe: '2' }]) cases.push(['buzzer', () => K.buzzer({ live })]);
   return cases;
 }

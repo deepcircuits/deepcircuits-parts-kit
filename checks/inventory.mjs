@@ -5,6 +5,7 @@ const K = loadBundle();
 const count = (svg, part) => (svg.match(new RegExp('data-part="' + part + '"', 'g')) || []).length;
 const has = (svg, re) => re.test(svg);
 const SPEC = [
+  ['LightBulb', K.lightBulb({ on: true }), { body: 1, leg: 2, glow: 2, flow: 2 }, [/data-hook="glass"/, /data-hook="filament"/, /data-hook="glow"/, /data-level="1"/, /aria-label="Light bulb, lit"/]],
   ['Led', K.led({ on: true }), { body: 1, flange: 0, glow: 1, flow: 2 }, [/data-hook="lens"/, /data-hook="glow"/, /Q[\d. -]+/ /* bond wire */, /data-part="body"/]],
   ['Resistor', K.resistor({ ohms: 220 }), { body: 1, flow: 2 }, [/data-band="1"/, /data-band="2"/, /data-band="3"/, /data-band="4"/, /data-hook="heat"/]],
   ['Pushbutton', K.pushbutton(), { body: 1, leg: 4 }, [/data-hook="cap"/, /data-axis="y"/]],

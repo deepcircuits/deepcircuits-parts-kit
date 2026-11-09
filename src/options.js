@@ -385,6 +385,11 @@ export const OPTIONS = {
     position: state(unit('Plunger travel', { step: 0.05, default: 0 })),
   },
   gearedStepper: { angle: state({ type: 'number', label: 'Angle', min: 0, max: 360, step: 1, unit: '°', default: 0 }) },
+  lightBulb: {
+    on: state(bool('Lit')),
+    brightness: state(unit('Brightness', { default: 1, when: { on: true } })),
+    live: state({ type: 'object', label: 'Live layer', fields: { flow, probe: probe(['1', '2']) } }),
+  },
   // Modules.
   relayModule: { indicators: lamps({ power: 'Power LED', status: 'Status LED' }, ['power']), finish: finish('red') },
   multiRelayModule: {
