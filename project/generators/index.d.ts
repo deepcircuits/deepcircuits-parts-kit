@@ -41,6 +41,8 @@ export interface IndicatorProps { x: number; y: number; size?: number; color?: L
 export interface LiveState { flow?: boolean | 'reverse'; heat?: number; probe?: string }
 export interface ResistorProps { /** The resistance in ohms (1000). */ ohms?: number; tolerance?: 5 | 10; /** The leads' spacing in pitches (4; at least 3). */ span?: number; live?: LiveState }
 export interface LedProps { color?: LensColor; on?: boolean; brightness?: number; live?: LiveState }
+/** The miniature light bulb: leads 1 (left) and 2 (right) two pitches apart. `on` lights it and `brightness` (0..1, 1 by default) sets how bright it looks, the filament running from dull red to a white-yellow. */
+export interface LightBulbProps { on?: boolean; brightness?: number; live?: LiveState }
 export interface PushbuttonProps { pressed?: boolean; cap?: LensColor | 'black'; /** 12 mm (default) or the 6 mm switch. */ size?: 6 | 12 }
 export interface PotentiometerProps { position?: number }
 /** contact: the pin the middle pin joins, 1 (default) or 3. */
@@ -451,6 +453,8 @@ export interface PartsKit {
   chipTemplate(props: ChipProps): Artwork;
   resistor(props?: ResistorProps): Artwork;
   led(props?: LedProps): Artwork;
+  /** A miniature incandescent bulb on its screw base, the filament glowing warm when lit. */
+  lightBulb(props?: LightBulbProps): Artwork;
   pushbutton(props?: PushbuttonProps): Artwork;
   rgbLed(props?: RgbLedProps): Artwork;
   slidePotentiometer(props?: SlidePotentiometerProps): Artwork;

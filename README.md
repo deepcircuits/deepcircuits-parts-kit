@@ -67,7 +67,7 @@ const { svg, pins } = drawPart('led-5-mm', { color: 'green', on: true });
 | [Pictures](docs/pictures.md) | The SVG files and their manifest, in documents and pages |
 | [The part element](docs/element.md) | `<parts-kit-part>`: attributes, interactive parts, events and recipes |
 | [Drawing in code](docs/drawing.md) | `drawPart`, React, updating a drawing in place, wiring parts together |
-| [The catalog](docs/catalog.md) | All 143 parts, their ids, pin names and options, and templates for your own |
+| [The catalog](docs/catalog.md) | All 144 parts, their ids, pin names and options, and templates for your own |
 | [API reference](docs/api.md) | Artwork, state options, themes, helpers and entry points |
 | [Brand book](project/README.md) | The rules every drawing follows, and a [card](project/generators) for each generator |
 

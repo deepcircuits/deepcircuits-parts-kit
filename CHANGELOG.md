@@ -8,7 +8,7 @@ The first public release.
 
 ### Parts
 
-- 143 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
+- 144 library parts in ten families, each drawn at true size on the 0.1-inch grid with its pins: boards, displays, sensors, inputs, outputs, modules, chips, passives, breadboards and logic symbols.
 - The templates behind them (`devBoardTemplate`, `moduleTemplate`, `sensorModuleTemplate`, `chipTemplate` and others, in `@deepcircuits/parts-kit/templates`) for parts of your own.
 - The Blue Pill, the ESP32-DevKitC V4 and the character LCDs checked against photographs and data sheets: the Blue Pill's rows and parts as the real board has them, the DevKitC V4 at its real length with the module over the rows, the LCD's mount holes and header where the module has them.
 - Every catalog part checked against photographs and data sheets for its pin order, which pins face each other, where its parts sit, its size, its holes and its pin-1 offset. Corrected:
@@ -44,6 +44,7 @@ The first public release.
 - `gearedStepper`, the 28BYJ-48 geared unipolar stepper (`geared-stepper`: ORANGE, YELLOW, PINK, BLUE, RED, the leads in the plug's order BLUE, PINK, YELLOW, ORANGE, RED), its output shaft turned by `angle`; and `uln2003Board`, the ULN2003 stepper driver board (`stepper-driver-board`: IN1 … IN4, VCC, GND, A … D, COM) with its motor connector, channel LEDs lit by `status`, input header, supply pins and ON/OFF jumper.
 - `functionGenerator`, the function generator symbol (`function-generator`: OUT, GND): a box with the wave it makes, `wave` sine (the default), triangle or square, captioned FG.
 - `multimeter`, a pocket digital multimeter (`multimeter`: mA, COM, V), drawn at about half size: the amber holster, the LCD showing `reading` and its `unit`, the rotary switch turned by `mode` (voltage or current) and the three jacks, mA marked 400mA MAX and V 600V MAX.
+- `lightBulb`, a miniature incandescent bulb, the kind a flashlight takes (`light-bulb`: 1, 2): a 10 mm clear glass globe with the stem, support wires and coiled filament inside, a threaded metal base, its insulator and two leads two pitches apart. Lit by `on` at a `brightness`, the filament runs from a dull red to a white-yellow, the glass fills with warm light and a halo widens round the globe, all inside the drawing's box.
 - Lights that dim (the 5 mm LED, the RGB LED, the addressable pixels and strips, the bar graph, the seven-segment digits, the boards' ON and user LEDs and the modules' indicators) are drawn at every level on a scale that follows the eye: a barely lit lens stays dark with only its die glowing, the glow and its halo grow with each step, and from about two thirds up the middle turns white and a bloom of the colour spreads past the part. The halos and blooms are gradients, never filters, and never take the pointer.
 
 ### API

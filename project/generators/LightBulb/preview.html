@@ -1,0 +1,17 @@
+<!-- @dsCard group="Parts" height=250 -->
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>LightBulb — preview</title></head>
+<body>
+<div id="root" class="pk-row"></div>
+<script>
+var K = window.PartsKit, root = document.getElementById("root");
+K.setTokenMode("live");
+K.mount(root, K.lightBulb(), { pins: true, caption: "off" });
+K.mount(root, K.lightBulb({ on: true, brightness: 0.03 }), { caption: "3%, barely lit" });
+K.mount(root, K.lightBulb({ on: true, brightness: 0.3 }), { caption: "30%" });
+K.mount(root, K.lightBulb({ on: true }), { caption: "full" });
+K.mount(root, K.lightBulb({ on: true, live: { flow: true, probe: "2" } }), { caption: "live: flow, probe on 2" });
+</script>
+</body>
+</html>

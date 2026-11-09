@@ -20948,6 +20948,44 @@
       ]
     },
     {
+      "id": "light-bulb",
+      "name": "Light bulb",
+      "family": "output",
+      "aliases": [
+        "incandescent lamp",
+        "lamp",
+        "flashlight bulb",
+        "filament"
+      ],
+      "width": 57.6,
+      "height": 76.8,
+      "pins": [
+        { "name": "1", "x": 19.2, "y": 76.8 },
+        { "name": "2", "x": 38.4, "y": 76.8 }
+      ],
+      "hooks": [
+        "glow",
+        "glass",
+        "filament",
+        "flow-1",
+        "flow-2"
+      ],
+      "images": [
+        {
+          "file": "light-bulb.svg",
+          "label": "At rest",
+          "options": {}
+        },
+        {
+          "file": "light-bulb--on.svg",
+          "label": "Lit",
+          "options": {
+            "on": true
+          }
+        }
+      ]
+    },
+    {
       "id": "relay-module",
       "name": "Relay module",
       "family": "module",

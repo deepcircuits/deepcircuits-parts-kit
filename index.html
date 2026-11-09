@@ -318,6 +318,14 @@ var CARDS = [
     ["red", "green", "yellow", "blue", "white", "orange"].forEach(function (c) { one(c, false, 0, c + " off"); one(c, true, 1, c + " on"); });
     one("red", true, 0.25, "25%"); one("red", true, 0.5, "50%"); one("#ff00aa", true, 1, "any CSS colour");
   } },
+  { name: "LightBulb", intro: "A miniature incandescent bulb standing on the bench, seen from the front, the kind a flashlight takes", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root");
+    K.mount(root, K.lightBulb(), { pins: true, caption: "off" });
+    K.mount(root, K.lightBulb({ on: true, brightness: 0.03 }), { caption: "3%, barely lit" });
+    K.mount(root, K.lightBulb({ on: true, brightness: 0.3 }), { caption: "30%" });
+    K.mount(root, K.lightBulb({ on: true }), { caption: "full" });
+    K.mount(root, K.lightBulb({ on: true, live: { flow: true, probe: "2" } }), { caption: "live: flow, probe on 2" });
+  } },
   { name: "Live", intro: "The live layer: how a part shows what the circuit is doing to it, in the one colour reserved for it", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root"), p = K.tokens().pitch;
     K.mount(root, K.resistor({ ohms: 220, live: { flow: true } }), { scale: 3, caption: "current flowing" });

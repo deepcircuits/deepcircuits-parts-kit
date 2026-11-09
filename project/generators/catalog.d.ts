@@ -456,6 +456,12 @@ export interface PartOptionsById {
   "geared-stepper": {
     /** Angle. 0 to 360 °. Default 0. */ angle?: number;
   };
+  /** Light bulb: lightBulb. */
+  "light-bulb": {
+    /** Lit. Default false. */ on?: boolean;
+    /** Brightness. 0 to 1. Default 1. */ brightness?: number;
+    /** Live layer. */ live?: { /** Current. Default false. */ flow?: false | true | "reverse"; /** Probe on pin. Default "". */ probe?: "" | "1" | "2" };
+  };
   /** Relay module: relayModule. */
   "relay-module": {
     /** Lamps. */ indicators?: { /** Power LED. Default true. */ power?: boolean; /** Status LED. Default false. */ status?: boolean };

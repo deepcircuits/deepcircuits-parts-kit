@@ -230,6 +230,14 @@ const PARTS = [
   ['water-pump', 'Water pump', 'output', 'waterPump', null, ['submersible pump', 'mini pump']],
   ['solenoid', 'Solenoid', 'output', 'solenoid', null, ['push-pull', 'JF-0530B', 'plunger']],
   ['geared-stepper', 'Geared stepper', 'output', 'gearedStepper', null, ['28BYJ-48', 'unipolar stepper', '5V stepper']],
+  [
+    'light-bulb',
+    'Light bulb',
+    'output',
+    'lightBulb',
+    null,
+    ['incandescent lamp', 'lamp', 'flashlight bulb', 'filament'],
+  ],
   ['relay-module', 'Relay module', 'module', 'relayModule', null, ['relay', 'SRD-05VDC']],
   [
     'relay-module-2-channel',
