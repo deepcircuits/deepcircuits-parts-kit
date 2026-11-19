@@ -9,6 +9,8 @@ export declare const mb102Module: PartsKit['mb102Module'];
 export declare const microsdModule: PartsKit['microsdModule'];
 export declare const multiRelayModule: PartsKit['multiRelayModule'];
 export declare const multimeter: PartsKit['multimeter'];
+export declare const multimeterLeadRests: PartsKit['multimeterLeadRests'];
+export declare const multimeterLeadVia: PartsKit['multimeterLeadVia'];
 export declare const muxBreakout: PartsKit['muxBreakout'];
 export declare const neopixelMeter: PartsKit['neopixelMeter'];
 export declare const relayModule: PartsKit['relayModule'];

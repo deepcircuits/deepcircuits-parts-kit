@@ -75,6 +75,8 @@ export declare const microsdModule: PartsKit['microsdModule'];
 export declare const mpu6050Imu: PartsKit['mpu6050Imu'];
 export declare const multiRelayModule: PartsKit['multiRelayModule'];
 export declare const multimeter: PartsKit['multimeter'];
+export declare const multimeterLeadRests: PartsKit['multimeterLeadRests'];
+export declare const multimeterLeadVia: PartsKit['multimeterLeadVia'];
 export declare const muxBreakout: PartsKit['muxBreakout'];
 export declare const muxSymbol: PartsKit['muxSymbol'];
 export declare const nanoClassBoard: PartsKit['nanoClassBoard'];

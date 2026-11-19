@@ -165,8 +165,22 @@ export interface RelayModuleProps { /** The photographed board is red. */ finish
 /** The 2-, 4- or 8-channel relay module (4 by default): pins GND, IN1 … INn, VCC, JD-VCC, then each channel's NO, COM and NC. `jumper` (fitted by default) draws the cap joining VCC to JD-VCC; `indicators.power` lights the power LED and `status` the channel LEDs, from channel 1. */
 export interface MultiRelayModuleProps { channels?: 2 | 4 | 8; jumper?: boolean; finish?: Finish; indicators?: { power?: boolean }; status?: readonly boolean[] }
 export interface LogicAnalyzerProps { channels?: readonly string[]; lit?: readonly (boolean | 0 | 1)[]; samples?: number; state?: 'idle' | 'armed' | 'recording' | 'paused' | 'full' | 'error'; activity?: number; /** Accepted and ignored: the label prints the analyzer's own name and channel table. */ label?: string }
-/** The pocket multimeter: jacks mA, COM and V along its foot. `mode` turns its switch to voltage (the default) or current; `reading` is what its LCD shows (dashes when left out) and `unit` the unit beside it (the mode's own, V or mA, when left out). */
-export interface MultimeterProps { mode?: 'voltage' | 'current'; reading?: string; unit?: '' | 'mV' | 'V' | 'mA' }
+/** The pocket multimeter: jacks mA, COM and V along its foot, with both test leads' plugs in them: black in COM, red in `redJack`. `mode` turns its switch to voltage (the default) or current; `reading` is what its LCD shows (dashes when left out) and `unit` the unit beside it (the mode's own, V or mA, when left out). */
+export interface MultimeterProps { mode?: 'voltage' | 'current'; /** The jack the red lead's plug sits in, V by default; the black is always in COM. */ redJack?: 'V' | 'mA'; reading?: string; unit?: '' | 'mV' | 'V' | 'mA' }
+/** A point in drawing pixels. */
+export interface KitPoint { readonly x: number; readonly y: number }
+/** A box in drawing pixels, from its top-left (x0, y0) to its bottom-right (x1, y1). */
+export interface KitBox { readonly x0: number; readonly y0: number; readonly x1: number; readonly y1: number }
+/** A test lead: black for COM, red for the input. */
+export type LeadColor = 'black' | 'red';
+/** Where a probe's metal point is and the way it points, in degrees clockwise from pointing right (90 points down). */
+export interface ProbePose { readonly x: number; readonly y: number; readonly angle: number }
+export interface ProbeTipProps { color: LeadColor; x: number; y: number; /** Default 90 (pointing down). */ angle?: number; /** 'touch' (the default) rings the point where it touches; 'rest' lies on the bench. */ pose?: 'touch' | 'rest' }
+export interface ProbeTipDrawing { readonly svg: string; readonly point: KitPoint; /** Where the cable joins, at the back of the boot. */ readonly tail: KitPoint; /** The handle's outline as path data, guard to tail (the needle left out), for a pointer target. */ readonly hit: string; readonly box: KitBox }
+export interface LeadCableProps { color: LeadColor; from: KitPoint; to: KitPoint; via?: readonly KitPoint[]; /** The way the cable leaves `from`, in degrees; default 90 (down). */ leave?: number; /** The way it enters `to`; default along its last stretch. */ arrive?: number }
+export interface LeadCableDrawing { readonly svg: string; /** The middle of the cable's stroke as SVG path data. */ readonly d: string; readonly box: KitBox }
+export interface TestLeadProps { color: LeadColor; /** The plug's middle: the jack's pin. */ plug: KitPoint; /** The probe's point; `angle` defaults to pointing away from the cable's last point. */ tip: KitPoint & { readonly angle?: number }; via?: readonly KitPoint[]; pose?: 'touch' | 'rest'; /** The way the cable leaves the plug, in degrees; default 90 (down). */ leave?: number }
+export interface TestLeadDrawing { readonly svg: string; /** The probe's angle, given or worked out. */ readonly angle: number; readonly cable: LeadCableDrawing; readonly probe: ProbeTipDrawing }
 export interface RfidModuleProps { finish?: Finish; pins?: readonly string[]; label?: string; indicators?: { power?: boolean } }
 /** The AMS1117-3.3 regulator module: VIN, GND and VOUT down the left edge; the power LED lit by `indicators.power`. */
 export interface Ams1117ModuleProps { finish?: Finish; indicators?: { power?: boolean } }
@@ -445,6 +459,13 @@ export interface PartsKit {
   silkMark(x: number, y: number, size: number, color: string): string;
   /** A tinned wire leg. */
   wire(x1: number, y1: number, x2: number, y2: number): string;
+  // Test leads.
+  /** A test lead's cable from its plug to its probe, sagging softly, through any via points. */
+  leadCable(props: LeadCableProps): LeadCableDrawing;
+  /** A test probe in profile, its metal point at (x, y). */
+  probeTip(props: ProbeTipProps): ProbeTipDrawing;
+  /** Cable and probe together, the probe over the cable. */
+  testLead(props: TestLeadProps): TestLeadDrawing;
   /** The bench light's bevel on a box: a light path along the top and left edges, a shade path along the bottom and right, each `d` wide. */
   bevel(tokens: Record<string, string | number>, x: number, y: number, w: number, h: number, d?: number, rx?: number): string;
   /** The bevel of any outline: edges facing up or left take the light, those facing down or right the shade. */
@@ -589,6 +610,10 @@ export interface PartsKit {
   logicAnalyzer(props?: LogicAnalyzerProps): Artwork;
   /** The pocket multimeter, its LCD showing the reading it is given. */
   multimeter(props?: MultimeterProps): Artwork;
+  /** Where the multimeter's probes lie when they touch nothing: below it, points outward, in the drawing's pixels. */
+  multimeterLeadRests(): { readonly black: ProbePose; readonly red: ProbePose };
+  /** The points a lead's cable passes from `jack` to a probe at `tip` (drawing pixels) so it never lies across the meter's face; none for a tip below the jacks. */
+  multimeterLeadVia(jack: 'mA' | 'COM' | 'V', tip: KitPoint): readonly KitPoint[];
   rfidModule(props?: RfidModuleProps): Artwork;
   picoBoardTemplate(props?: PicoBoardProps): Artwork;
   nucleo32BoardTemplate(props?: Nucleo32BoardProps): Artwork;

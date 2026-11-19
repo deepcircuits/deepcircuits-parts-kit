@@ -26,6 +26,7 @@ import {
   via,
 } from './core.js';
 import { dipOnBoard, edgeHeader, framed, padRow, qfp, silkFrame, smd, soicAcross, sot23, usbPort } from './pieces.js';
+import { meterPlug } from './leads.js';
 
 /**
  * A breakout module: a board in a finish, one header row of pads along the
@@ -578,22 +579,29 @@ export function logicAnalyzer(props) {
   return art(w, h, `Eight-channel logic analyzer, ${(WORD[state] || 'STOP').toLowerCase()}`, s, pins);
 }
 
+// The multimeter's box, the row its jacks sit on and each jack's x, in pitches.
+const METER = { w: 14, h: 25, jackRow: 21, jacks: { mA: 3, COM: 7, V: 11 } };
+
 /**
  * A pocket digital multimeter, drawn at about half its size so it sits
  * beside a circuit: the `plastic-amber` holster round a `plastic-black`
  * face, the green LCD with its reading and unit, the rotary switch and the
  * three jacks along the foot. The jacks are the pins: `mA` (the fused
- * current input), `COM` and `V`. `mode` turns the switch to `voltage` or
- * `current`; `reading` is what the LCD shows and `unit` its unit (the
- * mode's own, V or mA, when left out). No reading shows dashes, as a meter
- * does before it settles. The box is 14 x 25 pitches.
+ * current input), `COM` and `V`. Both test leads are plugged in: the black
+ * plug always in COM and the red one in `redJack` (`V` by default, or
+ * `mA`); their cables and probes are drawn with `testLead`. `mode` turns
+ * the switch to `voltage` or `current`; `reading` is what the LCD shows and
+ * `unit` its unit (the mode's own, V or mA, when left out). No reading
+ * shows dashes, as a meter does before it settles. The box is 14 x 25
+ * pitches.
  */
 export function multimeter(props) {
   props = props || {};
   const T = tokens();
   const p = T.pitch;
-  const w = 14 * p;
-  const h = 25 * p;
+  const w = METER.w * p;
+  const h = METER.h * p;
+  const redJack = props.redJack === 'mA' ? 'mA' : 'V';
   const mode = props.mode === 'current' ? 'current' : 'voltage';
   const unit = props.unit || (mode === 'current' ? 'mA' : 'V');
   const given = props.reading === undefined || props.reading === null ? '' : String(props.reading).slice(0, 6);
@@ -672,11 +680,11 @@ export function multimeter(props) {
   }
   // The jacks along the foot: red for the inputs, black for COM, each a socket with its contact sleeve.
   const pins = [];
-  const jy = 21 * p;
+  const jy = METER.jackRow * p;
   for (const [x, name, ring, rating] of [
-    [3 * p, 'mA', T['plastic-red'], '400mA MAX'],
-    [7 * p, 'COM', T['plastic-black'], ''],
-    [11 * p, 'V', T['plastic-red'], '600V MAX'],
+    [METER.jacks.mA * p, 'mA', T['plastic-red'], '400mA MAX'],
+    [METER.jacks.COM * p, 'COM', T['plastic-black'], ''],
+    [METER.jacks.V * p, 'V', T['plastic-red'], '600V MAX'],
   ]) {
     s += tag(
       'socket',
@@ -684,14 +692,47 @@ export function multimeter(props) {
         circle(x, jy, 0.8 * p, T.cavity) +
         circle(x, jy, 0.45 * p, T.metal, edge(T, T['metal-edge'], T['stroke-fine'])) +
         circle(x, jy, 0.22 * p, T.cavity),
-      { 'data-jack': name },
+      { 'data-jack': name, 'data-hook': `jack-${name}` },
     );
     s += text(x, jy - 1.9 * p, name, 6, white, { 'font-weight': 700 });
     if (rating) s += text(x, jy + 2.4 * p, rating, 4.5, white);
     pins.push({ name, x, y: jy });
   }
-  const label = `Multimeter on ${mode === 'current' ? 'milliamps' : 'volts'}, ${given ? `reading ${given} ${unit}` : 'no reading'}`;
+  // The two plugs over their sockets: black in COM, red in the jack it was put in.
+  s +=
+    meterPlug(T, METER.jacks.COM * p, jy, 'black', 'COM') + meterPlug(T, METER.jacks[redJack] * p, jy, 'red', redJack);
+  const label = `Multimeter on ${mode === 'current' ? 'milliamps' : 'volts'}, red lead in ${redJack}, ${given ? `reading ${given} ${unit}` : 'no reading'}`;
   return art(w, h, label, s, pins);
+}
+
+/**
+ * Where a multimeter's probes lie when they touch nothing: on the bench just below it, side by side with their points
+ * outward and their tails meeting under COM, in the drawing's pixels. Each is a probe pose (`probeTip`'s point and
+ * angle), so the rests move and turn with the meter.
+ */
+export function multimeterLeadRests() {
+  const p = tokens().pitch;
+  return {
+    black: { x: r2(-1.5 * p), y: r2(26.6 * p), angle: 180 },
+    red: { x: r2(15.5 * p), y: r2(26.6 * p), angle: 0 },
+  };
+}
+
+/**
+ * The points a lead's cable passes on its way from `jack` to a probe at `tip` (both in the drawing's pixels), so the
+ * cable never lies across the meter's face: none for a tip below the jacks; else past the meter's lower corner on the
+ * tip's side, and also past its upper corner on that side when the tip is above the meter and not clear of its side.
+ */
+export function multimeterLeadVia(jack, tip) {
+  const p = tokens().pitch;
+  const w = METER.w * p;
+  const h = METER.h * p;
+  const t = { x: Number(tip && tip.x) || 0, y: Number(tip && tip.y) || 0 };
+  if (t.y >= METER.jackRow * p) return [];
+  const side = t.x < w / 2 ? -1.4 * p : w + 1.4 * p;
+  const out = [{ x: r2(side), y: r2(h + 0.8 * p) }];
+  if (t.y < 0 && t.x > -1.4 * p && t.x < w + 1.4 * p) out.push({ x: r2(side), y: r2(-1.4 * p) });
+  return out;
 }
 
 /**

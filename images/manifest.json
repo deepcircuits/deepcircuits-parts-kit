@@ -22137,7 +22137,12 @@
         { "name": "V", "x": 105.6, "y": 201.6 }
       ],
       "hooks": [
-        "knob"
+        "knob",
+        "jack-mA",
+        "jack-COM",
+        "jack-V",
+        "plug-black",
+        "plug-red"
       ],
       "images": [
         {

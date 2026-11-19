@@ -11,6 +11,7 @@ K.mount(root, K.multimeter(), { pins: true, scale: 1.5, caption: "no reading" })
 K.mount(root, K.multimeter({ reading: "4.987" }), { scale: 1.5, caption: "volts" });
 K.mount(root, K.multimeter({ mode: "current", reading: "12.34" }), { scale: 1.5, caption: "milliamps" });
 K.mount(root, K.multimeter({ mode: "current", reading: "OL" }), { scale: 1.5, caption: "over range" });
+K.mount(root, K.multimeter({ mode: "current", redJack: "mA", reading: "12.34" }), { scale: 1.5, caption: "red lead in mA" });
 </script>
 </body>
 </html>
