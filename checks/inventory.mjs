@@ -1,5 +1,5 @@
 // The detail inventory: what each template must draw, from the brand book's "Measured from the real part" table.
-import { loadBundle } from './drawings.mjs';
+import { leadArt, loadBundle } from './drawings.mjs';
 
 const K = loadBundle();
 const count = (svg, part) => (svg.match(new RegExp('data-part="' + part + '"', 'g')) || []).length;
@@ -91,7 +91,8 @@ const SPEC = [
   ['LedStrip', K.ledStrip({colors:['#ff0000','#00ff00','#0000ff']}), {board: 1, pad: 27, body: 8}, [/data-pixel="7"/, /data-hook="px-0"/, /data-level=/, />DIN</, />DOUT</]],
   ['NeopixelMeter', K.neopixelMeter({fps:60,pixels:16,amps:0.31,watts:1.55,peakAmps:0.42,limitAmps:0.5,status:'near'}), {body: 1}, [/data-status="near"/, /data-fps="60"/, /data-amps=/, />DIN</, />peak 420 mA of 0.5 A</]],
   ['RelayModule', K.relayModule({indicators:{power:true,status:true}}), {board: 1, mark: 1, hole: 4, body: 1, smd: 5, chip: 1, indicator: 2, terminal: 1, jumper: 1, pin: 3, trace: 3}, [/SRD-05VDC/, /data-lit-state="power-led"/, /data-lit-state="status-led"/, />NC</, />COM</, />NO</, />IN</]],
-  ['Multimeter', K.multimeter({mode:'current',reading:'12.34'}), {body: 1, display: 1, dial: 1, socket: 3}, [/data-reading="12.34"/, /data-unit="mA"/, /data-mode="current"/, /data-jack="COM"/, />mA</, />AUTO</, /400mA MAX/]],
+  ['Multimeter', K.multimeter({mode:'current',reading:'12.34',redJack:'mA'}), {body: 1, display: 1, dial: 1, socket: 3, plug: 2}, [/data-reading="12.34"/, /data-unit="mA"/, /data-mode="current"/, /data-jack="COM"/, />mA</, />AUTO</, /400mA MAX/, /data-part="plug" data-lead="red" data-jack="mA"/, /data-part="plug" data-lead="black" data-jack="COM"/, /data-hook="jack-V"/, /data-hook="plug-red"/, /red lead in mA/]],
+  ['TestLead', leadArt(K, { width: 40, height: 34, at: { x: 4, y: 6 }, red: { x: 30, y: 3 } }), {}, [/data-hook="probe-tip"/, /data-pose="rest"/, /data-pose="touch"/, /data-hook="lead-cable"/, /data-lead="black"/, /data-lead="red"/]],
   ['LogicAnalyzer', K.logicAnalyzer({samples:12345,state:'recording',lit:[1,0,1,1,0,0,0,1]}), {body: 1, usb: 1, socket: 1, indicator: 8}, [/data-channel="7"/, /data-samples="12345"/, /data-state="recording"/, />D7</, />GND</, />REC</, />Analyzer</, /24MHz 8CH/]],
   ['RfidModule', K.rfidModule(), {board: 1, hole: 4, mark: 1, chip: 1, crystal: 1, smd: 19, indicator: 1, pin: 8, trace: 8}, [/data-hook="antenna"/, /data-hook="field"/, /RC522/, />SDA</, /RFID-RC522/, /HW-126/]],
   ['OledSquare', K.oledSquare({caption:'128x128'}), {board: 1, hole: 4, mark: 1, body: 1, smd: 1, pin: 4}, [/data-hook="display"/, /data-width="128"/, /data-height="128"/, /data-hook="glass"/]],

@@ -83,7 +83,8 @@ export function suite(K) {
   'relay module on': K.relayModule({indicators:{power:true,status:true}}),
   'relay 2ch': K.multiRelayModule({channels:2}), 'relay 4ch lit': K.multiRelayModule({indicators:{power:true},status:[true,false,true,false]}), 'relay 8ch no jumper': K.multiRelayModule({channels:8,jumper:false}),
   'analyzer': K.logicAnalyzer({samples:12345,state:'recording',lit:[1,0,1,1,0,0,0,1]}),
-  'meter volts': K.multimeter({reading:'4.987'}), 'meter current': K.multimeter({mode:'current',reading:'-12.34'}), 'meter rest': K.multimeter(),
+  'meter volts': K.multimeter({reading:'4.987'}), 'meter current': K.multimeter({mode:'current',reading:'-12.34'}), 'meter rest': K.multimeter(), 'meter red mA': K.multimeter({mode:'current',redJack:'mA'}),
+  'meter leads': leadArt(K, { width: 40, height: 34, at: { x: 13, y: 6 }, red: { x: 36, y: 2 } }),
   'rfid': K.rfidModule(),
   'oled sh1107': K.oledSquare({caption:'128x128'}),
   'oled 4pin': K.oledBreakout({pins:['GND','VCC','SCL','SDA']}),
@@ -152,7 +153,52 @@ export function fuzzCases(K) {
   for (const o of [{}, { on: true }, { on: true, brightness: 0.2, live: { flow: true, probe: 'K' } }, { color: 'white', live: { probe: 'A' } }]) cases.push(['led', () => K.led(o)]);
   for (const o of [{}, { on: true }, { on: true, brightness: 0.01 }, { on: true, brightness: 0.5, live: { flow: 'reverse', probe: '1' } }, { live: { probe: '2' } }]) cases.push(['bulb', () => K.lightBulb(o)]);
   for (const live of [{}, { flow: true }, { flow: true, probe: '1' }, { probe: '2' }]) cases.push(['buzzer', () => K.buzzer({ live })]);
+  // Test leads: a meter somewhere on a bench, each probe touching a point anywhere on it or lying at its rest place.
+  // Their own seed: the cases above draw from rnd as they are made, so these must not move its sequence.
+  let leadSeed = 11;
+  const lrnd = () => (leadSeed = (leadSeed * 1103515245 + 12345) % 2147483648) / 2147483648;
+  for (let i = 0; i < 24; i++) {
+    const at = { x: 3 + Math.floor(lrnd() * 40), y: 2 + Math.floor(lrnd() * 10) };
+    const tip = () => (lrnd() < 0.25 ? null : { x: 1 + lrnd() * 58, y: 1 + lrnd() * 38 });
+    const o = { width: 60, height: 40, at, redJack: lrnd() < 0.5 ? 'V' : 'mA', black: tip(), red: tip() };
+    cases.push(['test lead ' + i, () => leadArt(K, o)]);
+  }
   return cases;
+}
+
+/**
+ * A meter and its two test leads on a bench of their own, as an Artwork with no pins: the meter's top-left at `at`,
+ * the red plug in `redJack`, and each lead's probe touching its point or, when that is null, lying at its rest place.
+ * Every place is in pitches; the cables route round the meter's face through multimeterLeadVia.
+ */
+export function leadArt(K, { width, height, at, redJack = 'V', mode, black = null, red = null }) {
+  const p = K.tokens().pitch;
+  const W = width * p;
+  const H = height * p;
+  const ox = at.x * p;
+  const oy = at.y * p;
+  const meter = K.multimeter({ mode, redJack });
+  const jack = Object.fromEntries(meter.pins.map(q => [q.name, q]));
+  const rests = K.multimeterLeadRests();
+  const cables = [];
+  const probes = [];
+  for (const [color, name, touch] of [['black', 'COM', black], ['red', redJack, red]]) {
+    const plug = { x: ox + jack[name].x, y: oy + jack[name].y };
+    let lead;
+    if (touch) {
+      const tip = { x: touch.x * p, y: touch.y * p };
+      const via = K.multimeterLeadVia(name, { x: tip.x - ox, y: tip.y - oy }).map(q => ({ x: q.x + ox, y: q.y + oy }));
+      lead = K.testLead({ color, plug, tip, via });
+    } else {
+      const r = rests[color];
+      lead = K.testLead({ color, plug, tip: { x: ox + r.x, y: oy + r.y, angle: r.angle }, pose: 'rest' });
+    }
+    cables.push(lead.cable.svg);
+    probes.push(lead.probe.svg);
+  }
+  const face = meter.svg.replace(/^<svg[^>]*>/, '').replace(/<\/svg>$/, '');
+  const inner = `<g transform="translate(${ox} ${oy})">${face}</g>${cables.join('')}${probes.join('')}`;
+  return { width: W, height: H, svg: K.svg(W, H, 'A multimeter and its test leads', inner), pins: [] };
 }
 
 /**

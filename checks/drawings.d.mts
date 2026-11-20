@@ -13,3 +13,8 @@ export declare function fuzzCases(K: Kit): [string, () => Artwork][];
 export declare function previewScripts(): { name: string; script: string }[];
 /** The artworks the card previews mount, drawn with K: [{ name: 'Card · caption', art }]. */
 export declare function drawPreviews(K: Kit): { name: string; art: Artwork }[];
+/** A meter and its two test leads on a bench of their own (places in pitches; a null lead lies at its rest place). */
+export declare function leadArt(
+  K: Kit,
+  props: { width: number; height: number; at: { x: number; y: number }; redJack?: 'V' | 'mA'; mode?: 'voltage' | 'current'; black?: { x: number; y: number } | null; red?: { x: number; y: number } | null },
+): Artwork;

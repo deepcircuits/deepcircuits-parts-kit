@@ -76,6 +76,8 @@ A part's body has fixed colours and looks the same on any background, as a real 
 | `pinsOnPitch(pins)`, from `/check` | True when every pin is a whole number of pitches from the first. |
 | `mount(target, artwork, options)`, from `/mount` | Draws an artwork on a page over the pitch grid, for previews (`bundle.css` styles it). |
 | `formatOhms`, `resistorBands`, from `/primitives` | A resistance as text, and its colour bands. |
+| `testLead(props)`, `leadCable(props)`, `probeTip(props)`, from `/primitives` | A test lead from its plug to its probe tip at any two points, touching or at rest: the cable, the probe, or both, with the cable's path, the probe's tail and its pointer outline. |
+| `multimeterLeadRests()`, `multimeterLeadVia(jack, tip)` | Where the multimeter's probes lie when they touch nothing, and the points a cable passes so it never lies across the meter's face, in the meter's pixels. |
 
 ```js
 import { drawPart, rotateArtwork, toDataUrl } from '@deepcircuits/parts-kit';

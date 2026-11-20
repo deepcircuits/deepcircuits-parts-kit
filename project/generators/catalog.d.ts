@@ -545,6 +545,7 @@ export interface PartOptionsById {
   /** Multimeter: multimeter. */
   "multimeter": {
     /** Measures. Default "voltage". */ mode?: "voltage" | "current";
+    /** Red lead in. Default "V". */ redJack?: "V" | "mA";
     /** Reading. Default "". */ reading?: string;
     /** Unit. Default "". */ unit?: "" | "mV" | "V" | "mA";
   };

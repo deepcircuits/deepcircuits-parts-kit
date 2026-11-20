@@ -382,6 +382,7 @@ var CARDS = [
     K.mount(root, K.multimeter({ reading: "4.987" }), { scale: 1.5, caption: "volts" });
     K.mount(root, K.multimeter({ mode: "current", reading: "12.34" }), { scale: 1.5, caption: "milliamps" });
     K.mount(root, K.multimeter({ mode: "current", reading: "OL" }), { scale: 1.5, caption: "over range" });
+    K.mount(root, K.multimeter({ mode: "current", redJack: "mA", reading: "12.34" }), { scale: 1.5, caption: "red lead in mA" });
   } },
   { name: "MuxBreakout", intro: "<code>muxBreakout</code>: the CD74HC4067 16-channel analog multiplexer breakout, 48 × 18 mm on a <code>pcb-purple</code> board", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");
@@ -586,6 +587,34 @@ var CARDS = [
     K.mount(root, K.functionGenerator({ wave: "square" }), { scale: 2, caption: "square" });
     K.mount(root, K.supplySymbol({ voltage: 5 }), { pins: true, scale: 2, caption: "supply" });
     K.mount(root, K.noteSymbol(), { scale: 2, caption: "note" });
+  } },
+  { name: "TestLead", intro: "A multimeter's test lead from its plug to its probe tip, drawn from above at any two points", run: function (document) {
+    var K = window.PartsKit, root = document.getElementById("root"), p = K.tokens().pitch;
+    // A meter at (ox, oy) with its two leads: each touches its point (or, when null, lies at its rest place).
+    function bench(w, h, ox, oy, redJack, touch) {
+      var meter = K.multimeter({ mode: redJack === "mA" ? "current" : "voltage", redJack: redJack });
+      var jack = {}, rests = K.multimeterLeadRests(), cables = "", probes = "", pads = "";
+      meter.pins.forEach(function (q) { jack[q.name] = q; });
+      [["black", "COM"], ["red", redJack]].forEach(function (l) {
+        var plug = { x: ox + jack[l[1]].x, y: oy + jack[l[1]].y }, at = touch[l[0]], lead;
+        if (at) {
+          var via = K.multimeterLeadVia(l[1], { x: at.x - ox, y: at.y - oy }).map(function (q) { return { x: q.x + ox, y: q.y + oy }; });
+          lead = K.testLead({ color: l[0], plug: plug, tip: at, via: via });
+          pads += K.pin({ x: at.x, y: at.y, kind: "pad" });
+        } else {
+          var r = rests[l[0]];
+          lead = K.testLead({ color: l[0], plug: plug, tip: { x: ox + r.x, y: oy + r.y, angle: r.angle }, pose: "rest" });
+        }
+        cables += lead.cable.svg;
+        probes += lead.probe.svg;
+      });
+      var face = meter.svg.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "");
+      var inner = '<g transform="translate(' + ox + " " + oy + ')">' + face + "</g>" + pads + cables + probes;
+      return { width: w, height: h, svg: K.svg(w, h, "A multimeter and its test leads", inner), pins: [] };
+    }
+    K.mount(root, bench(24 * p, 34 * p, 5 * p, 5 * p, "V", {}), { grid: false, caption: "both probes at rest" });
+    K.mount(root, bench(34 * p, 34 * p, 4 * p, 6 * p, "V", { red: { x: 30 * p, y: 3 * p } }), { grid: false, caption: "the red probe touching, routed round the face" });
+    K.mount(root, bench(34 * p, 34 * p, 16 * p, 6 * p, "mA", { black: { x: 3 * p, y: 30 * p }, red: { x: 3 * p, y: 2 * p } }), { grid: false, caption: "red lead in mA, both touching" });
   } },
   { name: "TftModule", intro: "The 2.4 inch ILI9341 SPI module from its size drawing", run: function (document) {
     var K = window.PartsKit, root = document.getElementById("root");

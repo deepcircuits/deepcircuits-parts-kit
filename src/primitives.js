@@ -1,4 +1,4 @@
-/** The drawing primitives the parts are made of (pins, headers, bare boards, lenses, the live layer) and the helpers behind their options, for composing a part of your own. */
+/** The drawing primitives the parts are made of (pins, headers, bare boards, lenses, the live layer, test leads) and the helpers behind their options, for composing a part of your own. */
 export {
   svg,
   pin,
@@ -24,3 +24,4 @@ export { formatOhms, resistorBands } from './passives.js';
 export { meterLines, formatMilliamps } from './pixels.js';
 export { breadboardColor } from './breadboardColors.js';
 export { breadboardPaint } from './breadboard.js';
+export { leadCable, probeTip, testLead } from './leads.js';

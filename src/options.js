@@ -440,6 +440,7 @@ export const OPTIONS = {
       choices: [choice('voltage', 'Voltage'), choice('current', 'Current')],
       default: 'voltage',
     },
+    redJack: { type: 'enum', label: 'Red lead in', choices: [choice('V', 'V'), choice('mA', 'mA')], default: 'V' },
     reading: state({ type: 'text', label: 'Reading', default: '', maxLength: 6, example: '4.987' }),
     unit: state({
       type: 'enum',
