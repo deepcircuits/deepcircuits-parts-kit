@@ -425,11 +425,13 @@ export interface PartOptionsById {
   /** Stepper motor: stepper {"biaxial":false}. */
   "stepper-motor": {
     /** Angle. 0 to 360 °. Default 0. */ angle?: number;
+    /** Shaft pointer. Default false. */ pointer?: boolean;
   };
   /** Biaxial stepper: stepper {"biaxial":true}. */
   "biaxial-stepper": {
     /** Angle. 0 to 360 °. Default 0. */ angle?: number;
     /** Outer angle. 0 to 360 °. Default 0. */ angle2?: number;
+    /** Shaft pointer. Default false. */ pointer?: boolean;
   };
   /** DPDT relay: relay. */
   "dpdt-relay": {
@@ -438,10 +440,12 @@ export interface PartOptionsById {
   /** DC motor: dcMotor {"variant":"hobby-130"}. */
   "dc-motor": {
     /** Angle. 0 to 360 °. Default 0. */ angle?: number;
+    /** Spin blur. 0 to 1. Default 0. */ blur?: number;
   };
   /** DC gear motor: dcMotor {"variant":"tt-gear"}. */
   "dc-gear-motor": {
     /** Angle. 0 to 360 °. Default 0. */ angle?: number;
+    /** Spin blur. 0 to 1. Default 0. */ blur?: number;
   };
   /** Water pump: waterPump. */
   "water-pump": {
@@ -455,6 +459,7 @@ export interface PartOptionsById {
   /** Geared stepper: gearedStepper. */
   "geared-stepper": {
     /** Angle. 0 to 360 °. Default 0. */ angle?: number;
+    /** Shaft pointer. Default false. */ pointer?: boolean;
   };
   /** Light bulb: lightBulb. */
   "light-bulb": {

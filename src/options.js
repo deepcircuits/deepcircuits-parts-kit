@@ -376,15 +376,22 @@ export const OPTIONS = {
       default: 0,
       when: { biaxial: true },
     }),
+    pointer: bool('Shaft pointer'),
   },
   relay: { energised: state(bool('Energised')) },
-  dcMotor: { angle: state({ type: 'number', label: 'Angle', min: 0, max: 360, step: 1, unit: '°', default: 0 }) },
+  dcMotor: {
+    angle: state({ type: 'number', label: 'Angle', min: 0, max: 360, step: 1, unit: '°', default: 0 }),
+    blur: state(unit('Spin blur')),
+  },
   waterPump: { running: state(bool('Running')) },
   solenoid: {
     volts: { type: 'number', label: 'Coil rating', min: 1, max: 48, step: 1, unit: 'V', default: 12 },
     position: state(unit('Plunger travel', { step: 0.05, default: 0 })),
   },
-  gearedStepper: { angle: state({ type: 'number', label: 'Angle', min: 0, max: 360, step: 1, unit: '°', default: 0 }) },
+  gearedStepper: {
+    angle: state({ type: 'number', label: 'Angle', min: 0, max: 360, step: 1, unit: '°', default: 0 }),
+    pointer: bool('Shaft pointer'),
+  },
   lightBulb: {
     on: state(bool('Lit')),
     brightness: state(unit('Brightness', { default: 1, when: { on: true } })),

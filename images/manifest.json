@@ -20817,13 +20817,22 @@
         { "name": "M-", "x": 67.2, "y": 141.1 }
       ],
       "hooks": [
-        "rotor"
+        "rotor",
+        "rotor-blur",
+        "rotor-blades"
       ],
       "images": [
         {
           "file": "dc-motor.svg",
           "label": "At rest",
           "options": {}
+        },
+        {
+          "file": "dc-motor--blur-1.svg",
+          "label": "Spin blur: 1",
+          "options": {
+            "blur": 1
+          }
         }
       ]
     },
@@ -20843,13 +20852,21 @@
         { "name": "M-", "x": 19.2, "y": 110 }
       ],
       "hooks": [
-        "rotor"
+        "rotor",
+        "rotor-blur"
       ],
       "images": [
         {
           "file": "dc-gear-motor.svg",
           "label": "At rest",
           "options": {}
+        },
+        {
+          "file": "dc-gear-motor--blur-1.svg",
+          "label": "Spin blur: 1",
+          "options": {
+            "blur": 1
+          }
         }
       ]
     },
