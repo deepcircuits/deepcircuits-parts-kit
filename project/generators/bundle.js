@@ -10758,6 +10758,7 @@ var PartsKit = (() => {
     const mm = p / 2.54;
     const frame = Math.max(20, Number(props.frameSize) || 42.3);
     const biaxial = !!props.biaxial;
+    const pointer = !!props.pointer;
     const angle = Number(props.angle) || 0;
     const angle2 = Number(props.angle2) || 0;
     const names = props.pins || (biaxial ? ["A1-", "A1+", "B1+", "B1-", "A2-", "A2+", "B2+", "B2-"] : ["A-", "A+", "B+", "B-"]);
@@ -10796,34 +10797,53 @@ var PartsKit = (() => {
     });
     s += circle(cx, cy, 11 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-detail"])) + circle(cx, cy, 11 * mm, "#000000", { "fill-opacity": 0.06 });
     if (biaxial) {
+      const outerPtr = pointer ? path(
+        `M${r2(cx - 0.85 * mm)} ${r2(cy - 3.6 * mm)}L${r2(cx)} ${r2(cy - 8.6 * mm)}L${r2(cx + 0.85 * mm)} ${r2(cy - 3.6 * mm)}Z`,
+        T["plastic-blue"],
+        edge(T, T["plastic-blue-edge"], T["stroke-fine"])
+      ) : "";
+      const innerPtr = pointer ? path(
+        `M${r2(cx - 0.7 * mm)} ${r2(cy - 1.8 * mm)}L${r2(cx)} ${r2(cy - 10.2 * mm)}L${r2(cx + 0.7 * mm)} ${r2(cy - 1.8 * mm)}Z`,
+        T["plastic-red"],
+        edge(T, T["plastic-red-edge"], T["stroke-fine"])
+      ) : "";
       s += el(
         "g",
         {
           "data-hook": "rotor-2",
-          "data-part": "rotor",
           "data-angle": r2(angle2),
           "data-cx": r2(cx),
           "data-cy": r2(cy),
           transform: `rotate(${r2(angle2)} ${r2(cx)} ${r2(cy)})`
         },
-        circle(cx, cy, 4.2 * mm, T["metal-edge"], edge(T, T["plastic-black-edge"], T["stroke-fine"])) + line(cx, cy - 4.2 * mm, cx, cy - 2.6 * mm, T["chip-print"], 1.2)
+        outerPtr + tag(
+          "rotor",
+          circle(cx, cy, 4.2 * mm, T["metal-edge"], edge(T, T["plastic-black-edge"], T["stroke-fine"])) + line(cx, cy - 4.2 * mm, cx, cy - 2.6 * mm, T["chip-print"], 1.2)
+        )
       );
       s += el(
         "g",
         {
           "data-hook": "rotor",
-          "data-part": "rotor",
           "data-angle": r2(angle),
           "data-cx": r2(cx),
           "data-cy": r2(cy),
           transform: `rotate(${r2(angle)} ${r2(cx)} ${r2(cy)})`
         },
-        circle(cx, cy, 2.5 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + path(`M${r2(cx - 2.5 * mm * 0.6)} ${r2(cy - 2 * mm)}h${r2(3 * mm)}`, "none", {
-          stroke: T["metal-edge"],
-          "stroke-width": 0.8
-        })
+        innerPtr + tag(
+          "rotor",
+          circle(cx, cy, 2.5 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + path(`M${r2(cx - 2.5 * mm * 0.6)} ${r2(cy - 2 * mm)}h${r2(3 * mm)}`, "none", {
+            stroke: T["metal-edge"],
+            "stroke-width": 0.8
+          })
+        )
       );
     } else {
+      const ptr = pointer ? path(
+        `M${r2(cx - 0.9 * mm)} ${r2(cy - 1.8 * mm)}L${r2(cx)} ${r2(cy - 10.2 * mm)}L${r2(cx + 0.9 * mm)} ${r2(cy - 1.8 * mm)}Z`,
+        T["plastic-red"],
+        edge(T, T["plastic-red-edge"], T["stroke-fine"])
+      ) : "";
       s += el(
         "g",
         {
@@ -10834,7 +10854,7 @@ var PartsKit = (() => {
           "data-cy": r2(cy),
           transform: `rotate(${r2(angle)} ${r2(cx)} ${r2(cy)})`
         },
-        circle(cx, cy, 2.5 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + path(`M${r2(cx - 1.8 * mm)} ${r2(cy - 1.75 * mm)}h${r2(3.6 * mm)}`, "none", {
+        ptr + circle(cx, cy, 2.5 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])) + path(`M${r2(cx - 1.8 * mm)} ${r2(cy - 1.75 * mm)}h${r2(3.6 * mm)}`, "none", {
           stroke: T["metal-edge"],
           "stroke-width": 0.9
         })
@@ -10882,6 +10902,7 @@ var PartsKit = (() => {
     const p = T.pitch;
     const mm = p / 2.54;
     const angle = Number(props.angle) || 0;
+    const pointer = !!props.pointer;
     const w = 18 * p;
     const cx = w / 2;
     const cy = 0.5 * p + 14 * mm;
@@ -10938,6 +10959,11 @@ var PartsKit = (() => {
     s += text(cx, cy + 3.2 * mm, "28BYJ-48", PIN_LABEL + 0.4, T["band-black"], { "font-weight": 600 });
     s += text(cx, cy + 5.6 * mm, `5VDC ${lotCode("28BYJ")}`, PIN_LABEL, T["band-black"], { "fill-opacity": 0.8 });
     s += circle(cx, sy, 4.6 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-detail"]));
+    const gearedPtr = pointer ? path(
+      `M${r2(cx - 0.7 * mm)} ${r2(sy - 1.6 * mm)}L${r2(cx)} ${r2(sy - 5.4 * mm)}L${r2(cx + 0.7 * mm)} ${r2(sy - 1.6 * mm)}Z`,
+      T["plastic-red"],
+      edge(T, T["plastic-red-edge"], T["stroke-fine"])
+    ) : "";
     s += el(
       "g",
       {
@@ -10948,7 +10974,7 @@ var PartsKit = (() => {
         "data-cy": r2(sy),
         transform: `rotate(${r2(angle)} ${r2(cx)} ${r2(sy)})`
       },
-      path(flatted(cx, sy, 2.5 * mm, 1.5 * mm, "x"), T.brass, edge(T, T["brass-edge"], T["stroke-fine"])) + line(cx, sy - 1.6 * mm, cx, sy - 0.4 * mm, T["brass-edge"], 0.8)
+      gearedPtr + path(flatted(cx, sy, 2.5 * mm, 1.5 * mm, "x"), T.brass, edge(T, T["brass-edge"], T["stroke-fine"])) + line(cx, sy - 1.6 * mm, cx, sy - 0.4 * mm, T["brass-edge"], 0.8)
     );
     s += hdr.svg;
     const at = new Map(hdr.pins.map((pn) => [pn.name, pn]));
@@ -11051,6 +11077,7 @@ var PartsKit = (() => {
     const mm = p / 2.54;
     const tt = props.variant === "tt-gear";
     const angle = Number(props.angle) || 0;
+    const blur = Math.max(0, Math.min(1, Number(props.blur) || 0));
     const names = props.pins || ["M+", "M-"];
     let s = "";
     let w;
@@ -11099,8 +11126,32 @@ var PartsKit = (() => {
         T["plastic-red"],
         Object.assign({ "stroke-linejoin": "round" }, edge(T, T["plastic-red-edge"], T["stroke-detail"]))
       );
+      const sweepR = fan - 0.5 * mm;
+      const streak = (deg, r, span, op) => {
+        const a0 = (deg - span / 2) * Math.PI / 180;
+        const a1 = (deg + span / 2) * Math.PI / 180;
+        return path(
+          `M${r2(cx + r * Math.cos(a0))} ${r2(cy + r * Math.sin(a0))}A${r2(r)} ${r2(r)} 0 0 1 ${r2(cx + r * Math.cos(a1))} ${r2(cy + r * Math.sin(a1))}`,
+          "none",
+          { stroke: T["plastic-red"], "stroke-width": r2(2.6 * mm), "stroke-linecap": "round", "stroke-opacity": op }
+        );
+      };
+      const blurLayer = el(
+        "g",
+        { "data-hook": "rotor-blur", opacity: r2(blur), "pointer-events": "none" },
+        circle(cx, cy, sweepR, T["plastic-red"], { "fill-opacity": 0.22 }) + circle(cx, cy, sweepR, "none", {
+          stroke: T["plastic-red-edge"],
+          "stroke-width": T["stroke-detail"],
+          "stroke-opacity": 0.35
+        }) + streak(-75, fan * 0.72, 70, 0.34) + streak(105, fan * 0.72, 70, 0.34) + streak(-25, fan * 0.5, 55, 0.24) + streak(155, fan * 0.5, 55, 0.24)
+      );
+      const bladesLayer = el(
+        "g",
+        { "data-hook": "rotor-blades", opacity: r2(1 - 0.55 * blur) },
+        blade + el("g", { transform: `rotate(180 ${r2(cx)} ${r2(cy)})` }, blade)
+      );
       s += rotor(
-        blade + el("g", { transform: `rotate(180 ${r2(cx)} ${r2(cy)})` }, blade) + circle(cx, cy, 3.4 * mm, T["plastic-red"], edge(T, T["plastic-red-edge"], T["stroke-detail"])) + circle(cx, cy, 0.8 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])),
+        blurLayer + bladesLayer + circle(cx, cy, 3.4 * mm, T["plastic-red"], edge(T, T["plastic-red-edge"], T["stroke-detail"])) + circle(cx, cy, 0.8 * mm, T.metal, edge(T, T["metal-edge"], T["stroke-fine"])),
         cx,
         cy
       );
@@ -11161,8 +11212,17 @@ var PartsKit = (() => {
       s += circle(gx + 14 * mm, cy, 1.6 * mm, T.cavity, edge(T, T["brass-edge"], T["stroke-detail"]));
       s += text(gx + 14 * mm, cy - 3.6 * mm, "1:48", PIN_LABEL, T["brass-edge"], { "font-weight": 600 });
       s += circle(cx, cy, 4.6 * mm, T["band-yellow"], edge(T, T["brass-edge"], T["stroke-detail"]));
+      const ttBlur = el(
+        "g",
+        { "data-hook": "rotor-blur", opacity: r2(blur), "pointer-events": "none" },
+        circle(cx, cy, 2.7 * mm, T["plastic-white"], { "fill-opacity": 0.35 }) + circle(cx, cy, 2.7 * mm, "none", {
+          stroke: T["plastic-white-edge"],
+          "stroke-width": T["stroke-detail"],
+          "stroke-opacity": 0.45
+        })
+      );
       s += rotor(
-        path(
+        ttBlur + path(
           flatted(cx, cy, 2.7 * mm, 1.85 * mm, "x"),
           T["plastic-white"],
           edge(T, T["plastic-white-edge"], T["stroke-detail"])
@@ -12549,16 +12609,23 @@ var PartsKit = (() => {
         unit: "°",
         default: 0,
         when: { biaxial: true }
-      })
+      }),
+      pointer: bool("Shaft pointer")
     },
     relay: { energised: state(bool("Energised")) },
-    dcMotor: { angle: state({ type: "number", label: "Angle", min: 0, max: 360, step: 1, unit: "°", default: 0 }) },
+    dcMotor: {
+      angle: state({ type: "number", label: "Angle", min: 0, max: 360, step: 1, unit: "°", default: 0 }),
+      blur: state(unit2("Spin blur"))
+    },
     waterPump: { running: state(bool("Running")) },
     solenoid: {
       volts: { type: "number", label: "Coil rating", min: 1, max: 48, step: 1, unit: "V", default: 12 },
       position: state(unit2("Plunger travel", { step: 0.05, default: 0 }))
     },
-    gearedStepper: { angle: state({ type: "number", label: "Angle", min: 0, max: 360, step: 1, unit: "°", default: 0 }) },
+    gearedStepper: {
+      angle: state({ type: "number", label: "Angle", min: 0, max: 360, step: 1, unit: "°", default: 0 }),
+      pointer: bool("Shaft pointer")
+    },
     lightBulb: {
       on: state(bool("Lit")),
       brightness: state(unit2("Brightness", { default: 1, when: { on: true } })),

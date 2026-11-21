@@ -135,12 +135,12 @@ export interface OledBreakoutProps extends ScreenPicture { pins?: readonly strin
 export interface TftModuleProps extends ScreenPicture { /** J2's places from the first; null leaves a place bare. */ pins?: readonly (string | null)[]; finish?: Finish; /** The 2.8 inch capacitive-touch board (50 x 86 mm) in place of the 2.4 inch one. */ touch?: boolean }
 /** The micro servo; angle in degrees, -90 to 90, turns the `horn` hook (data-angle). */
 export interface ServoProps { angle?: number }
-/** The stepper: frameSize in mm (NEMA 17 is 42.3), biaxial for the two-rotor clock motor (angle2 turns the `rotor-2` hook), pins to rename. */
-export interface StepperProps { frameSize?: number; biaxial?: boolean; angle?: number; angle2?: number; pins?: readonly string[] }
-/** The 28BYJ-48 geared stepper from its shaft side; angle in degrees turns the `rotor` hook (data-angle), the output shaft. Pins in drive order: ORANGE, YELLOW, PINK, BLUE, RED (the centre tap). */
-export interface GearedStepperProps { angle?: number }
-/** The brushed DC motor: 'hobby-130' (the default) is the 130 can end on, 'tt-gear' the TT gear motor lying flat; angle in degrees turns the `rotor` hook (data-angle); pins to rename (M+, M-). */
-export interface DcMotorProps { variant?: 'hobby-130' | 'tt-gear'; angle?: number; pins?: readonly string[] }
+/** The stepper: frameSize in mm (NEMA 17 is 42.3), biaxial for the two-rotor clock motor (angle2 turns the `rotor-2` hook), pointer adds a visible shaft needle, pins to rename. */
+export interface StepperProps { frameSize?: number; biaxial?: boolean; angle?: number; angle2?: number; pointer?: boolean; pins?: readonly string[] }
+/** The 28BYJ-48 geared stepper from its shaft side; angle in degrees turns the `rotor` hook (data-angle), the output shaft; pointer adds a visible shaft needle. Pins in drive order: ORANGE, YELLOW, PINK, BLUE, RED (the centre tap). */
+export interface GearedStepperProps { angle?: number; pointer?: boolean }
+/** The brushed DC motor: 'hobby-130' (the default) is the 130 can end on, 'tt-gear' the TT gear motor lying flat; angle in degrees turns the `rotor` hook (data-angle); blur (0..1) blends in motion blur while spinning fast; pins to rename (M+, M-). */
+export interface DcMotorProps { variant?: 'hobby-130' | 'tt-gear'; angle?: number; blur?: number; pins?: readonly string[] }
 /** The mini submersible pump: `running` draws the water leaving its outlet (`flow`); pins to rename (M+, M-). */
 export interface WaterPumpProps { running?: boolean; pins?: readonly string[] }
 /** The push-pull solenoid: `position` from 0 (released, the spring holding the plunger out) to 1 (pulled in) moves the `plunger` hook (data-position); `volts` is the coil rating printed on it (12 by default); pins to rename (1, 2). */
