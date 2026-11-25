@@ -40,6 +40,7 @@ node images.mjs        # images/: every part as SVG files, and manifest.json
 node checks/modules.mjs     # the ES modules and the bundle draw the same artwork; the vars mode moves nothing
 node checks/catalog.mjs     # ids are their names' slugs; every part draws cleanly and every option's default and examples draw as listed; pin names follow the convention
 node checks/element.mjs     # every option value, written as a <parts-kit-part> attribute, reads back as itself; every input part has a control
+node checks/hooks.mjs       # every part's frozen data-hook names, overlay geometry helpers, withTokenMode and syncSvg
 node checks/overlaps.mjs    # the suite, every card preview and random pin names, counts, finishes and sizes: no overlaps, pins on the pitch
 node checks/inventory.mjs   # every template carries the parts the real one has
 node checks/standards.mjs   # pins on the grid, legs, print and stroke sizes, against Fritzing's and KiCad's published rules

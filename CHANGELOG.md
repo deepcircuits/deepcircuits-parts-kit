@@ -47,6 +47,7 @@ The first public release.
 - The multimeter's leads are plugged in: black in COM, red in `redJack` (V by default, or mA), each plug seen end on with its grip ring; every jack and plug carries a hook (`jack-V`, `plug-red`).
 - `lightBulb`, a miniature incandescent bulb, the kind a flashlight takes (`light-bulb`: 1, 2): a 10 mm clear glass globe with the stem, support wires and coiled filament inside, a threaded metal base, its insulator and two leads two pitches apart. Lit by `on` at a `brightness`, the filament runs from a dull red to a white-yellow, the glass fills with warm light and a halo widens round the globe, all inside the drawing's box.
 - Lights that dim (the 5 mm LED, the RGB LED, the addressable pixels and strips, the bar graph, the seven-segment digits, the boards' ON and user LEDs and the modules' indicators) are drawn at every level on a scale that follows the eye: a barely lit lens stays dark with only its die glowing, the glow and its halo grow with each step, and from about two thirds up the middle turns white and a bloom of the colour spreads past the part. The halos and blooms are gradients, never filters, and never take the pointer.
+- `stepper` and `gearedStepper` take `pointer` to draw a visible shaft pointer needle, and `dcMotor` takes `blur` (0 to 1) to blend in spin motion blur while running fast.
 
 ### API
 
@@ -74,6 +75,10 @@ The first public release.
 - The rotary dialer's `angle` runs to 324°, where the 0's hole meets the finger stop.
 - `@deepcircuits/parts-kit/controls`: the geometry the element's input parts are operated by, for a host that handles the pointer itself. `knobPosition` turns a point round the potentiometer's knob into its position, `detentsTurned` counts the encoder's detents a drag has passed, and `dialGeometry`, `dialDigitAt` and `dialTravel` find the dialer's finger hole under a point and how far the wheel winds from it.
 - `testLead`, `leadCable` and `probeTip` in `/primitives` draw a test lead from its plug to its probe tip at any two points, touching or at rest, with the cable as path data; `multimeterLeadRests` and `multimeterLeadVia` give the meter's rest places and the cable's route around it.
+- `hookRect`, `lcdLattice` and `matrixLayout` read overlay rectangles and LED/dot lattices from drawn displays, LCDs, MAX7219 matrices and the RFID reader without parsing SVG markup by hand.
+- `withTokenMode(mode, options?, fn)` switches the token mode for a single call and restores the previous mode afterwards.
+- `patchSvg`, `syncSvg` and `findHook` in `/dom` take optional `{ hookAttribute }` for hosts that copy `data-hook` onto another attribute.
+- `@deepcircuits/parts-kit/controls` also exports `slidePosition`, `sliderKeyStep`, `JOYSTICK_FULL_DRAG`, `joystickPosition`, `joystickGeometry`, `KEYPAD_KEYS`, `keypadKeyOf`, `keypadHookOf`, `dipLeverIndex` and `remoteKeyForKeyboard`.
 
 ### Project
 

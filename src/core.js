@@ -31,6 +31,24 @@ export function setTokenMode(m, props) {
 export function tokenMode() {
   return { mode, prefix };
 }
+/**
+ * Runs `fn` with the token mode set to `m` (and optional `{ prefix }`), then restores the previous mode and prefix,
+ * even if `fn` throws. Keeps standalone exports, previews and tests isolated from a host's active token mode.
+ */
+export function withTokenMode(m, props, fn) {
+  if (typeof props === 'function') {
+    fn = props;
+    props = undefined;
+  }
+  const prevMode = mode;
+  const prevPrefix = prefix;
+  setTokenMode(m, props);
+  try {
+    return fn();
+  } finally {
+    setTokenMode(prevMode, prevPrefix ? { prefix: prevPrefix } : undefined);
+  }
+}
 /** The palette and metrics, resolved by the token mode (the light values from tokens.json, by default). */
 export function tokens() {
   const now = mode === 'live' ? Date.now() : 0;

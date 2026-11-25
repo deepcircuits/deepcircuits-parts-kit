@@ -22,6 +22,9 @@
     "url": "git+https://github.com/deepcircuits/deepcircuits-parts-kit.git"
   },
   "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
   "type": "module",
   "main": "./src/index.js",
   "types": "./src/index.d.ts",
@@ -140,7 +143,7 @@
     "test": "npm run lint && npm run check",
     "lint": "eslint . && prettier --check src build.mjs",
     "format": "prettier --write src build.mjs",
-    "check": "node build.mjs && node gallery.mjs && node images.mjs && node checks/modules.mjs && node checks/catalog.mjs && node checks/element.mjs && node checks/overlaps.mjs && node checks/inventory.mjs && node checks/leads.mjs && node checks/standards.mjs && node checks/contrast.mjs"
+    "check": "node build.mjs && node gallery.mjs && node images.mjs && node checks/modules.mjs && node checks/catalog.mjs && node checks/element.mjs && node checks/hooks.mjs && node checks/overlaps.mjs && node checks/inventory.mjs && node checks/leads.mjs && node checks/standards.mjs && node checks/contrast.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

@@ -68,6 +68,20 @@ var PartsKit = (() => {
   function tokenMode() {
     return { mode, prefix };
   }
+  function withTokenMode(m, props, fn) {
+    if (typeof props === "function") {
+      fn = props;
+      props = void 0;
+    }
+    const prevMode = mode;
+    const prevPrefix = prefix;
+    setTokenMode(m, props);
+    try {
+      return fn();
+    } finally {
+      setTokenMode(prevMode, prevPrefix ? { prefix: prevPrefix } : void 0);
+    }
+  }
   function tokens() {
     const now = mode === "live" ? Date.now() : 0;
     if (cache && (mode !== "live" || now - cacheAt < 50)) return cache;
@@ -4875,12 +4889,12 @@ var PartsKit = (() => {
       "stroke-width": 0.5,
       "stroke-opacity": 0.1
     });
-    const clamp2 = function(v) {
+    const clamp3 = function(v) {
       v = Number(v);
       return v > 0 ? Math.min(1, v) : 0;
     };
     const level = function(on2, d, sgm) {
-      return props.levels ? clamp2(props.levels[d * 8 + sgm]) : on2 ? 1 : 0;
+      return props.levels ? clamp3(props.levels[d * 8 + sgm]) : on2 ? 1 : 0;
     };
     const glow = function(lv) {
       return lv > 0 ? r2(dim + (1 - dim) * shine(lv).lens) : 0;
@@ -4906,7 +4920,7 @@ var PartsKit = (() => {
     const dot = function(cx, cy, lv, hook) {
       return circle(cx, cy, 0.24 * p, off) + circle(cx, cy, 0.24 * p, color, Object.assign({ "fill-opacity": glow(lv), "data-level": r2(lv) }, hook)) + lightOver((fill, more) => circle(cx, cy, 0.24 * p, fill, more), lv);
     };
-    const colonLevel = typeof props.colon === "number" ? clamp2(props.colon) : props.colon ? 1 : 0;
+    const colonLevel = typeof props.colon === "number" ? clamp3(props.colon) : props.colon ? 1 : 0;
     for (let d = 0; d < digits; d++) {
       const lit2 = SEG_OF[value[d] === void 0 ? " " : value[d]] || "";
       const ox = d * cellW + 1.2 * p;
@@ -12049,6 +12063,8 @@ var PartsKit = (() => {
     FAMILIES: () => FAMILIES,
     FAMILY_TITLES: () => FAMILY_TITLES,
     FINISHES: () => FINISHES,
+    JOYSTICK_FULL_DRAG: () => JOYSTICK_FULL_DRAG,
+    KEYPAD_KEYS: () => KEYPAD_KEYS,
     LED_STRIP_MAX_PIXELS: () => LED_STRIP_MAX_PIXELS,
     PITCH: () => PITCH,
     acs712Module: () => acs712Module,
@@ -12086,6 +12102,7 @@ var PartsKit = (() => {
     dialGeometry: () => dialGeometry,
     dialTravel: () => dialTravel,
     digitalTemperatureSensor: () => digitalTemperatureSensor,
+    dipLeverIndex: () => dipLeverIndex,
     dipSwitch: () => dipSwitch,
     drawPart: () => drawPart,
     ds18b20Sensor: () => ds18b20Sensor,
@@ -12116,16 +12133,22 @@ var PartsKit = (() => {
     gearedStepper: () => gearedStepper,
     hallSensor: () => hallSensor,
     header: () => header,
+    hookRect: () => hookRect,
     hx711Board: () => hx711Board,
     ili9341TouchDisplay: () => ili9341TouchDisplay,
     indicator: () => indicator,
     irReceiver: () => irReceiver,
     irRemote: () => irRemote,
     joystick: () => joystick,
+    joystickGeometry: () => joystickGeometry,
+    joystickPosition: () => joystickPosition,
     keypad: () => keypad,
+    keypadHookOf: () => keypadHookOf,
+    keypadKeyOf: () => keypadKeyOf,
     knobPosition: () => knobPosition,
     knockSensor: () => knockSensor,
     l298nModule: () => l298nModule,
+    lcdLattice: () => lcdLattice,
     leadCable: () => leadCable,
     led: () => led,
     ledBarGraph: () => ledBarGraph,
@@ -12143,6 +12166,7 @@ var PartsKit = (() => {
     logicAnalyzer: () => logicAnalyzer,
     logicSymbol: () => logicSymbol,
     lotCode: () => lotCode,
+    matrixLayout: () => matrixLayout,
     max30102Module: () => max30102Module,
     max7219Matrix: () => max7219Matrix,
     mb102Module: () => mb102Module,
@@ -12193,6 +12217,7 @@ var PartsKit = (() => {
     reedSwitch: () => reedSwitch,
     relay: () => relay,
     relayModule: () => relayModule,
+    remoteKeyForKeyboard: () => remoteKeyForKeyboard,
     resistor: () => resistor,
     resistorBands: () => resistorBands,
     rfidModule: () => rfidModule,
@@ -12212,8 +12237,10 @@ var PartsKit = (() => {
     shiftRegister595: () => shiftRegister595,
     shine: () => shine,
     silkMark: () => silkMark,
+    slidePosition: () => slidePosition,
     slidePotentiometer: () => slidePotentiometer,
     slideSwitch: () => slideSwitch,
+    sliderKeyStep: () => sliderKeyStep,
     smallSensorBoardTemplate: () => smallSensorBoardTemplate,
     soilMoistureSensor: () => soilMoistureSensor,
     solenoid: () => solenoid,
@@ -12248,7 +12275,8 @@ var PartsKit = (() => {
     voltageSensorModule: () => voltageSensorModule,
     waterLevelSensor: () => waterLevelSensor,
     waterPump: () => waterPump,
-    wire: () => wire
+    wire: () => wire,
+    withTokenMode: () => withTokenMode
   });
 
   // src/index.js
@@ -13504,6 +13532,94 @@ var PartsKit = (() => {
     const root = /\scolor="[^"]*"/.test(open) ? open.replace(/\scolor="[^"]*"/, ` color="${ink}"`) : open.replace("<svg", `<svg color="${ink}"`);
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(root + art2.svg.slice(open.length))}`;
   }
+  var svgOf = (art2) => typeof art2 === "string" ? art2 : art2.svg;
+  var escapeRegex = (text2) => String(text2).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  var attrOf = (tag2, name) => {
+    const match = new RegExp(`\\s${name}="([^"]*)"`).exec(tag2);
+    return match ? match[1] : void 0;
+  };
+  var numOf = (tag2, name) => {
+    var _a;
+    return Number((_a = attrOf(tag2, name)) != null ? _a : NaN);
+  };
+  function hookRect(art2, hook) {
+    var _a;
+    const tag2 = (_a = new RegExp(`<rect\\b[^>]*\\sdata-hook="${escapeRegex(hook)}"[^>]*>`).exec(svgOf(art2))) == null ? void 0 : _a[0];
+    if (!tag2) return void 0;
+    const x = numOf(tag2, "x");
+    const y = numOf(tag2, "y");
+    const width = numOf(tag2, "width");
+    const height = numOf(tag2, "height");
+    return [x, y, width, height].every(Number.isFinite) ? { x, y, width, height } : void 0;
+  }
+  function lcdLattice(art2) {
+    var _a;
+    const glass = hookRect(art2, "glass");
+    const tag2 = (_a = /<g\b[^>]*\sdata-hook="matrix"[^>]*>/.exec(svgOf(art2))) == null ? void 0 : _a[0];
+    if (!glass || !tag2) return void 0;
+    const cols = numOf(tag2, "data-cols");
+    const rows = numOf(tag2, "data-rows");
+    const rawX = numOf(tag2, "data-x");
+    const rawY = numOf(tag2, "data-y");
+    const cellDx = numOf(tag2, "data-cell-dx");
+    const cellDy = numOf(tag2, "data-cell-dy");
+    const dotDx = numOf(tag2, "data-dot-dx");
+    const dotDy = numOf(tag2, "data-dot-dy");
+    const dotW = numOf(tag2, "data-dot-w");
+    const dotH = numOf(tag2, "data-dot-h");
+    const values = [cols, rows, rawX, rawY, cellDx, cellDy, dotDx, dotDy, dotW, dotH];
+    if (!values.every(Number.isFinite)) return void 0;
+    return {
+      glass,
+      cols,
+      rows,
+      x: r2(rawX - glass.x),
+      y: r2(rawY - glass.y),
+      cellDx,
+      cellDy,
+      dotDx,
+      dotDy,
+      dotW,
+      dotH
+    };
+  }
+  function matrixLayout(art2) {
+    const markup = svgOf(art2);
+    const faces = [];
+    for (const match of markup.matchAll(/<rect\b[^>]*\sdata-hook="face-(\d+)"[^>]*>/g)) {
+      const face = Number(match[1]);
+      const rect2 = hookRect(markup, `face-${face}`);
+      if (rect2) faces.push({ face, ...rect2 });
+    }
+    if (!faces.length) return void 0;
+    const x0 = Math.min(...faces.map((f) => f.x));
+    const y0 = Math.min(...faces.map((f) => f.y));
+    const box = {
+      x: x0,
+      y: y0,
+      width: r2(Math.max(...faces.map((f) => f.x + f.width)) - x0),
+      height: r2(Math.max(...faces.map((f) => f.y + f.height)) - y0)
+    };
+    const byFace = /* @__PURE__ */ new Map();
+    let ledRadius = 0;
+    for (const [tag2] of markup.matchAll(/<circle\b[^>]*\sdata-led="\d+-\d+-\d+"[^>]*>/g)) {
+      const [face, row, column] = attrOf(tag2, "data-led").split("-").map(Number);
+      const cx = numOf(tag2, "cx");
+      const cy = numOf(tag2, "cy");
+      const r = numOf(tag2, "r");
+      if (![face, row, column, cx, cy, r].every(Number.isFinite)) continue;
+      ledRadius = r;
+      let list = byFace.get(face);
+      if (!list) byFace.set(face, list = []);
+      list.push({ row, column, x: r2(cx - x0), y: r2(cy - y0) });
+    }
+    const ordered = faces.slice().sort((a, b) => a.x - b.x);
+    if (ordered.some((f) => !byFace.has(f.face))) return void 0;
+    const leds = ordered.map(
+      (f) => byFace.get(f.face).sort((a, b) => a.row - b.row || a.column - b.column).map(({ x, y }) => ({ x, y }))
+    );
+    return { box, faces: ordered, leds, ledRadius };
+  }
 
   // src/index.js
   init_core();
@@ -13945,43 +14061,45 @@ var PartsKit = (() => {
 
   // src/dom.js
   var hostOwned = (name) => name === "tabindex" || name === "role" || name === "style" || name === "class" || name.startsWith("aria-");
+  var HOOK_ATTR = "data-hook";
   var isElement = (node) => node.nodeType === 1;
-  function keyOf(node) {
+  function keyOf(node, attr) {
     if (!isElement(node)) return null;
-    const own = node.getAttribute("data-hook");
+    const own = node.getAttribute(attr);
     if (own !== null) return own;
     for (const child of Array.from(node.childNodes)) {
-      const key = keyOf(child);
+      const key = keyOf(child, attr);
       if (key !== null) return key;
     }
     return null;
   }
-  var sameNode = (a, b, key = keyOf(b)) => a.nodeType === b.nodeType && (!isElement(a) || !isElement(b) || a.localName === b.localName && keyOf(a) === key);
-  function syncSvg(current, next) {
+  var sameNode = (a, b, attr, key = keyOf(b, attr)) => a.nodeType === b.nodeType && (!isElement(a) || !isElement(b) || a.localName === b.localName && keyOf(a, attr) === key);
+  function syncSvg(current, next, options) {
     if (!isElement(current) || !isElement(next)) {
       if (current.nodeValue !== next.nodeValue) current.nodeValue = next.nodeValue;
       return;
     }
+    const attr = (options == null ? void 0 : options.hookAttribute) || HOOK_ATTR;
     for (const { name, value } of Array.from(next.attributes))
       if (current.getAttribute(name) !== value) current.setAttribute(name, value);
     for (const { name } of Array.from(current.attributes))
       if (!next.hasAttribute(name) && !hostOwned(name)) current.removeAttribute(name);
     const after = Array.from(next.childNodes);
-    const keys = after.map(keyOf);
+    const keys = after.map((node) => keyOf(node, attr));
     const drawn = new Set(keys.filter((key) => key !== null));
     const kept = (node) => {
-      const key = keyOf(node);
+      const key = keyOf(node, attr);
       return key !== null && drawn.has(key);
     };
     let index = 0;
     for (const [i, child] of after.entries()) {
       const key = keys[i];
       let old = current.childNodes[index] || null;
-      let same2 = old !== null && sameNode(old, child, key);
+      let same2 = old !== null && sameNode(old, child, attr, key);
       if (old && !same2 && key !== null) {
         const between = [];
         let match = old;
-        while (match && !sameNode(match, child, key)) {
+        while (match && !sameNode(match, child, attr, key)) {
           between.push(match);
           match = match.nextSibling;
         }
@@ -13992,7 +14110,7 @@ var PartsKit = (() => {
         }
       }
       if (same2) {
-        if (!old.isEqualNode(child)) syncSvg(old, child);
+        if (typeof old.isEqualNode !== "function" || !old.isEqualNode(child)) syncSvg(old, child, options);
       } else if (old && kept(old)) current.insertBefore(child, old);
       else if (old) current.replaceChild(child, old);
       else current.appendChild(child);
@@ -14000,7 +14118,7 @@ var PartsKit = (() => {
     }
     while (current.lastChild && current.childNodes.length > index) current.removeChild(current.lastChild);
   }
-  function patchSvg(host, drawing) {
+  function patchSvg(host, drawing, options) {
     const markup = typeof drawing === "string" ? drawing : drawing.svg;
     const current = host.firstElementChild;
     if (!current || current.localName !== "svg") {
@@ -14014,14 +14132,57 @@ var PartsKit = (() => {
       host.innerHTML = markup;
       return;
     }
-    syncSvg(current, next);
+    syncSvg(current, next, options);
   }
-  function findHook(host, hook) {
-    return host.querySelector(`[data-hook="${hook}"]`);
+  function findHook(host, hook, options) {
+    const attr = (options == null ? void 0 : options.hookAttribute) || HOOK_ATTR;
+    return host.querySelector(`[${attr}="${hook}"]`);
   }
 
   // src/controls.js
   var DETENT_DEGREES = 18;
+  var JOYSTICK_FULL_DRAG = 9 * 9.6 / 2.54;
+  var KEYPAD_KEYS = Object.freeze([
+    "1",
+    "2",
+    "3",
+    "A",
+    "4",
+    "5",
+    "6",
+    "B",
+    "7",
+    "8",
+    "9",
+    "C",
+    "*",
+    "0",
+    "#",
+    "D"
+  ]);
+  var SLIDER_KEYS = {
+    ArrowRight: (position) => position + 0.01,
+    ArrowUp: (position) => position + 0.01,
+    ArrowLeft: (position) => position - 0.01,
+    ArrowDown: (position) => position - 0.01,
+    PageUp: (position) => position + 0.1,
+    PageDown: (position) => position - 0.1,
+    Home: () => 0,
+    End: () => 1
+  };
+  var REMOTE_KEYS2 = {
+    ArrowUp: "up",
+    ArrowDown: "down",
+    ArrowLeft: "prev",
+    ArrowRight: "next",
+    " ": "play",
+    Enter: "play",
+    "+": "vol-up",
+    "=": "vol-up",
+    "-": "vol-down"
+  };
+  var clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+  var r22 = (n) => Math.round(n * 100) / 100;
   var data = (element, name) => {
     var _a;
     return Number((_a = element == null ? void 0 : element.getAttribute(name)) != null ? _a : NaN);
@@ -14037,9 +14198,51 @@ var PartsKit = (() => {
     if (previous <= 0.25) return 0;
     return dx < 0 ? 0 : dx > 0 ? 1 : previous >= 0.5 ? 1 : 0;
   }
+  function slidePosition(startPosition, delta, travel) {
+    if (!(travel > 0) || !Number.isFinite(startPosition) || !Number.isFinite(delta)) return void 0;
+    return r22(clamp(startPosition + delta / travel, 0, 1));
+  }
+  function sliderKeyStep(key, position) {
+    const step = SLIDER_KEYS[key];
+    if (!step) return void 0;
+    return r22(clamp(step(Number(position) || 0), 0, 1));
+  }
   function detentsTurned(from, to) {
     const detents = Math.trunc(angleBetween(from, to) / DETENT_DEGREES);
     return { detents, from: from + detents * DETENT_DEGREES };
+  }
+  function joystickPosition(dx, dy, fullDrag = JOYSTICK_FULL_DRAG) {
+    if (!(fullDrag > 0)) return { x: 0, y: 0 };
+    return {
+      x: r22(clamp(dx / fullDrag, -1, 1)),
+      y: r22(clamp(-dy / fullDrag, -1, 1))
+    };
+  }
+  function joystickGeometry(stick) {
+    if (!stick) return void 0;
+    const restX = data(stick, "data-cx");
+    const restY = data(stick, "data-cy");
+    const travel = data(stick, "data-travel");
+    const x = data(stick, "data-x");
+    const y = data(stick, "data-y");
+    if (![restX, restY, travel, x, y].every(Number.isFinite)) return void 0;
+    return { restX, restY, travel, x, y, cx: r22(restX + x * travel), cy: r22(restY - y * travel) };
+  }
+  function keypadKeyOf(hook) {
+    const match = /^key-([1-4])-([1-4])$/.exec(hook != null ? hook : "");
+    return match ? KEYPAD_KEYS[(Number(match[1]) - 1) * 4 + (Number(match[2]) - 1)] : void 0;
+  }
+  function keypadHookOf(key) {
+    const index = KEYPAD_KEYS.indexOf(String(key != null ? key : ""));
+    return index < 0 ? void 0 : `key-${Math.floor(index / 4) + 1}-${index % 4 + 1}`;
+  }
+  function dipLeverIndex(hook) {
+    const match = /^lever-([1-9]\d*)$/.exec(hook != null ? hook : "");
+    return match ? Number(match[1]) - 1 : void 0;
+  }
+  function remoteKeyForKeyboard(key) {
+    if (typeof key !== "string") return void 0;
+    return /^[0-9]$/.test(key) ? key : REMOTE_KEYS2[key];
   }
   function dialGeometry(dial2) {
     var _a;
@@ -14080,11 +14283,10 @@ var PartsKit = (() => {
 
   // src/elementControls.js
   init_core();
-  var JOYSTICK_FULL_DRAG = 9 * PITCH / 2.54;
   var WIND_DEGREES_PER_SECOND = 720;
   var RUN_DEGREES_PER_SECOND = 280;
   var STOP_MS = 120;
-  var clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+  var clamp2 = (value, low, high) => Math.min(high, Math.max(low, value));
   var degreesOf = (dx, dy) => Math.atan2(dy, dx) * 180 / Math.PI;
   var data2 = (element, name) => {
     var _a;
@@ -14099,20 +14301,10 @@ var PartsKit = (() => {
     ariaValueText: `${Math.round(position * 100)}%`,
     ariaOrientation: orientation
   });
-  var SLIDER_KEYS = {
-    ArrowRight: (position) => position + 0.01,
-    ArrowUp: (position) => position + 0.01,
-    ArrowLeft: (position) => position - 0.01,
-    ArrowDown: (position) => position - 0.01,
-    PageUp: (position) => position + 0.1,
-    PageDown: (position) => position - 0.1,
-    Home: () => 0,
-    End: () => 1
-  };
   function sliderKey(c, event) {
-    const step = SLIDER_KEYS[event.key];
-    if (!step) return false;
-    c.step({ position: r2(clamp(step(Number(c.state().position) || 0), 0, 1)) });
+    const next = sliderKeyStep(event.key, Number(c.state().position) || 0);
+    if (next === void 0) return false;
+    c.step({ position: next });
     return true;
   }
   function turn(c, steps) {
@@ -14128,17 +14320,6 @@ var PartsKit = (() => {
       legend: (_b = (_a = element.querySelector("text")) == null ? void 0 : _a.textContent) != null ? _b : ""
     };
   });
-  var REMOTE_KEYS2 = {
-    ArrowUp: "up",
-    ArrowDown: "down",
-    ArrowLeft: "prev",
-    ArrowRight: "next",
-    " ": "play",
-    Enter: "play",
-    "+": "vol-up",
-    "=": "vol-up",
-    "-": "vol-down"
-  };
   function dial(c, digit) {
     var _a;
     const session = c.session;
@@ -14222,8 +14403,8 @@ var PartsKit = (() => {
       aria: (state2) => sliderAria(Number(state2.position), "horizontal"),
       down: (c, event, point, drag) => (drag.position = Number(c.state().position) || 0, true),
       move: (c, event, point, drag) => {
-        const travel = data2(c.hook("lever"), "data-travel");
-        if (travel > 0) c.set({ position: r2(clamp(drag.position + (point.x - drag.x) / travel, 0, 1)) });
+        const next = slidePosition(drag.position, point.x - drag.x, data2(c.hook("lever"), "data-travel"));
+        if (next !== void 0) c.set({ position: next });
       },
       key: sliderKey
     },
@@ -14287,7 +14468,7 @@ var PartsKit = (() => {
       // Each finger and key pushes the stick; letting go of all of them centres it.
       held: (tokens2) => {
         const sum = (axis) => r2(
-          clamp(
+          clamp2(
             tokens2.reduce((total, token) => {
               var _a;
               return total + ((_a = token[axis]) != null ? _a : 0);
@@ -14329,7 +14510,7 @@ var PartsKit = (() => {
         return !!key && (c.hold(`pointer:${event.pointerId}`, { key: key.getAttribute("data-hook").slice(4) }), true);
       },
       key: (c, event, source) => {
-        const name = /^[0-9]$/.test(event.key) ? event.key : REMOTE_KEYS2[event.key];
+        const name = remoteKeyForKeyboard(event.key);
         if (!name || !c.hook(`key-${name}`)) return false;
         c.hold(source, { key: name });
         return true;

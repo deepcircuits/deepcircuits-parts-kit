@@ -38,7 +38,7 @@ A state option has the same name on every part that has it. `CATALOG` lists each
 
 ## Colours and themes
 
-Colours come from the design tokens in [`project/tokens.json`](../project/tokens.json), with light and dark values. `setTokenMode` sets how the generators write them:
+Colours come from the design tokens in [`project/tokens.json`](../project/tokens.json), with light and dark values. `setTokenMode` sets how the generators write them, and `withTokenMode(mode, options, fn)` switches the mode for a single call and restores it afterwards:
 
 | Mode | Writes |
 | --- | --- |
@@ -71,6 +71,10 @@ A part's body has fixed colours and looks the same on any background, as a real 
 | `flipArtwork(artwork, axis)` | Mirrors the drawing and its pins, `'horizontal'` or `'vertical'`. |
 | `toDataUrl(artwork, { ink })` | The drawing as a `data:` URL, for an `<img>`, a canvas or a CSS background. |
 | `scopeIds(artwork, prefix)` | Prefixes the drawing's gradient ids, for a page that needs every id to be unique. |
+| `hookRect(artwork, hook)` | The rectangle a drawing marks with `data-hook="<hook>"` (`display`, `glass`, `field`, `face-0`), in artwork pixels, for laying a `<canvas>` over a screen. |
+| `lcdLattice(artwork)` | A character LCD's `glass` rectangle and 5×8 dot-matrix lattice (`x`, `y` from `glass`'s top left). |
+| `matrixLayout(artwork)` | A MAX7219 matrix or chain's combined `box`, faces left to right, 64 LED centres per face relative to `box`, and `ledRadius`. |
+| `withTokenMode(mode, options?, fn)` | Runs `fn` in another token mode and restores the previous one afterwards, even on throw. |
 | `PITCH` | 9.6, which is 0.1 inch in CSS pixels. |
 | `check(artwork)`, from `/check` | The overlap check: labels touching labels or parts, parts touching parts, anything outside the box. Empty when the drawing is clean. |
 | `pinsOnPitch(pins)`, from `/check` | True when every pin is a whole number of pitches from the first. |
@@ -88,7 +92,7 @@ img.src = toDataUrl(drawPart('led-5-mm', { on: true }));
 
 ## Loading less
 
-The package is marked free of side effects, so a bundler keeps only what you import. One generator, such as `led`, is about 12 KB minified. `drawPart` can draw any part, so it brings in all of them (about 210 KB). `loadPart(id)` loads only that part's family, the first time it is drawn:
+The package is marked free of side effects, so a bundler keeps only what you import. One generator, such as `led`, is about 12 KB minified. `drawPart` can draw any part, so it brings in all of them (about 267 KB). `loadPart(id)` loads only that part's family, the first time it is drawn:
 
 ```js
 import { loadPart } from '@deepcircuits/parts-kit/catalog';
@@ -108,9 +112,9 @@ host.innerHTML = drawServo({ angle: 45 }).svg;
 | `@deepcircuits/parts-kit/catalog` | `CATALOG`, `FAMILIES`, `FAMILY_TITLES`, `findPart`, `searchParts`, `checkOptions`, `optionApplies`, `exampleValue` and `loadPart`, without drawing code. |
 | `@deepcircuits/parts-kit/templates` | The templates the parts are built from, for parts of your own. |
 | `@deepcircuits/parts-kit/primitives` | The drawing building blocks (pins, headers, boards, lenses, the live layer) for making a part. |
-| `@deepcircuits/parts-kit/dom` | `patchSvg`, `syncSvg` and `findHook`, for updating a drawn part on a page. |
+| `@deepcircuits/parts-kit/dom` | `patchSvg`, `syncSvg` and `findHook`, for updating a drawn part on a page (with optional `{ hookAttribute }` when a host copies hooks to another attribute). |
 | `@deepcircuits/parts-kit/element` | Defines `<parts-kit-part>` on a page; also `definePartElement` and `optionsFromAttributes`. |
-| `@deepcircuits/parts-kit/controls` | `knobPosition`, `detentsTurned`, `angleBetween`, `dialGeometry`, `dialDigitAt` and `dialTravel`: the geometry for operating the input parts. |
+| `@deepcircuits/parts-kit/controls` | `knobPosition`, `slidePosition`, `sliderKeyStep`, `detentsTurned`, `angleBetween`, `JOYSTICK_FULL_DRAG`, `joystickPosition`, `joystickGeometry`, `KEYPAD_KEYS`, `keypadKeyOf`, `keypadHookOf`, `dipLeverIndex`, `remoteKeyForKeyboard`, `dialGeometry`, `dialDigitAt` and `dialTravel`: the geometry and key maps for operating the input parts. |
 | `@deepcircuits/parts-kit/check` | `check` and `pinsOnPitch`. |
 | `@deepcircuits/parts-kit/mount` | `mount`, the preview helper. |
 | `@deepcircuits/parts-kit/bundle.js` | The whole kit as one classic script. It defines `window.PartsKit` and, on a page, `<parts-kit-part>`. |

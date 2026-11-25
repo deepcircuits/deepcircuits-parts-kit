@@ -22,9 +22,9 @@ export { CATALOG, FAMILIES, FAMILY_TITLES, checkOptions, searchParts, loadPart }
 export { drawPart, partPins } from './draw.js';
 
 // Helpers on a drawing.
-export { rotateArtwork, flipArtwork, scopeIds, toDataUrl } from './helpers.js';
+export { rotateArtwork, flipArtwork, scopeIds, toDataUrl, hookRect, lcdLattice, matrixLayout } from './helpers.js';
 
 // Colours and the grid.
-export { PITCH, tokens, setTokenMode, tokenMode } from './core.js';
+export { PITCH, tokens, setTokenMode, tokenMode, withTokenMode } from './core.js';
 export { BREADBOARD_COLORS } from './breadboardColors.js';
 export { LED_STRIP_MAX_PIXELS } from './pixels.js';
