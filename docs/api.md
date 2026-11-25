@@ -22,19 +22,21 @@ A state option has the same name on every part that has it. `CATALOG` lists each
 
 | Option | Meaning | Parts |
 | --- | --- | --- |
-| `on`, `brightness` | A light is on, and how bright (0 to 1) | `led`, `pulseSensor` |
+| `on`, `brightness` | A light is on, and how bright (0 to 1) | `led`, `lightBulb`, `pulseSensor` |
 | `indicators` | A board's lamps by name (`power`, `user`, `out`, `status`), each on or a level from 0 to 1 | boards, sensor and relay modules |
 | `levels` | Each light's level from 0 to 1, in order | `ledBarGraph`, `sevenSegment` |
 | `colors`, `color`, `r` `g` `b` | Pixel colours | `neopixel`, `ledRing`, `neopixelMatrix`, `ledStrip`, `rgbLed` |
-| `lit` | Which lights are on, by row or channel | `max7219Matrix`, `logicAnalyzer` |
-| `value` | The characters shown | `sevenSegment`, `tm1637Module` |
-| `lines`, `pixels`, `caption` | An LCD's text; a screen's picture or line of text | `characterLcd`, the screen modules |
-| `pressed` | A button or key is held down | `pushbutton`, `joystick`, `rotaryEncoder`, `keypad`, `irRemote` |
-| `position` | How far it has moved, from 0 to 1 | `potentiometer`, `slidePotentiometer` |
+| `lit`, `status` | Which lights, channels or relays are active | `max7219Matrix`, `logicAnalyzer`, `multiRelayModule`, `uln2003Board`, `neopixelMeter` |
+| `value`, `colon`, `dp` | Digits, colon and decimal points shown | `sevenSegment`, `tm1637Module` |
+| `lines`, `glyphs`, `pixels`, `caption` | An LCD's text and custom cells; a screen's picture or line of text | `characterLcd`, the screen modules |
+| `pressed`, `values`, `closed` | A button or key held down, DIP switch levers, or reed contacts | `pushbutton`, `joystick`, `rotaryEncoder`, `keypad`, `irRemote`, `dipSwitch`, `reedSwitch` |
+| `position` | How far it has moved, from 0 to 1 | `potentiometer`, `slidePotentiometer`, `solenoid` |
 | `contact` | Which pin, 1 or 3, a slide switch's middle pin connects to | `slideSwitch` |
-| `angle`, `detent`, `x` `y` | Turned in degrees or by detents, or pushed (-1 to 1, positive is right and up) | `servo`, `stepper`, `rotaryDialer`, `rotaryEncoder`, `joystick` |
-| `energised` | A relay's coil is energised | `relay` |
-| `live` | Current along the legs (`flow`: `true`, or `'reverse'` for the other way), heat, and a probe on a pin | `resistor`, `led`, `buzzer` |
+| `angle`, `angle2`, `blur`, `detent`, `x` `y` | Turned in degrees (with second pointer or spin blur) or by detents, or pushed (-1 to 1, positive is right and up) | `servo`, `stepper`, `gearedStepper`, `dcMotor`, `rotaryDialer`, `rotaryEncoder`, `joystick` |
+| `energised`, `running` | A relay coil is energised, or a pump is running | `relay`, `waterPump` |
+| `reading`, `unit`, `activity`, `samples`, `state`, `amps`, `fps`, `watts`, `peakAmps`, `limitAmps` | Instrument readouts and capture indicators | `multimeter`, `logicAnalyzer`, `neopixelMeter` |
+| `occupied` | Breadboard holes currently wired, as `{ x, y }` centres | `breadboard` |
+| `live` | Current along the legs (`flow`: `true`, or `'reverse'` for the other way), heat, and a probe on a pin | `resistor`, `led`, `lightBulb`, `buzzer`, `transistor` |
 
 ## Colours and themes
 
@@ -92,7 +94,7 @@ img.src = toDataUrl(drawPart('led-5-mm', { on: true }));
 
 ## Loading less
 
-The package is marked free of side effects, so a bundler keeps only what you import. One generator, such as `led`, is about 12 KB minified. `drawPart` can draw any part, so it brings in all of them (about 267 KB). `loadPart(id)` loads only that part's family, the first time it is drawn:
+The package marks its generator and helper modules free of side effects (only the CSS files, `bundle.js` and `/element` have side effects), so a bundler keeps only what you import. One generator, such as `led`, is about 12 KB minified. `drawPart` can draw any part, so it brings in all of them (about 261 KB). `loadPart(id)` loads only that part's family, the first time it is drawn:
 
 ```js
 import { loadPart } from '@deepcircuits/parts-kit/catalog';
@@ -109,7 +111,7 @@ host.innerHTML = drawServo({ angle: 45 }).svg;
 | --- | --- |
 | `@deepcircuits/parts-kit` | Every generator, `drawPart`, the catalog, the helpers and the colour settings. |
 | `@deepcircuits/parts-kit/boards`, `/displays`, `/sensors`, `/inputs`, `/outputs`, `/modules`, `/chips`, `/passives`, `/breadboards`, `/symbols` | One family's generators. |
-| `@deepcircuits/parts-kit/catalog` | `CATALOG`, `FAMILIES`, `FAMILY_TITLES`, `findPart`, `searchParts`, `checkOptions`, `optionApplies`, `exampleValue` and `loadPart`, without drawing code. |
+| `@deepcircuits/parts-kit/catalog` | `CATALOG`, `FAMILIES`, `FAMILY_TITLES`, `findPart`, `searchParts`, `checkOptions`, `optionApplies`, `exampleValue`, `callOf` and `loadPart`, without drawing code. |
 | `@deepcircuits/parts-kit/templates` | The templates the parts are built from, for parts of your own. |
 | `@deepcircuits/parts-kit/primitives` | The drawing building blocks (pins, headers, boards, lenses, the live layer) for making a part. |
 | `@deepcircuits/parts-kit/dom` | `patchSvg`, `syncSvg` and `findHook`, for updating a drawn part on a page (with optional `{ hookAttribute }` when a host copies hooks to another attribute). |
