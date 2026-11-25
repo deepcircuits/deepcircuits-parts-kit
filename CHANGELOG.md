@@ -2,7 +2,7 @@
 
 Every change that a user of the package would notice is recorded here, newest first.
 
-## Unreleased
+## 0.1.0 — 2026-11-25
 
 The first public release.
 
