@@ -4,4 +4,4 @@ The Nano RP2040 Connect on its navy `pcb-blue` board at its true size, as on Ard
 
 - The u-blox NINA-W102 module (10 × 14 mm) sits between the first five pins of each row with its antenna at the board's end, as on the real board. Those five names stand on end between the pad and the module, where the kit's smallest print still fits; `RESET` prints as `RST`.
 - Below the module: the crystal, the RP2040 with the IMU beside it, the flash and the crypto chip, a regulator, the microphone, the reset button, the RGB LED, and the orange D13 LED and green power LED either side of the USB.
-- Hooks: `#power-led` (`data-lit-state="power"`), `#user-led` (the D13 LED, `indicators.user`), `#rgb-led` (`indicators.rgb`), `#reset-button`. `moduleLabel` prints on the can; `label` names the drawing only, since the real board prints no name on top.
+- Hooks: `data-hook="power-led"` (`data-lit-state="power"`), `data-hook="user-led"` (the D13 LED, `indicators.user`), `data-hook="rgb-led"` (`indicators.rgb`), `data-hook="reset-button"`. `moduleLabel` prints on the can; `label` names the drawing only, since the real board prints no name on top.

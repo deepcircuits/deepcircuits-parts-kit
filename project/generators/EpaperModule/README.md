@@ -5,4 +5,4 @@ The 2.9 inch e-paper module from Waveshare's size drawing: a `pcb-blue` board 89
 - The paper is `data-hook="paper"`; the active area is `data-hook="display"` with `data-width="296"` and `data-height="128"`.
 - The real module's eight-pin connector is on its back at the right end, with `BUSY` at the top and `VCC` at the bottom. The kit draws those pins on the strip at that end in the same order, one pitch apart so they sit on the grid; `pins` names them top to bottom.
 
-- `pixels: { width, height, data }` draws a frame over the window, data row by row from the top left: a falsy entry is dark, `true` or `1` lit. The panel draws every lit pixel in its own ink. Each colour's runs are one path in `#picture`. `caption` still prints a line of text over it.
+- `pixels: { width, height, data }` draws a frame over the window, data row by row from the top left: a falsy entry is dark, `true` or `1` lit. The panel draws every lit pixel in its own ink. Each colour's runs are one path in `data-hook="picture"`. `caption` still prints a line of text over it.

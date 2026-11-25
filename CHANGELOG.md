@@ -2,6 +2,11 @@
 
 Every change that a user of the package would notice is recorded here, newest first.
 
+## 0.1.1 — 2026-11-25
+
+- Updated `README.md` and the gallery install snippets to `npm install @deepcircuits/parts-kit` and normalized `bin.parts-kit-tokens` in `package.json`.
+- Updated generator cards, the brand book and `project/tokens.json` to document `data-hook="..."` hooks consistently and use host-agnostic wording throughout.
+
 ## 0.1.0 — 2026-11-25
 
 The first public release.

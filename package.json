@@ -1,6 +1,6 @@
 {
   "name": "@deepcircuits/parts-kit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Original electronic part artwork as SVG generators: every part at real-world scale, aligned to a 0.1-inch (2.54 mm) breadboard grid, with pins, materials and state hooks.",
   "keywords": [
     "electronics",

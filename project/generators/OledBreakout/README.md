@@ -5,4 +5,4 @@ The 0.96 inch SSD1306 module from its photographs: a `pcb-blue` board 27 mm squa
 - The window is `data-hook="display"` with `data-width="128"` and `data-height="64"`; the controller paints it.
 - The eight-pin board is a millimetre taller (28 mm) so the longer names stand on end between the pins and the glass; the four-pin board is the real 27 mm with its names printed flat.
 
-- `pixels: { width, height, data }` draws a frame over the window, data row by row from the top left: a falsy entry is dark, `true` or `1` lit. The panel draws every lit pixel in its own ink. Each colour's runs are one path in `#picture`. `caption` still prints a line of text over it.
+- `pixels: { width, height, data }` draws a frame over the window, data row by row from the top left: a falsy entry is dark, `true` or `1` lit. The panel draws every lit pixel in its own ink. Each colour's runs are one path in `data-hook="picture"`. `caption` still prints a line of text over it.

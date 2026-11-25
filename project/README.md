@@ -43,42 +43,42 @@ Use the token for the material, never a colour of your own. Each body has one pa
 
 - Everything printed on a part is `mono` (`ui-monospace`): `part-number` on a chip, `silk-title` on a board, `module-print` for secondary silk, `pin-label` beside pads and for pin numbers, `readout-digits` on an instrument. `pin-name`, outside a chip's leads, is `currentColor`.
 - Sizes are artwork pixels at 1:1; the canvas usually shows parts at 2× to 4×. Nothing printed on a part is smaller than `pin-label` (4px): at the kit's scale (0.1 in = 9.6px) that is 3pt, the floor SparkFun's guide to Fritzing's graphic standards sets. Fritzing's standard size, 5pt, is 6.7px; `part-number` (6.4px) sits just under it and `readout-digits` (7.5px) above.
-- Text beside a part (the `value-caption`, the `pin-tooltip`) is the editor's, in `sans`, theme-aware: the artwork never draws a value.
+- Text beside a part (the `value-caption`, the `pin-tooltip`) belongs to the host, in `sans`, theme-aware: the artwork never draws a value.
 
 ## Pins and labels
 
 - A **pad** is a `pad` circle of `pad-radius` with a `hole` of `hole-radius` ringed in `metal-edge` (the plating; the hole itself shows the canvas, white in the light theme). A **socket** (a board people plug wires into) is a `pitch`-square `plastic-black` housing with a `cavity` square. Drilled holes are `hole`; dark openings that go nowhere (sockets, microphone ports, a jack bore, vents, a relay's pin holes) are `cavity`. An **SMD pad** is a 6.4 × 4.8 `pad` rectangle. A **leg** has no paint of its own: the lead line ends at the pin.
 - Label a header pad in `pin-label` on the board's silk, `label-rise` above or `label-drop` below its centre; on a vertical row put labels inside the board.
-- Pin names come from the data sheet, in the order printed on the real part. The editor identifies pins by index (`pin-N`), never by name, so the order in `pins` is the contract.
-- The editor draws the pin handle, the hover ring (`mark-select`), the wired state (`mark-pin-connected` in `mark-pin-connected-ring`) and the tooltip over the pad. The artwork draws none of them.
+- Pin names come from the data sheet, in the order printed on the real part. A host may identify pins by index (`pin-N`) rather than by name, so the order in `pins` is the contract.
+- The host draws the pin handle, the hover ring (`mark-select`), the wired state (`mark-pin-connected` in `mark-pin-connected-ring`) and the tooltip over the pad. The artwork draws none of them.
 
 ## States and hooks
 
 - **Moving parts declare their pivot and travel**, because the sanitizer strips `transform-origin`: every rotating group (`knob`, `horn`, `rotor`, `dial`) carries `data-cx` and `data-cy` for `rotate(deg cx cy)` and `data-angle`; every sliding group (`lever`, `lever-N`, `stick`, `cap`) carries `data-axis` (`x`, `y` or `xy`) and `data-travel` in px.
 
-State is shown with the same palette at a different opacity or position, never with a second palette. The editor animates artwork through stable hooks:
+State is shown with the same palette at a different opacity or position, never with a second palette. A host animates artwork through stable hooks:
 
 - Give the element that changes a `data-hook` attribute: `lens` and `glow` on an LED (`fill-opacity`), `cap` on a button (`r`, `data-pressed`), `knob` on a pot (`transform`), `lever` on a switch (`x`), `glass` on an LCD, `heat` and `flow-*` on a resistor, `reset-button` on a board. Hooks are `data-hook` attributes rather than `id`s so two parts on one page never clash; `findHook(host, name)` from `@deepcircuits/parts-kit/dom` selects them (`[data-hook="<name>"]`). A state painter sets only `fill`, `stroke`, opacity, `transform` and geometry attributes.
 - Onboard LEDs use `data-hook` and `data-*` attributes: `data-hook="user-led"` for the board's own LED (lit from the solved current), `data-hook="rgb-led"` for an addressable one (filled from its pixel colour), and `data-lit-state="<state>"` with `data-on-fill` and `data-off-fill` for an indicator the part's active state lights (`power`, `tx`, `rx`). `PartsKit.indicator` writes all of them.
 - A display window is `data-hook="display"` (and `data-hook="glass"` behind it): the run lays a `<canvas>` over that rectangle, one artwork pixel per panel pixel.
-- A logic output lead carries `data-level-pin="<pin index>"`: the editor strokes it `level-high` or `level-low` from the solved voltage.
+- A logic output lead carries `data-level-pin="<pin index>"`: the host strokes it `level-high` or `level-low` from the solved voltage.
 - A lit lens is opaque with its halo at `opacity-glow` × brightness. Unlit, a top-view lens (an indicator, a dome) is its colour at `opacity-lens-off` over `plastic-grey`; a standing LED's epoxy is its colour at 60% over `plastic-white`, so the lead frame shows through. A graded segment or bar never drops below `opacity-segment-dim`.
 
 ## The live layer
 
 The kit's answer to "why does this look different": the circuit is visible in the parts. `signal` (the brand's yellow) means "happening now" and nothing else; the materials stay quiet, so anything yellow on the bench is the thing the person should look at.
 
-- **Flow.** A two-leg part draws `signal` dashes over each leg (`data-live="flow"`, hooks `flow-1`, `flow-2`, `flow-a`, `flow-c`), at `opacity-flow` while the run has current through it and 0 otherwise. The dashes are drawn running from pin 1 to pin 2 (anode to cathode on an LED); the editor animates `[data-live="flow"]` with one keyframe on `stroke-dashoffset` (0.7 s, linear, the same cadence as its wires), plays it in reverse when the current runs the other way, and stops it under `prefers-reduced-motion`. Pass `live: { flow: true }` to a generator to draw it on.
+- **Flow.** A two-leg part draws `signal` dashes over each leg (`data-live="flow"`, hooks `flow-1`, `flow-2`, `flow-a`, `flow-c`), at `opacity-flow` while the run has current through it and 0 otherwise. The dashes are drawn running from pin 1 to pin 2 (anode to cathode on an LED); a host animates `[data-live="flow"]` with one keyframe on `stroke-dashoffset` (0.7 s, linear, the same cadence as its wires), plays it in reverse when the current runs the other way, and stops it under `prefers-reduced-motion`. Pass `live: { flow: true }` to a generator to draw it on.
 - **Heat.** A resistor carries a `band-red` overlay (`data-hook="heat"`, `data-live="heat"`) at `opacity-heat` × how close it is to its rating. It warms before it fails, which is the thing a real one does that a drawing never shows.
-- **Probe.** The hovered or measured pin gets the probe: a `signal` ring with a `signal-ink` tip (`PartsKit.probe`, `data-live="probe"`) and the `pin-tooltip` beside it. The editor draws it; a generator draws it in a preview with `live: { probe: 'A' }`.
+- **Probe.** The hovered or measured pin gets the probe: a `signal` ring with a `signal-ink` tip (`PartsKit.probe`, `data-live="probe"`) and the `pin-tooltip` beside it. The host draws it; a generator draws it in a preview with `live: { probe: 'A' }`.
 - **Nothing else is yellow.** A lit LED is its lens colour, a HIGH lead is `level-high`, a selection is `mark-select`, a wired pin is `mark-pin-connected`. Keep `signal` for current, probes and the mark on the silk, so it never stops meaning "live".
 
 ## Theme, forced colours and contrast
 
 - `mark-select` is indigo (`#6366f1`, `#818cf8` on the dark canvas), a step away from `level-low` blue, so a selected part and a LOW lead never read as the same thing; `canvas-ink-muted` is `#475569` on the light canvas (7.5:1).
 - Material tokens are identical in both themes by design. Only `canvas`, `canvas-ink`, `canvas-ink-muted`, `canvas-grid` and `hole` (a drilled hole shows the canvas) change; use `currentColor` wherever a part touches the canvas and it follows.
-- In forced-colours mode the editor puts artwork on a white backplate with black `currentColor`; keep that in mind when a part relies on `currentColor` against a dark body (don't).
-- Print meets 4.5:1 on its body: `silk` on every dark finish, `silk-dark` on `pcb-white`, `chip-print` on `chip`, `lcd-ink` on `lcd-green`, `lcd-ink-light` on `lcd-blue`, `readout-text` on `readout`, `bread-print` on `bread-body` (measured by `contrast.mjs`). Marks that carry meaning meet 3:1: `cavity` on `pad`, `bread-hole` on `bread-body`; a drilled `hole` reads by its `metal-edge` plating ring, not by contrast with the pad, since it shows the canvas. `level-high` beside `level-low` are the editor's own values and measure 1.07:1, hue alone; the editor also writes `data-level="high|low"` on the lead and the pin tooltip carries the voltage, so colour is not the only carrier. `pad` on `pcb-white` is 1.9:1 and relies on its plated hole centre, as the real board does. Every pair here is measured by `contrast.mjs` (WCAG 2 relative luminance).
+- In forced-colours mode a host may put artwork on a white backplate with black `currentColor`; keep that in mind when a part relies on `currentColor` against a dark body (don't).
+- Print meets 4.5:1 on its body: `silk` on every dark finish, `silk-dark` on `pcb-white`, `chip-print` on `chip`, `lcd-ink` on `lcd-green`, `lcd-ink-light` on `lcd-blue`, `readout-text` on `readout`, `bread-print` on `bread-body` (measured by `contrast.mjs`). Marks that carry meaning meet 3:1: `cavity` on `pad`, `bread-hole` on `bread-body`; a drilled `hole` reads by its `metal-edge` plating ring, not by contrast with the pad, since it shows the canvas. `level-high` beside `level-low` measure 1.07:1, hue alone; a host should also write `data-level="high|low"` on the lead and carry the voltage in the pin tooltip, so colour is not the only carrier. `pad` on `pcb-white` is 1.9:1 and relies on its plated hole centre, as the real board does. Every pair here is measured by `contrast.mjs` (WCAG 2 relative luminance).
 
 ## Measured from the real part
 
@@ -115,7 +115,7 @@ One pitch is 2.54 mm, so a millimetre is 3.78 px (`pitch / 2.54`). Each template
 | MAX7219 matrix, single | 32 mm face on a green board about 32 × 48 mm with the DIP-24 above it, the 5-pin header out of the top edge and the output pins out of the bottom | Max7219Matrix `chain: 1`: 13 × 22 pitches, the face and the DIP at size, both headers on the grid |
 | MAX7219 matrix chain (FC-16) | 128 × 32 mm blue board under four 32 mm square faces, 3.8 mm LED pitch, 5-pin right-angle headers on the back at both ends with their pins past the ends and the names printed on the back | Max7219Matrix: the board and faces at size, the pins 2.04 mm past each end so the two headers are 52 pitches apart |
 | 0.96 inch OLED module | 27 mm square board, 26.7 × 19.3 mm panel, 21.7 × 10.9 mm active area, 4 or 8 pins along the top, flex under the bottom edge | OledBreakout: 10.6 pitches square (11 tall with the eight-pin names), panel and window at size |
-| 1.5 inch SH1107 OLED | 34.3 × 45.5 mm board (the MC01506), holes 2.5 mm in from each corner, the panel across its width, 26.9 mm square active area, 4 pins centred along the top: GND, VCC, SCL, SDA from the front | OledSquare: all at those sizes and places, window at size (128 px scaled by the editor) |
+| 1.5 inch SH1107 OLED | 34.3 × 45.5 mm board (the MC01506), holes 2.5 mm in from each corner, the panel across its width, 26.9 mm square active area, 4 pins centred along the top: GND, VCC, SCL, SDA from the front | OledSquare: all at those sizes and places, window at size (128 px scaled by the host) |
 | 2.4 inch TFT module | 42.72 × 77.18 mm red board, 42.72 × 60.26 mm glass from 6.51 mm down, 36.72 × 48.96 mm active area 3 mm in and 9.26 mm down, holes 3 mm in from the sides, 3 mm from the top and 6.92 mm from the bottom, J2 fourteen places along the bottom 2 mm up from 4.85 mm in, J4 four pads along the top (the module's size drawing) | TftModule: all at those sizes and places, the catalog's pins in J2's first places |
 | 2.8 inch capacitive-touch TFT module | 50 × 86 mm red board (MSP2834), 50 × 69.2 mm glass from 6.4 mm down, 43.2 × 57.6 mm active area 3.4 mm in and 9.3 mm down, holes 44 × 76.08 mm apart from 3 mm in, 14-pin J2 2 mm from the bottom from 8.49 mm in: CTP_SCL tenth, CTP_SDA twelfth (its size drawing) | TftModule `touch: true`: all at those sizes and places |
 | NeoPixel 8 × 8 | 71 mm square, 8.9 mm pitch, a capacitor per pixel, pads in the first and last row gaps, six holes | NeopixelMatrix: 28 pitches square, pads 27 pitches apart |
@@ -153,7 +153,7 @@ A part is production ready when six checks pass, not when it looks right at one 
 3. **Print reads.** Every text-on-ground pair in *Theme, forced colours and contrast* meets its floor by `checks/contrast.mjs`.
 4. **It carries its inventory.** The parts the real one has, as *Measured from the real part* lists them, are present and tagged (`data-part`): a board has its traces, vias, mark, mount holes and labelled pins; a chip its lot code, notch and pin numbers; an LED its lens, glow and lead frame.
 5. **It meets the published standards.** `checks/standards.mjs` passes: pins on the 0.1-inch grid, legs 0.03 inch, no print under 3pt or under KLC's 1.00 mm, no stroke under KLC's 0.10 mm, every stroke with a width, flat colour but the sheens (*Measured against the published standard*). The scripts behind every check here sit at the kit's root; its README says how to run them.
-6. **It renders where it is used.** Every card draws in a browser with no console error, wherever the bundle is loaded; the live layer's `pk-flow` animation moves and stops under `prefers-reduced-motion`, and every card still reads under forced colours. `checks/overlaps.mjs` runs every card's script and checks what it draws. The editor shows a part through the same sanitizer as check 2.
+6. **It renders where it is used.** Every card draws in a browser with no console error, wherever the bundle is loaded; the live layer's `pk-flow` animation moves and stops under `prefers-reduced-motion`, and every card still reads under forced colours. `checks/overlaps.mjs` runs every card's script and checks what it draws. A host rendering untrusted SVG passes a part through the same sanitizer as check 2.
 
 ## Families and templates
 
@@ -169,7 +169,7 @@ Build a new part from the nearest template rather than from a blank box:
 interface Artwork { width: number; height: number; svg: string; pins: { name: string; x: number; y: number }[] }
 ```
 
-The editor places a pin's handle at its `(x, y)` and knows each pin by its place in `pins`, so the order is the contract. Keep the generator free of DOM and host code so it runs in Node, and say on its card when an attribute changes the pins (a digit count, a chain length), since a host must then rebuild the handles.
+A host places a pin's handle at its `(x, y)` and may identify each pin by its place in `pins`, so the order is the contract. Keep the generator free of DOM and host code so it runs in Node, and say on its card when an attribute changes the pins (a digit count, a chain length), since a host must then rebuild the handles.
 
 ## Checklist for a new part
 

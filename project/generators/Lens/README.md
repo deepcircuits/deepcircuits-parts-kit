@@ -4,5 +4,5 @@ An LED lens seen from above, used for indicators on boards, the dome on a module
 
 - Unlit, the lens is its colour at `opacity-lens-off` over `plastic-grey`, so every colour reads as a dark version of itself.
 - Lit, it is opaque and a halo of the same colour sits behind it at `opacity-glow` × brightness. A dimmed LED fades the halo first, then the lens.
-- The lens carries `data-hook="lens"` and the halo `data-hook="glow"` (or `<id>-glow`), so the editor can animate `fill-opacity` by state.
+- The lens carries `data-hook="lens"` and the halo `data-hook="glow"` (or `<hook>-glow`), so a host can animate `fill-opacity` by state.
 - Keep the highlight: one small white ellipse at 30% unlit, 55% lit. No gradients.
