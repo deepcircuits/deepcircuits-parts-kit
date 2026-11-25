@@ -9,11 +9,19 @@
  * which the control's `held` turns into options), emit, show (options drawn for a moment, not set) and hook. The knob,
  * detent and dial geometry they work by is public, in controls.js.
  */
-import { detentsTurned, dialDigitAt, dialGeometry, dialTravel, knobPosition } from './controls.js';
-import { PITCH, r2 } from './core.js';
+import {
+  JOYSTICK_FULL_DRAG,
+  detentsTurned,
+  dialDigitAt,
+  dialGeometry,
+  dialTravel,
+  knobPosition,
+  remoteKeyForKeyboard,
+  slidePosition,
+  sliderKeyStep,
+} from './controls.js';
+import { r2 } from './core.js';
 
-/** The drag, in drawing pixels, that pushes the joystick to the end of its travel: 9 mm. */
-const JOYSTICK_FULL_DRAG = (9 * PITCH) / 2.54;
 /** The dialer's wheel as a finger winds it, and as its spring runs it back: ten pulses a second, a digit's 28° each. */
 const WIND_DEGREES_PER_SECOND = 720;
 const RUN_DEGREES_PER_SECOND = 280;
@@ -36,21 +44,10 @@ const sliderAria = (position, orientation) => ({
   ariaOrientation: orientation,
 });
 
-/** Arrow keys step a 0-to-1 position by 1%, Page Up and Page Down by 10%, Home and End go to the ends. */
-const SLIDER_KEYS = {
-  ArrowRight: position => position + 0.01,
-  ArrowUp: position => position + 0.01,
-  ArrowLeft: position => position - 0.01,
-  ArrowDown: position => position - 0.01,
-  PageUp: position => position + 0.1,
-  PageDown: position => position - 0.1,
-  Home: () => 0,
-  End: () => 1,
-};
 function sliderKey(c, event) {
-  const step = SLIDER_KEYS[event.key];
-  if (!step) return false;
-  c.step({ position: r2(clamp(step(Number(c.state().position) || 0), 0, 1)) });
+  const next = sliderKeyStep(event.key, Number(c.state().position) || 0);
+  if (next === undefined) return false;
+  c.step({ position: next });
   return true;
 }
 
@@ -68,19 +65,6 @@ const keysOf = c =>
     hook: element.getAttribute('data-hook'),
     legend: element.querySelector('text')?.textContent ?? '',
   }));
-
-/** The IR remote's keys on a keyboard: the digits, the arrows, Space or Enter to play, + and - for the volume. */
-const REMOTE_KEYS = {
-  ArrowUp: 'up',
-  ArrowDown: 'down',
-  ArrowLeft: 'prev',
-  ArrowRight: 'next',
-  ' ': 'play',
-  Enter: 'play',
-  '+': 'vol-up',
-  '=': 'vol-up',
-  '-': 'vol-down',
-};
 
 /** Winds the dialer's wheel round to the stop from a digit's hole and lets it run back, then reports the digit. */
 function dial(c, digit) {
@@ -189,8 +173,8 @@ export const CONTROLS = {
     aria: state => sliderAria(Number(state.position), 'horizontal'),
     down: (c, event, point, drag) => ((drag.position = Number(c.state().position) || 0), true),
     move: (c, event, point, drag) => {
-      const travel = data(c.hook('lever'), 'data-travel');
-      if (travel > 0) c.set({ position: r2(clamp(drag.position + (point.x - drag.x) / travel, 0, 1)) });
+      const next = slidePosition(drag.position, point.x - drag.x, data(c.hook('lever'), 'data-travel'));
+      if (next !== undefined) c.set({ position: next });
     },
     key: sliderKey,
   },
@@ -292,7 +276,7 @@ export const CONTROLS = {
       return !!key && (c.hold(`pointer:${event.pointerId}`, { key: key.getAttribute('data-hook').slice(4) }), true);
     },
     key: (c, event, source) => {
-      const name = /^[0-9]$/.test(event.key) ? event.key : REMOTE_KEYS[event.key];
+      const name = remoteKeyForKeyboard(event.key);
       if (!name || !c.hook(`key-${name}`)) return false;
       c.hold(source, { key: name });
       return true;

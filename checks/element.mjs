@@ -9,7 +9,24 @@
 //   within the dial's range (src/controls.js).
 import { isDeepStrictEqual } from 'node:util';
 import { CATALOG, checkOptions, exampleValue } from '../src/catalog.js';
-import { angleBetween, detentsTurned, dialDigitAt, dialGeometry, dialTravel, knobPosition } from '../src/controls.js';
+import {
+  JOYSTICK_FULL_DRAG,
+  KEYPAD_KEYS,
+  angleBetween,
+  detentsTurned,
+  dialDigitAt,
+  dialGeometry,
+  dialTravel,
+  dipLeverIndex,
+  joystickGeometry,
+  joystickPosition,
+  keypadHookOf,
+  keypadKeyOf,
+  knobPosition,
+  remoteKeyForKeyboard,
+  slidePosition,
+  sliderKeyStep,
+} from '../src/controls.js';
 import { CONTROLS } from '../src/elementControls.js';
 import { drawPart } from '../src/draw.js';
 import { optionsFromAttributes } from '../src/element.js';
@@ -149,6 +166,37 @@ else {
       fail('rotary-dialer', `the ${digit} hole reads as ${dialDigitAt(geometry, x, y)}`);
   });
 }
+
+// Slide pot, slider keys, joystick, keypad, DIP switch and IR remote helpers from controls.js.
+if (slidePosition(0.25, 10, 40) !== 0.5 || slidePosition(0.9, 20, 40) !== 1 || slidePosition(0.5, 10, 0) !== undefined)
+  fail('slide-potentiometer', 'slidePosition failed');
+if (
+  sliderKeyStep('ArrowRight', 0.5) !== 0.51 ||
+  sliderKeyStep('PageDown', 0.05) !== 0 ||
+  sliderKeyStep('End', 0.2) !== 1 ||
+  sliderKeyStep('Enter', 0.5) !== undefined
+)
+  fail('potentiometer', 'sliderKeyStep failed');
+if (!isDeepStrictEqual(joystickPosition(JOYSTICK_FULL_DRAG / 2, -JOYSTICK_FULL_DRAG), { x: 0.5, y: 1 }))
+  fail('joystick', 'joystickPosition failed');
+const stickTag = /<g [^>]*data-hook="stick"[^>]*>/.exec(drawPart('joystick', { x: 0.5, y: -0.5 }).svg)?.[0] ?? '';
+const stickGeom = joystickGeometry({ getAttribute: name => new RegExp(` ${name}="([^"]*)"`).exec(stickTag)?.[1] ?? null });
+if (!stickGeom || stickGeom.x !== 0.5 || stickGeom.y !== -0.5 || !(stickGeom.travel > 0))
+  fail('joystick', `joystickGeometry invalid: ${JSON.stringify(stickGeom)}`);
+const allKeypad = [1, 2, 3, 4].flatMap(r => [1, 2, 3, 4].map(c => keypadKeyOf(`key-${r}-${c}`)));
+if (!isDeepStrictEqual(allKeypad, [...KEYPAD_KEYS]) || keypadKeyOf('key-5-1') !== undefined)
+  fail('keypad-4x4', 'keypadKeyOf failed');
+if (keypadHookOf('*') !== 'key-4-1' || keypadHookOf('D') !== 'key-4-4' || keypadHookOf('Z') !== undefined)
+  fail('keypad-4x4', 'keypadHookOf failed');
+if (dipLeverIndex('lever-1') !== 0 || dipLeverIndex('lever-8') !== 7 || dipLeverIndex('lever-0') !== undefined)
+  fail('dip-switch-8-way', 'dipLeverIndex failed');
+if (
+  remoteKeyForKeyboard('5') !== '5' ||
+  remoteKeyForKeyboard('Enter') !== 'play' ||
+  remoteKeyForKeyboard('+') !== 'vol-up' ||
+  remoteKeyForKeyboard('Escape') !== undefined
+)
+  fail('ir-remote', 'remoteKeyForKeyboard failed');
 
 if (problems.length) {
   console.log(problems.join('\n'));

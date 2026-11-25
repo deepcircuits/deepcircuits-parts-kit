@@ -350,6 +350,43 @@ export interface PartElement extends HTMLElement {
   ): void;
   removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
 }
+/** A rectangle marked with `data-hook` in a drawing, in artwork pixels (hookRect). */
+export interface HookRect { readonly x: number; readonly y: number; readonly width: number; readonly height: number }
+/** A character LCD's glass box and 5×8 dot-matrix lattice (lcdLattice), `x` and `y` from `glass`'s top-left corner. */
+export interface LcdLattice {
+  readonly glass: HookRect;
+  readonly cols: number;
+  readonly rows: number;
+  readonly x: number;
+  readonly y: number;
+  readonly cellDx: number;
+  readonly cellDy: number;
+  readonly dotDx: number;
+  readonly dotDy: number;
+  readonly dotW: number;
+  readonly dotH: number;
+}
+/** One face of a MAX7219 matrix chain (matrixLayout): its DIN-side face index and its rectangle in artwork pixels. */
+export interface MatrixFace extends HookRect { readonly face: number }
+/** A MAX7219 matrix (or chain) layout for a canvas overlay (matrixLayout): combined box, faces left to right, 64 LED centres per face relative to `box`, and LED radius. */
+export interface MatrixLayout {
+  readonly box: HookRect;
+  readonly faces: readonly MatrixFace[];
+  readonly leds: readonly (readonly KitPoint[])[];
+  readonly ledRadius: number;
+}
+/** Options for `patchSvg`, `syncSvg` and `findHook`: `hookAttribute` overrides `'data-hook'` for hosts that copy hooks to another attribute (e.g. `'data-svg-id'`). */
+export interface DomHookOptions { readonly hookAttribute?: string }
+/** The joystick's geometry from its `stick` hook (joystickGeometry), in drawing pixels. */
+export interface JoystickGeometry {
+  readonly restX: number;
+  readonly restY: number;
+  readonly travel: number;
+  readonly x: number;
+  readonly y: number;
+  readonly cx: number;
+  readonly cy: number;
+}
 /** The rotary dialer's wheel as its `dial` hook carries it (dialGeometry), in drawing pixels and in degrees from +x towards +y, clockwise on screen. */
 export interface DialGeometry {
   /** The wheel's centre. */
@@ -398,12 +435,18 @@ export interface PartsKit {
   scopeIds(artwork: Artwork, prefix: string): Artwork;
   /** The drawing as a data: URL for an <img>, a canvas or a CSS background; `ink` colours what stands on the canvas (a chip's pin names). */
   toDataUrl(artwork: Artwork, options?: { ink?: string }): string;
+  /** The rectangle a drawing marks with `data-hook="<hook>"` (`display`, `glass`, `field`, `face-0`), in artwork pixels, or undefined. */
+  hookRect(artwork: Artwork | string, hook: string): HookRect | undefined;
+  /** A character LCD's glass rectangle and 5×8 dot-matrix lattice for a `<canvas>` overlay, or undefined for other parts. */
+  lcdLattice(artwork: Artwork | string): LcdLattice | undefined;
+  /** A MAX7219 matrix (or chain) layout for a `<canvas>` overlay, or undefined for other parts. */
+  matrixLayout(artwork: Artwork | string): MatrixLayout | undefined;
   /** Shows a drawing in `host`, changing only what differs from the one there, so focus, pointer capture and the host's own attributes survive a redraw. */
-  patchSvg(host: Element, drawing: Artwork | string): void;
-  /** Brings one drawn SVG node to another, child by child, keeping every element with a data-hook that is still drawn. */
-  syncSvg(current: Node, next: Node): void;
-  /** A drawn element by its data-hook (lens, knob, lever-3) inside `host`, or null. */
-  findHook(host: ParentNode, hook: string): Element | null;
+  patchSvg(host: Element, drawing: Artwork | string, options?: DomHookOptions): void;
+  /** Brings one drawn SVG node to another, child by child, keeping every element with a hook attribute that is still drawn. */
+  syncSvg(current: Node, next: Node, options?: DomHookOptions): void;
+  /** A drawn element by its hook (`lens`, `knob`, `lever-3`) inside `host`, or null. */
+  findHook(host: ParentNode, hook: string, options?: DomHookOptions): Element | null;
   /** Defines the part element as `name` (parts-kit-part, which importing @deepcircuits/parts-kit/element in a page defines) and returns its class. Needs a page. */
   definePartElement(name?: string): { new (): PartElement; prototype: PartElement };
   /** The options that attributes give part `id`, as <parts-kit-part> reads them: lowercase or kebab-case names, an object's fields after it (live-flow), on="" as true, lists and objects as JSON. */
@@ -411,12 +454,32 @@ export interface PartsKit {
     id: string,
     attributes: Iterable<{ readonly name: string; readonly value: string } | readonly [string, string]> | Readonly<Record<string, string>>,
   ): Record<string, unknown>;
+  /** The drag in drawing pixels that pushes the joystick to the end of its travel (9 mm). */
+  readonly JOYSTICK_FULL_DRAG: number;
+  /** The 16 keys of the default 4×4 membrane keypad, row by row from top left. */
+  readonly KEYPAD_KEYS: readonly string[];
   /** The degrees from a to b, the short way round: -180 to 180. */
   angleBetween(a: number, b: number): number;
   /** The position, 0 to 1, a point at (dx, dy) drawing pixels from a potentiometer's knob centre (the `knob` hook's data-cx and data-cy) turns it to: clockwise from -135° to 135° of straight up. Below the knob, a knob near an end keeps that end. */
   knobPosition(dx: number, dy: number, previous: number): number;
+  /** The position, 0 to 1, of a slide potentiometer dragged by `delta` drawing pixels from `startPosition` over `travel`, or undefined when `travel` is not positive. */
+  slidePosition(startPosition: number, delta: number, travel: number): number | undefined;
+  /** The next 0-to-1 position for a keyboard `key` on a potentiometer (arrows ±1%, Page Up/Down ±10%, Home/End), or undefined. */
+  sliderKeyStep(key: string, position: number): number | undefined;
   /** The rotary encoder detents a drag round its knob has passed since angle `from` (positive clockwise, twenty to a turn), and the angle the next count starts from. */
   detentsTurned(from: number, to: number): { readonly detents: number; readonly from: number };
+  /** The joystick's (x, y) in -1 to 1 (positive is right and up) for a pointer drag of (dx, dy) drawing pixels. */
+  joystickPosition(dx: number, dy: number, fullDrag?: number): { readonly x: number; readonly y: number };
+  /** The joystick's geometry from its `stick` hook, or undefined when the element does not carry it. */
+  joystickGeometry(stick: Element | null | undefined): JoystickGeometry | undefined;
+  /** The default 4×4 keypad key for a `key-<row>-<column>` hook, or undefined. */
+  keypadKeyOf(hook: string | null | undefined): string | undefined;
+  /** The `key-<row>-<column>` hook for a default 4×4 keypad key, or undefined. */
+  keypadHookOf(key: string | null | undefined): string | undefined;
+  /** The 0-based lever index of a DIP switch hook (`lever-1` -> 0), or undefined. */
+  dipLeverIndex(hook: string | null | undefined): number | undefined;
+  /** The 21-key IR remote's key name (`0`..`9`, `up`, `down`, `prev`, `next`, `play`, `vol-up`, `vol-down`) for a keyboard key, or undefined. */
+  remoteKeyForKeyboard(key: string): string | undefined;
   /** The rotary dialer's geometry from its `dial` hook, or undefined when the element does not carry it. */
   dialGeometry(dial: Element | null | undefined): DialGeometry | undefined;
   /** The digit whose finger hole holds drawing point (x, y), allowing `reach` pixels past its edge, or undefined. */
@@ -430,6 +493,9 @@ export interface PartsKit {
   /** 'values' (default): tokens.json's light values, the same on any page. 'vars': every colour as var(--<prefix><token>, value), so artwork follows the page's theme. 'live': the page's --<prefix><token> values, read at most every 50 ms, else tokens.json's. */
   setTokenMode(mode: TokenMode, options?: { prefix?: string }): void;
   tokenMode(): { mode: TokenMode; prefix: string };
+  /** Runs `fn` with the token mode temporarily set to `mode` (and optional `{ prefix }`), then restores the previous mode and prefix. */
+  withTokenMode<T>(mode: TokenMode, fn: () => T): T;
+  withTokenMode<T>(mode: TokenMode, options: { prefix?: string } | undefined, fn: () => T): T;
   pinsOnPitch(pins: readonly ArtworkPin[], tolerance?: number): boolean;
   formatOhms(ohms: number): string;
   resistorBands(ohms: number, tolerance?: 5 | 10): [string, string, string, string];

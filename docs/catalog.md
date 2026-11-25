@@ -12,8 +12,8 @@
 | Inputs (11) | Two pushbuttons, rotary and slide potentiometers, slide switch, rotary encoder, joystick, 4×4 keypad, 8-way DIP switch, IR remote, rotary dialer |
 | Outputs (17) | 5 mm LED, RGB LED, light bulb, LED bar graph, addressable LED and strip, piezo and active buzzers, servo, stepper, biaxial stepper and 28BYJ-48 geared stepper, DPDT relay, DC motor and TT gear motor, water pump, push-pull solenoid |
 | Modules (17) | Relay module, 2-, 4- and 8-channel relay modules, 3.3 V regulator module, breadboard power module, L298N motor driver, ULN2003 stepper driver board, load cell amplifier, microSD card, real-time clock, precision real-time clock, RFID reader, logic analyzer, multimeter, pixel meter, 16-channel analog multiplexer |
-| Chips (7) | NE555, 74HC595, 74HC165, NLSF595, ATtiny85, each in DIP, SOIC or TSSOP; transistors in TO-92 and TO-220 |
-| Passives (3) | Resistor, electrolytic and ceramic capacitors |
+| Chips (8) | NE555, 74HC595, 74HC165, NLSF595, ATtiny85, each in DIP, SOIC or TSSOP; transistors in TO-92 and TO-220; TO-220 voltage regulator |
+| Passives (4) | Resistor, battery holder, electrolytic and ceramic capacitors |
 | Breadboards (3) | Mini, half and full, in nine colours |
 | Symbols (14) | Eight logic gates, multiplexer, two D flip-flops, clock source, function generator, supply |
 

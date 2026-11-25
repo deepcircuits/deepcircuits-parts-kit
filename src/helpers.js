@@ -84,3 +84,106 @@ export function toDataUrl(art, props) {
     : open.replace('<svg', `<svg color="${ink}"`);
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(root + art.svg.slice(open.length))}`;
 }
+
+const svgOf = art => (typeof art === 'string' ? art : art.svg);
+const escapeRegex = text => String(text).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const attrOf = (tag, name) => {
+  const match = new RegExp(`\\s${name}="([^"]*)"`).exec(tag);
+  return match ? match[1] : undefined;
+};
+const numOf = (tag, name) => Number(attrOf(tag, name) ?? NaN);
+
+/**
+ * The rectangle a drawing marks with `data-hook="<hook>"` (a screen's `display`, a character LCD's `glass`, an RFID
+ * module's `field`, a matrix face `face-0`), in artwork pixels, or undefined when absent.
+ */
+export function hookRect(art, hook) {
+  const tag = new RegExp(`<rect\\b[^>]*\\sdata-hook="${escapeRegex(hook)}"[^>]*>`).exec(svgOf(art))?.[0];
+  if (!tag) return undefined;
+  const x = numOf(tag, 'x');
+  const y = numOf(tag, 'y');
+  const width = numOf(tag, 'width');
+  const height = numOf(tag, 'height');
+  return [x, y, width, height].every(Number.isFinite) ? { x, y, width, height } : undefined;
+}
+
+/**
+ * A character LCD's glass box and 5×8 dot-matrix lattice, for laying a `<canvas>` over `glass`. `x` and `y` are the
+ * first cell's top-left dot in artwork pixels from `glass`'s top-left corner. Undefined for other parts.
+ */
+export function lcdLattice(art) {
+  const glass = hookRect(art, 'glass');
+  const tag = /<g\b[^>]*\sdata-hook="matrix"[^>]*>/.exec(svgOf(art))?.[0];
+  if (!glass || !tag) return undefined;
+  const cols = numOf(tag, 'data-cols');
+  const rows = numOf(tag, 'data-rows');
+  const rawX = numOf(tag, 'data-x');
+  const rawY = numOf(tag, 'data-y');
+  const cellDx = numOf(tag, 'data-cell-dx');
+  const cellDy = numOf(tag, 'data-cell-dy');
+  const dotDx = numOf(tag, 'data-dot-dx');
+  const dotDy = numOf(tag, 'data-dot-dy');
+  const dotW = numOf(tag, 'data-dot-w');
+  const dotH = numOf(tag, 'data-dot-h');
+  const values = [cols, rows, rawX, rawY, cellDx, cellDy, dotDx, dotDy, dotW, dotH];
+  if (!values.every(Number.isFinite)) return undefined;
+  return {
+    glass,
+    cols,
+    rows,
+    x: rawX - glass.x,
+    y: rawY - glass.y,
+    cellDx,
+    cellDy,
+    dotDx,
+    dotDy,
+    dotW,
+    dotH,
+  };
+}
+
+/**
+ * A MAX7219 matrix (or chain) layout, for painting lit LEDs on a `<canvas>` over `box`: the combined box over every
+ * face in artwork pixels, each face's rectangle sorted left to right (display order), each face's 64 LED centres
+ * (row by row, left to right) relative to `box`, and the LED radius. Undefined for other parts.
+ */
+export function matrixLayout(art) {
+  const markup = svgOf(art);
+  const faces = [];
+  for (const match of markup.matchAll(/<rect\b[^>]*\sdata-hook="face-(\d+)"[^>]*>/g)) {
+    const face = Number(match[1]);
+    const rect = hookRect(markup, `face-${face}`);
+    if (rect) faces.push({ face, ...rect });
+  }
+  if (!faces.length) return undefined;
+  const x0 = Math.min(...faces.map(f => f.x));
+  const y0 = Math.min(...faces.map(f => f.y));
+  const box = {
+    x: x0,
+    y: y0,
+    width: r2(Math.max(...faces.map(f => f.x + f.width)) - x0),
+    height: r2(Math.max(...faces.map(f => f.y + f.height)) - y0),
+  };
+  const byFace = new Map();
+  let ledRadius = 0;
+  for (const [tag] of markup.matchAll(/<circle\b[^>]*\sdata-led="\d+-\d+-\d+"[^>]*>/g)) {
+    const [face, row, column] = attrOf(tag, 'data-led').split('-').map(Number);
+    const cx = numOf(tag, 'cx');
+    const cy = numOf(tag, 'cy');
+    const r = numOf(tag, 'r');
+    if (![face, row, column, cx, cy, r].every(Number.isFinite)) continue;
+    ledRadius = r;
+    let list = byFace.get(face);
+    if (!list) byFace.set(face, (list = []));
+    list.push({ row, column, x: r2(cx - x0), y: r2(cy - y0) });
+  }
+  const ordered = faces.slice().sort((a, b) => a.x - b.x);
+  if (ordered.some(f => !byFace.has(f.face))) return undefined;
+  const leds = ordered.map(f =>
+    byFace
+      .get(f.face)
+      .sort((a, b) => a.row - b.row || a.column - b.column)
+      .map(({ x, y }) => ({ x, y })),
+  );
+  return { box, faces: ordered, leds, ledRadius };
+}
