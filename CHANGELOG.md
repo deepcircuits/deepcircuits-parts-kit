@@ -2,6 +2,11 @@
 
 Every change that a user of the package would notice is recorded here, newest first.
 
+## 0.1.2 — 2026-11-25
+
+- Exported `@deepcircuits/parts-kit/cards` (`CARDS`, typed with `GeneratorCard` and `CardKit`) so host sites and galleries can load the generator preview cards directly from the npm package.
+- Synced `docs/api.md`, `CONTRIBUTING.md` and `project/README.md` with the current catalog parts, options and checks.
+
 ## 0.1.1 — 2026-11-25
 
 - Updated `README.md` and the gallery install snippets to `npm install @deepcircuits/parts-kit` and normalized `bin.parts-kit-tokens` in `package.json`.

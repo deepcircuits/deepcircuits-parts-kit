@@ -1,6 +1,6 @@
 {
   "name": "@deepcircuits/parts-kit",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Original electronic part artwork as SVG generators: every part at real-world scale, aligned to a 0.1-inch (2.54 mm) breadboard grid, with pins, materials and state hooks.",
   "keywords": [
     "electronics",
@@ -111,6 +111,10 @@
       "types": "./tokens-css.d.mts",
       "default": "./tokens-css.mjs"
     },
+    "./cards": {
+      "types": "./project/generators/cards.d.ts",
+      "default": "./project/generators/cards.js"
+    },
     "./bundle.js": "./project/generators/bundle.js",
     "./bundle.css": "./project/generators/bundle.css",
     "./package.json": "./package.json"
@@ -132,6 +136,8 @@
     "project/tokens.json",
     "project/generators/bundle.js",
     "project/generators/bundle.css",
+    "project/generators/cards.js",
+    "project/generators/cards.d.ts",
     "project/generators/index.d.ts",
     "project/generators/catalog.d.ts"
   ],
