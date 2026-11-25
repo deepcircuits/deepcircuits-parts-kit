@@ -162,7 +162,7 @@ const page = `<!doctype html>
   <div>
     <h1>Electronic parts, drawn by code.</h1>
     <p>Original SVG artwork for boards, chips, sensors, displays and modules. Every part is drawn at real-world scale, aligned to a 0.1-inch (2.54 mm) breadboard grid, returns its pin positions, and shows its state: LEDs light, screens show text, servos turn.</p>
-    <div class="install"><span id="cmd">npm install github:deepcircuits/deepcircuits-parts-kit</span><button class="copy" type="button" data-copy="npm install github:deepcircuits/deepcircuits-parts-kit">Copy</button></div>
+    <div class="install"><span id="cmd">npm install @deepcircuits/parts-kit</span><button class="copy" type="button" data-copy="npm install @deepcircuits/parts-kit">Copy</button></div>
     <div class="links"><a href="${REPO}#readme">Documentation</a><a href="${REPO}/blob/main/project/README.md">Brand book</a><span>MIT licence</span></div>
   </div>
   <div>
