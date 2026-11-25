@@ -76,7 +76,7 @@ const page = `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DeepCircuits Parts Kit</title>
-<meta name="description" content="Original electronic part artwork as SVG generators: boards, chips, sensors, displays and modules at true size on the 0.1-inch grid, with pins and live state.">
+<meta name="description" content="Original electronic part artwork as SVG generators: boards, chips, sensors, displays and modules at real-world scale, aligned to a 0.1-inch (2.54 mm) breadboard grid, with pins and live state.">
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="project/generators/bundle.css">
 <style>
@@ -161,7 +161,7 @@ const page = `<!doctype html>
 <div class="wrap hero">
   <div>
     <h1>Electronic parts, drawn by code.</h1>
-    <p>Original SVG artwork for boards, chips, sensors, displays and modules. Every part is at true size on the 0.1-inch grid, returns its pin positions, and shows its state: LEDs light, screens show text, servos turn.</p>
+    <p>Original SVG artwork for boards, chips, sensors, displays and modules. Every part is drawn at real-world scale, aligned to a 0.1-inch (2.54 mm) breadboard grid, returns its pin positions, and shows its state: LEDs light, screens show text, servos turn.</p>
     <div class="install"><span id="cmd">npm install github:deepcircuits/deepcircuits-parts-kit</span><button class="copy" type="button" data-copy="npm install github:deepcircuits/deepcircuits-parts-kit">Copy</button></div>
     <div class="links"><a href="${REPO}#readme">Documentation</a><a href="${REPO}/blob/main/project/README.md">Brand book</a><span>MIT licence</span></div>
   </div>

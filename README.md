@@ -6,7 +6,7 @@
 
 **Original electronic part artwork, drawn by code.**
 
-Boards, chips, sensors, displays and modules as SVG, each at true size on the 0.1-inch grid, with its pins and its live state.
+Boards, chips, sensors, displays and modules as SVG, drawn at real-world scale and aligned to a 0.1-inch (2.54 mm) breadboard grid, with pins and live state.
 
 [![MIT licence](https://img.shields.io/badge/licence-MIT-0f766e)](LICENSE)
 [![Types included](https://img.shields.io/badge/types-included-3178c6)](src/index.d.ts)
@@ -20,7 +20,7 @@ Boards, chips, sensors, displays and modules as SVG, each at true size on the 0.
 
 The Parts Kit is the artwork of [DeepCircuits](https://deepcircuits.io), the circuit simulator, published on its own so any editor, simulator, tutorial or diagram can use it.
 
-- **True size.** Every pin sits on the 0.1-inch grid, so parts line up on a breadboard and wires snap to their legs.
+- **Real-world scale.** Every part is drawn to physical size and every pin sits on a 0.1-inch (2.54 mm) breadboard grid, so parts line up on a breadboard and wires snap to their legs.
 - **Live state.** LEDs light, screens show text, servos turn and buttons press.
 - **Typed options.** A typo such as `angel` fails in TypeScript and names the right option at run time.
 - **No dependencies.** Plain functions that return SVG strings, anywhere JavaScript runs.
