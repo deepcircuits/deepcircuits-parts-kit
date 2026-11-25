@@ -19,7 +19,7 @@ const pairs = [['silk','pcb-blue',4.5],['silk','pcb-green',4.5],['silk','pcb-tea
   ['chip-print','chip',4.5],['lcd-ink','lcd-green',4.5],['lcd-ink-light','lcd-blue',4.5],['readout-text','readout',4.5],['bread-print','bread-body',4.5],
   ['cavity','pad',3],['bread-hole','bread-body',3],['canvas-ink','canvas',4.5],['canvas-ink-muted','canvas',4.5],['signal-ink','signal',4.5],['chip-print','plastic-grey',4.5]];
 // Pairs the brand book reports without a floor: colour is not their only carrier.
-const reported = [['level-high','level-low','the editor also writes data-level and the pin tooltip carries the voltage'],['pad','pcb-white','the plated hole centre carries it']];
+const reported = [['level-high','level-low','a host also writes data-level and the pin tooltip carries the voltage'],['pad','pcb-white','the plated hole centre carries it']];
 let fails = 0;
 for (const [a, bb, floor] of pairs) { const r = contrastRatio(v(a), v(bb)); const ok = r >= floor; if (!ok) fails++; console.log((ok ? 'ok   ' : 'FAIL ') + a + ' on ' + bb + ': ' + r.toFixed(2) + ':1 (floor ' + floor + ')'); }
 // The coloured breadboards are fixed paint: holes at 3:1 and print at 4.5:1 on the body, as for white.

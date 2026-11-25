@@ -9,5 +9,5 @@ The small sensor boards sold by the hundred (KY and FC classes), drawn upright w
 - The comparator boards print no title, as the real ones do not; the pin names and the element say which board it is. The KY boards take `label`.
 - Layouts were checked against product photographs: the flame board (user photo), KY-013 and KY-022 (ProtoSupplies), the SW-520D module (Components101), the four-pin LDR board (NotEnoughTech) and the KY-037 (45-in-1 kit docs).
 - The KY boards print S and − on their headers (the middle pin is unmarked), and the order differs by board: the KY-013 (`bead`) reads S, +, − from the left (`OUT`, `VCC`, `GND` by default) and the KY-022 (`ir`) −, +, S (`GND`, `VCC`, `OUT`), as Joy-IT's photographs of both show.
-- Indicators are the editor's hooks: `power-led` with `data-lit-state="power"` and `out-led` for the comparator's output.
+- Indicators use the standard hooks: `power-led` with `data-lit-state="power"` and `out-led` for the comparator's output.
 - Every sensor in the catalog that is not a Module fits one of these: light (LDR), flame, big and small sound, NTC, tilt and the IR receiver. The gas sensor is the Module's `gasModuleTemplate`; the heartbeat sensor is PulseSensor.

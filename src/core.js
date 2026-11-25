@@ -558,7 +558,7 @@ export function silkMark(x, y, size, color) {
       path('M18 25h10', 'none', { stroke: color, 'stroke-width': 3.2, 'stroke-linecap': 'round' }),
   );
 }
-/** Current along a leg: signal dashes over the wire, data-live="flow", opacity 0 until the editor (or live.flow) turns it on. */
+/** Current along a leg: signal dashes over the wire, data-live="flow", opacity 0 until a host (or live.flow) turns it on. */
 export function flow(x1, y1, x2, y2, on, hook) {
   const T = tokens();
   // 'reverse' runs the dashes from the end back to the start.
