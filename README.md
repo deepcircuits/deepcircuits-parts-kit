@@ -29,7 +29,7 @@ The Parts Kit is the artwork of [DeepCircuits](https://deepcircuits.io), the cir
 ## Install
 
 ```bash
-npm install github:deepcircuits/deepcircuits-parts-kit
+npm install @deepcircuits/parts-kit
 ```
 
 Or, without a bundler:
