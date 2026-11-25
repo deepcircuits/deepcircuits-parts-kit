@@ -119,6 +119,7 @@ host.innerHTML = drawServo({ angle: 45 }).svg;
 | `@deepcircuits/parts-kit/controls` | `knobPosition`, `slidePosition`, `sliderKeyStep`, `detentsTurned`, `angleBetween`, `JOYSTICK_FULL_DRAG`, `joystickPosition`, `joystickGeometry`, `KEYPAD_KEYS`, `keypadKeyOf`, `keypadHookOf`, `dipLeverIndex`, `remoteKeyForKeyboard`, `dialGeometry`, `dialDigitAt` and `dialTravel`: the geometry and key maps for operating the input parts. |
 | `@deepcircuits/parts-kit/check` | `check` and `pinsOnPitch`. |
 | `@deepcircuits/parts-kit/mount` | `mount`, the preview helper. |
+| `@deepcircuits/parts-kit/cards` | `CARDS`, every generator's gallery card (`name`, `intro`, `draw(K, root)`), typed with `GeneratorCard` and `CardKit`. |
 | `@deepcircuits/parts-kit/bundle.js` | The whole kit as one classic script. It defines `window.PartsKit` and, on a page, `<parts-kit-part>`. |
 | `@deepcircuits/parts-kit/bundle.css` | Styles for `mount` previews and the `data-live` animation. |
 | `@deepcircuits/parts-kit/tokens.css` | The tokens as CSS custom properties, light and dark. |
